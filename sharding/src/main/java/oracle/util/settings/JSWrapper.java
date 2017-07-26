@@ -164,7 +164,6 @@ public class JSWrapper {
         return ((ScriptObjectMirror) object);
     }
 
-
     public static JSWrapper eval(Reader reader, Map<String, Object> stuff)
             throws ScriptException
     {
@@ -213,8 +212,9 @@ public class JSWrapper {
             if (global != null) {
                 Set<String> keys = new HashSet<>(global.keySet());
                 keys.removeAll(original_keys);
-                for (String key : keys)
+                for (String key : keys) {
                     put(key, global.remove(key));
+                }
             }
         }
     }

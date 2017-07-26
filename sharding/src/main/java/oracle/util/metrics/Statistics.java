@@ -32,7 +32,6 @@ public class Statistics {
         return metric;
     }
 
-
     public Metric setProgress(String itemName, long current, long total)
     {
         Metric metric = metricMap.computeIfAbsent(itemName, s -> new Metric(itemName));
