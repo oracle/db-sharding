@@ -3,7 +3,7 @@ package oracle.util.function;
 import java.util.function.Consumer;
 
 /**
- * Created by somestuff on 4/6/17.
+ * Variant of java.util.function.Consumer which can throw an exception and process it as side effect.
  */
 @FunctionalInterface
 public interface ConsumerWithError<T, E extends Exception> {

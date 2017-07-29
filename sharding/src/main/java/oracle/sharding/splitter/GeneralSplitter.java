@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Created by somestuff on 6/9/17.
+ * Split input data based on the given routing table and batch them pipelining further.
  */
 public class GeneralSplitter<ItemT> implements Feeder<ItemT> {
     private final RoutingTable routingTable;
@@ -88,6 +88,10 @@ public class GeneralSplitter<ItemT> implements Feeder<ItemT> {
     public GeneralSplitter<ItemT> setBucketSize(int bucketSize) {
         this.bucketSize = bucketSize;
         return this;
+    }
+
+    public RoutingTable getRoutingTable() {
+        return routingTable;
     }
 
     private abstract class GeneralFeeder implements Feeder<ItemT> {
@@ -196,5 +200,7 @@ public class GeneralSplitter<ItemT> implements Feeder<ItemT> {
         for (ThreadLocalFeeder feeder : localFeederList) {
             feeder.close();
         }
+
+        localFeederList.clear();
     }
 }

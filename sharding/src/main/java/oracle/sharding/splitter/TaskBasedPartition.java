@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  */
 public class TaskBasedPartition<ItemT> extends PartitionEngine<ItemT>
 {
-    private Map<Object, ContainerData> containerInfo = new ConcurrentHashMap<>();
+    private final Map<Object, ContainerData> containerInfo = new ConcurrentHashMap<>();
     private final ExecutorService executor;
     private int queueSize = 1024;
     private int maxBatchPerTask = 16;

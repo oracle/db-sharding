@@ -1,5 +1,6 @@
 package oracle.sharding.details;
 
+import oracle.sharding.RoutingKey;
 import oracle.sharding.RoutingTable;
 
 import java.sql.SQLException;
@@ -31,7 +32,17 @@ public abstract class OracleRoutingTable implements RoutingTable<Chunk> {
         return metadata;
     }
 
+
+
     public void atomicUpdate(Collection<Chunk> removeChunks, Collection<Chunk> updateChunks) {
         atomicUpdate(removeChunks, updateChunks, Chunk::getKeySet);
+    }
+
+    public RoutingKey createKey(Object ... a) {
+        try {
+            return metadata.createKey(a);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

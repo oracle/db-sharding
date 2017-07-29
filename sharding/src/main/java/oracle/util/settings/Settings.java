@@ -49,7 +49,6 @@ public class Settings {
         this(System.getProperties());
         parseArguments(args);
     }
-
     public Settings(Properties properties, String[] args) {
         this.properties = properties;
         parseArguments(args);

@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  * Created by somestuff on 6/21/17.
  */
 public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
-    private Map<Object, ConsumerQueue<List<ItemT>>> chunkQueues = new ConcurrentHashMap<>();
+    private final Map<Object, ConsumerQueue<List<ItemT>>> chunkQueues = new ConcurrentHashMap<>();
     private int queueSize = 1024;
     private final List<Thread> workingThreads = new ArrayList<>();
 
@@ -21,16 +21,35 @@ public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
         splitter.setSink(this::acceptItem);
     }
 
+    /**
+     * Create a queue for the chunk object.
+     * Should be called once for each distinctive object.
+     *
+     * @param container chunk object to create a queue for
+     * @return new queue
+     */
+
+    private ConsumerQueue<List<ItemT>> createContainerQueue(Object container)
+    {
+        ConsumerQueue<List<ItemT>> queue = new ConsumerQueue<>(queueSize);
+        Consumer<List<ItemT>> sink = createSinkFunction.apply(container);
+        Thread thread = new Thread(queue.createSink(sink));
+        thread.setDaemon(true);
+        thread.start();
+        workingThreads.add(thread);
+        return queue;
+    }
+
     private void acceptItem(Object container, List<ItemT> batch)
     {
-        chunkQueues.computeIfAbsent(container, o -> new ConsumerQueue<>(queueSize,
-                createSinkFunction.apply(container))).accept(batch);
+        chunkQueues.computeIfAbsent(container, o -> createContainerQueue(container)).accept(batch);
     }
 
     public void createSink(Object chunk, Consumer<List<ItemT>> sink)
     {
-        Thread thread = new Thread(chunkQueues
-                .computeIfAbsent(chunk, o -> new ConsumerQueue<>(queueSize)).createSink(sink));
+        ConsumerQueue<List<ItemT>> queue = chunkQueues
+                .computeIfAbsent(chunk, o -> new ConsumerQueue<>(queueSize));
+        Thread thread = new Thread(queue.createSink(sink));
         thread.setDaemon(true);
         thread.start();
         workingThreads.add(thread);
@@ -56,13 +75,13 @@ public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
 
     @Override
     public void waitAndClose(long waitTimeout) throws Exception {
-        joinAll(waitTimeout);
         chunkQueues.values().forEach(ConsumerQueue::closeIgnore);
+        joinAll(waitTimeout);
     }
 
     @Override
     public void close() throws Exception {
-        interruptAll(); /* The best we can do */
         chunkQueues.values().forEach(ConsumerQueue::closeIgnore);
+        interruptAll(); /* The best we can do */
     }
 }

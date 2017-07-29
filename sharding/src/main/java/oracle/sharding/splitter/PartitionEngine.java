@@ -1,5 +1,8 @@
 package oracle.sharding.splitter;
 
+import oracle.sharding.RoutingKey;
+import oracle.sharding.RoutingTable;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,4 +32,12 @@ public abstract class PartitionEngine<ItemT> implements AutoCloseable {
 
     public abstract void createSink(Object chunk, Consumer<List<ItemT>> sink);
     public abstract void waitAndClose(long waitTimeout) throws Exception;
+
+    public void setKeyFunction(Function<ItemT, RoutingKey> function) {
+        splitter.setGetKey(function);
+    }
+
+    public RoutingTable getRoutingTable() {
+        return splitter.getRoutingTable();
+    }
 }

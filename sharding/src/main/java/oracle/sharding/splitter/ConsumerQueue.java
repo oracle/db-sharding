@@ -1,8 +1,11 @@
 package oracle.sharding.splitter;
 
+import java.util.Spliterators;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by somestuff on 4/6/17.
@@ -14,16 +17,39 @@ public class ConsumerQueue<T> implements Consumer<T>, AutoCloseable {
         this.queue = new ArrayBlockingQueue<>(queueSize);
     }
 
-    public ConsumerQueue(int queueSize, Consumer<T> sink) {
-        this(queueSize);
-        createSink(sink);
-    }
-
     public ConsumerQueue() {
         this(1024);
     }
 
     private static final Object END_MARKER = new Object();
+
+    private class ConsumerQueueSpliterator extends Spliterators.AbstractSpliterator<T>
+    {
+        protected ConsumerQueueSpliterator() {
+            super(Long.MAX_VALUE, 0);
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            try {
+                Object x;
+
+                if ((x = queue.take()) != END_MARKER) {
+                    action.accept((T) x);
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+    }
+
+    public Stream<T> stream() {
+        return StreamSupport.stream(new ConsumerQueueSpliterator(), false);
+    }
 
     protected void sinkThreadRun(final Consumer<T> consumer) {
         try {

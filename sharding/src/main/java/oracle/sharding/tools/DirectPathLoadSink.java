@@ -23,30 +23,28 @@ public class DirectPathLoadSink implements AutoCloseable, ConsumerWithError<List
     public DirectPathLoadSink(JSWrapper parameters) throws SQLException {
         dpl = new OCIDirectPath(
             parameters.get("connectionString")
-                .orElseThrow(() -> { throw fieldRequired("Connection string", "connectionString"); })
+                .orElseThrow(() -> fieldRequired("Connection string", "connectionString"))
                 .asString()
             , parameters.get("user")
-                .orElseThrow(() -> { throw fieldRequired("Username", "user"); })
+                .orElseThrow(() -> fieldRequired("Username", "user"))
                 .asString()
             , parameters.get("password")
-                .orElseThrow(() -> { throw fieldRequired("Password", "password"); })
+                .orElseThrow(() -> fieldRequired("Password", "password"))
                 .asString().getBytes());
 
         dpl.setTarget(
                 parameters.get("schema")
-                        .orElseThrow(() -> { throw fieldRequired("Schema", "schema"); })
+                        .orElseThrow(() -> fieldRequired("Schema", "schema"))
                         .asString()
                 , parameters.get("table")
-                        .orElseThrow(() -> { throw fieldRequired("Table", "table"); })
+                        .orElseThrow(() -> fieldRequired("Table", "table"))
                         .asString()
                 , parameters.get("partition")
-                        .orElseThrow(() -> { throw fieldRequired("Partition or subpartition", "partition"); })
+                        .orElseThrow(() -> fieldRequired("Partition or subpartition", "partition"))
                         .asString());
 
         Collection<Object> columnDefinitions = parameters.get("columns")
-                .orElseThrow(() -> {
-                    throw fieldRequired("Column definition", "column");
-                })
+                .orElseThrow(() -> fieldRequired("Column definition", "column"))
                 .asCollection();
 
         this.columnCount = columnDefinitions.size();

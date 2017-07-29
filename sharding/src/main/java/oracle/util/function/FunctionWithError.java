@@ -3,7 +3,7 @@ package oracle.util.function;
 import java.util.function.Function;
 
 /**
- * Created by somestuff on 4/6/17.
+ * Variant of java.util.function.Function which can throw an exception and process it as side effect.
  */
 @FunctionalInterface
 public interface FunctionWithError<T, R, E extends Exception> {

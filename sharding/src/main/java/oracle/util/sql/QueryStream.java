@@ -10,46 +10,61 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Created by somestuff on 6/30/17.
+ * Wrap query result set into a stream.
  */
-public class QueryStream {
-    public static class ResultSetSpliterator extends Spliterators.AbstractSpliterator<ResultSet> {
-        private final ResultSet resultSet;
+public class QueryStream extends Spliterators.AbstractSpliterator<ResultSet> {
+    private final ResultSet resultSet;
+    private final PreparedStatement statement;
 
-        public ResultSetSpliterator(final ResultSet resultSet) {
-            super(Long.MAX_VALUE, Spliterator.ORDERED);
-            this.resultSet = resultSet;
-        }
-
-        @Override
-        public boolean tryAdvance(Consumer<? super ResultSet> action) {
-            boolean hasNext;
-
-            try {
-                hasNext = resultSet.next();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            if (hasNext) {
-                action.accept(resultSet);
-            }
-
-            return hasNext;
-        }
-
-        public void close() throws SQLException {
-            resultSet.close();
-        }
+    /**
+     * Disable the constructor
+     */
+    private QueryStream() {
+        super(Long.MAX_VALUE, Spliterator.ORDERED);
+        throw new RuntimeException("Constructor not available");
     }
 
+    private QueryStream(final PreparedStatement statement) throws SQLException {
+        super(Long.MAX_VALUE, Spliterator.ORDERED);
+        this.statement = statement;
+        this.resultSet = statement.executeQuery();
+    }
+
+    @Override
+    public boolean tryAdvance(Consumer<? super ResultSet> action) {
+        boolean hasNext;
+
+        try {
+            hasNext = resultSet.next();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (hasNext) {
+            action.accept(resultSet);
+        }
+
+        return hasNext;
+    }
+
+    public void close() {
+        try { resultSet.close(); } catch (SQLException ignore) { /* ignore */ }
+        try { statement.close(); } catch (SQLException ignore) { /* ignore */ }
+    }
+
+    private Stream<ResultSet> toStream() {
+        return StreamSupport.stream(this, false).onClose(this::close);
+    }
+
+    /**
+     * Execute statement and wrap the result set into a stream.
+     *
+     * @param statement to execute
+     * @return stream wrapped result set
+     * @throws SQLException
+     */
     public static Stream<ResultSet> create(PreparedStatement statement) throws SQLException
     {
-        ResultSetSpliterator splt = new ResultSetSpliterator(statement.executeQuery());
-
-        return StreamSupport.stream(splt, false).onClose(() -> {
-            try { splt.close(); } catch (SQLException ignore) { /* ignore */ }
-            try { statement.close(); } catch (SQLException ignore) { /* ignore */ }
-        });
+        return new QueryStream(statement).toStream();
     }
 }

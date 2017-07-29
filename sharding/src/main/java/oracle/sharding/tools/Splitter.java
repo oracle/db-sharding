@@ -122,9 +122,8 @@ public class Splitter {
     {
         try {
             String connectionString = catalogInfo.get("connectionString")
-                    .orElseThrow(() -> {
-                        throw new IllegalArgumentException("Catalog connection string must be provided");
-                    }).asString();
+                    .orElseThrow(() -> new IllegalArgumentException("Catalog connection string must be provided"))
+                    .asString();
 
             java.util.Properties info = new java.util.Properties();
 
@@ -189,7 +188,7 @@ public class Splitter {
 
     public void run(JSWrapper configurationScript) throws Exception {
         JSWrapper configurationMap = configurationScript.get("configuration")
-            .orElseThrow(() -> { throw new java.lang.IllegalArgumentException("Configuration not found"); })
+            .orElseThrow(() -> new IllegalArgumentException("Configuration not found"))
             .callOrGetValue(this, this);
 
         configurationMap.get("catalog").ifPresent(this::loadMetadataFromCatalog);
@@ -205,7 +204,7 @@ public class Splitter {
         int maxColumns = configurationMap.get("maxColumns").orElse(JSWrapper.nullObject()).asNumber(-1).intValue();
 
         inputFiles.addAll(configurationMap.get("source")
-            .orElseThrow(() -> { throw new java.lang.IllegalArgumentException("Configuration not found"); })
+            .orElseThrow(() -> new java.lang.IllegalArgumentException("Configuration not found"))
             .asCollection());
 
         try {
