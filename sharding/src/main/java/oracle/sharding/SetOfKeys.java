@@ -1,7 +1,9 @@
 package oracle.sharding;
 
+import java.io.Serializable;
+
 /**
- * Created by somestuff on 4/19/17.
+ * Base class for representing a set of routing keys
  */
-public abstract class SetOfKeys {
+public abstract class SetOfKeys implements Serializable {
 }

@@ -2,10 +2,12 @@ package oracle.sharding.sql;
 
 import oracle.sharding.details.OracleKeyColumn;
 
+import java.io.Serializable;
+
 /**
  * Created by somestuff on 6/28/17.
  */
-public class ColumnInfo {
+public class ColumnInfo implements Serializable {
     final int dty, charSet, size;
     final int level, number;
 

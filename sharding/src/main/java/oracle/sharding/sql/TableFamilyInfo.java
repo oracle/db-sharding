@@ -2,13 +2,14 @@ package oracle.sharding.sql;
 
 import oracle.sharding.ShardBy;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
  * Created by somestuff on 6/28/17.
  */
-public class TableFamilyInfo {
+public class TableFamilyInfo implements Serializable {
     final int id;
     final String name;
     final String schemaName;

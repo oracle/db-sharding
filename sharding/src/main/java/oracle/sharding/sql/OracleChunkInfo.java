@@ -5,13 +5,14 @@ import oracle.sharding.details.Chunk;
 import oracle.sharding.details.OracleShardingMetadata;
 import oracle.sharding.details.Shard;
 
+import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
  * Created by somestuff on 6/28/17.
  */
-public class OracleChunkInfo {
+public class OracleChunkInfo implements Serializable {
     final public String shardName;
     final public SetOfKeys keySet;
 

@@ -2,6 +2,7 @@ package oracle.sharding.sql;
 
 import oracle.sharding.details.*;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.function.Function;
 /**
  * Created by somestuff on 6/28/17.
  */
-public class ShardConfigurationInfo {
+public class ShardConfigurationInfo implements Serializable {
     private final InstanceInfo instanceInfo;
     private final TableFamilyInfo tableFamily;
     private final List<ColumnInfo> columnList = new ArrayList<>();
@@ -26,6 +27,23 @@ public class ShardConfigurationInfo {
     }
 
     public static ShardConfigurationInfo loadFromDatabase(Connection connection) throws SQLException {
+//        if (connection instanceof OracleConnection) {
+//            ((OracleConnection) connection).getConnectionAttributes();
+//        }
+
+        MetadataReader metadataReader = new MetadataReader(connection);
+        InstanceInfo instanceInfo = new InstanceInfo(connection);
+        ShardConfigurationInfo result = new ShardConfigurationInfo(metadataReader.getShardingInfo(), instanceInfo);
+        ChunkReader chunkReader = new ChunkReader(connection);
+        chunkReader.setInstanceInfo(instanceInfo);
+        OracleShardingMetadata metadata = metadataReader.readMetadata();
+        metadataReader.readShardColumns(result.tableFamily.id, result.columnList);
+        chunkReader.readChunks(metadata, result.chunkList);
+
+        return result;
+    }
+
+    public static ShardConfigurationInfo loadFromCatalog(Connection connection) throws SQLException {
 //        if (connection instanceof OracleConnection) {
 //            ((OracleConnection) connection).getConnectionAttributes();
 //        }

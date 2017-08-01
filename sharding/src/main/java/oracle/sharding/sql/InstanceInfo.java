@@ -1,11 +1,12 @@
 package oracle.sharding.sql;
 
+import java.io.Serializable;
 import java.sql.Connection;
 
 /**
  * Created by somestuff on 4/6/17.
  */
-public class InstanceInfo {
+public class InstanceInfo implements Serializable {
     private final String shardName;
     private final String instanceName;
     final boolean isCatalog;
