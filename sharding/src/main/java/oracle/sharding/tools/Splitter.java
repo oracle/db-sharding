@@ -134,7 +134,8 @@ public class Splitter {
             }
 
             try (Connection catalogConnection = DriverManager.getConnection(connectionString, info)) {
-                routingTable = ShardConfigurationInfo.loadFromDatabase(catalogConnection).createRoutingTable();
+                routingTable = ShardConfigurationInfo.loadFromDatabase(catalogConnection, true)
+                        .createRoutingTable();
 
                 new MetadataReader(catalogConnection).readShardData().forEach(
                         instanceInfo -> shardConnectionStrings.put(instanceInfo.getShardName(),

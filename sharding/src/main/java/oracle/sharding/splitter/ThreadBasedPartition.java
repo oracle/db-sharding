@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
 /**
@@ -15,10 +17,15 @@ public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
     private final Map<Object, ConsumerQueue<List<ItemT>>> chunkQueues = new ConcurrentHashMap<>();
     private int queueSize = 1024;
     private final List<Thread> workingThreads = new ArrayList<>();
+    private ThreadFactory threadFactory = Executors.defaultThreadFactory();
 
     public ThreadBasedPartition(RoutingTable routingTable) {
         super(new GeneralSplitter<ItemT>(routingTable));
         splitter.setSink(this::acceptItem);
+    }
+
+    public void setThreadFactory(ThreadFactory threadFactory) {
+        this.threadFactory = threadFactory;
     }
 
     /**
@@ -33,8 +40,7 @@ public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
     {
         ConsumerQueue<List<ItemT>> queue = new ConsumerQueue<>(queueSize);
         Consumer<List<ItemT>> sink = createSinkFunction.apply(container);
-        Thread thread = new Thread(queue.createSink(sink));
-        thread.setDaemon(true);
+        Thread thread = threadFactory.newThread(queue.createSink(sink));
         thread.start();
         workingThreads.add(thread);
         return queue;
@@ -49,8 +55,7 @@ public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
     {
         ConsumerQueue<List<ItemT>> queue = chunkQueues
                 .computeIfAbsent(chunk, o -> new ConsumerQueue<>(queueSize));
-        Thread thread = new Thread(queue.createSink(sink));
-        thread.setDaemon(true);
+        Thread thread = threadFactory.newThread(queue.createSink(sink));
         thread.start();
         workingThreads.add(thread);
     }

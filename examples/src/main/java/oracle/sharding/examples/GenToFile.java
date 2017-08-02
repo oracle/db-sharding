@@ -33,22 +33,24 @@ public class GenToFile {
         /* Create a batching partitioning engine based on the catalog */
         PartitionEngine<DemoLogEntry> engine = new ThreadBasedPartition<>(routingTable);
 
-        /* Provide a function, which writes the data for each chunk to a separate file */
-        engine.setCreateSinkFunction(
-                chunk -> createOrderSink("/tmp/test-CHUNK_" + ((Chunk) chunk).getChunkUniqueId()));
+        try {
+            /* Provide a function, which writes the data for each chunk to a separate file */
+            engine.setCreateSinkFunction(
+                    chunk -> createOrderSink("/tmp/test-CHUNK_" + ((Chunk) chunk).getChunkUniqueId()));
 
-        /* Provide a function, which get the key given an object */
-        engine.setKeyFunction(a -> routingTable.createKey(a.getCustomerId()));
+            /* Provide a function, which get the key given an object */
+            engine.setKeyFunction(a -> routingTable.createKey(a.getCustomerId()));
 
-        /* Generate a million of demo objects and break  */
-        Stream.generate(DemoLogEntry::generate).limit(1000000).parallel()
-                .forEach((x) -> engine.getSplitter().feed(x));
-
+            /* Generate a million of demo objects and break  */
+            Stream.generate(DemoLogEntry::generate).limit(1000000).parallel()
+                    .forEach((x) -> engine.getSplitter().feed(x));
+        } finally {
         /* Flush all buffers */
-        engine.getSplitter().closeAllInputs();
+            engine.getSplitter().closeAllInputs();
 
         /* Wait for all writing threads to finish */
-        engine.waitAndClose(10240);
+            engine.waitAndClose(10240);
+        }
     }
 
     public static void main(String [] args)

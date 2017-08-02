@@ -5,10 +5,7 @@ import oracle.sharding.details.*;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -20,17 +17,14 @@ public class ShardConfigurationInfo implements Serializable {
     private final List<ColumnInfo> columnList = new ArrayList<>();
     private final List<OracleChunkInfo> chunkList = new ArrayList<>();
     private transient Function<OracleChunkInfo, Object> chunkAnnotateCallback = null;
+    private final List<InstanceInfo> shards = new ArrayList<>();
 
     private ShardConfigurationInfo(TableFamilyInfo tableFamily, InstanceInfo instanceInfo) {
         this.tableFamily = tableFamily;
         this.instanceInfo = instanceInfo;
     }
 
-    public static ShardConfigurationInfo loadFromDatabase(Connection connection) throws SQLException {
-//        if (connection instanceof OracleConnection) {
-//            ((OracleConnection) connection).getConnectionAttributes();
-//        }
-
+    public static ShardConfigurationInfo loadFromDatabase(Connection connection, boolean readShards) throws SQLException {
         MetadataReader metadataReader = new MetadataReader(connection);
         InstanceInfo instanceInfo = new InstanceInfo(connection);
         ShardConfigurationInfo result = new ShardConfigurationInfo(metadataReader.getShardingInfo(), instanceInfo);
@@ -40,26 +34,12 @@ public class ShardConfigurationInfo implements Serializable {
         metadataReader.readShardColumns(result.tableFamily.id, result.columnList);
         chunkReader.readChunks(metadata, result.chunkList);
 
-        return result;
-    }
-
-    public static ShardConfigurationInfo loadFromCatalog(Connection connection) throws SQLException {
-//        if (connection instanceof OracleConnection) {
-//            ((OracleConnection) connection).getConnectionAttributes();
-//        }
-
-        MetadataReader metadataReader = new MetadataReader(connection);
-        InstanceInfo instanceInfo = new InstanceInfo(connection);
-        ShardConfigurationInfo result = new ShardConfigurationInfo(metadataReader.getShardingInfo(), instanceInfo);
-        ChunkReader chunkReader = new ChunkReader(connection);
-        chunkReader.setInstanceInfo(instanceInfo);
-        OracleShardingMetadata metadata = metadataReader.readMetadata();
-        metadataReader.readShardColumns(result.tableFamily.id, result.columnList);
-        chunkReader.readChunks(metadata, result.chunkList);
+        if (readShards) {
+            metadataReader.readShardData(result.shards);
+        }
 
         return result;
     }
-
 
     public OracleShardingMetadata createMetadata() throws UnexpectedChunkConfigurationException
     {
@@ -82,10 +62,14 @@ public class ShardConfigurationInfo implements Serializable {
             }
         }
 
-        return builder.build();
+        OracleShardingMetadata result = builder.build();
+
+        for (InstanceInfo instanceInfo : getInstances()) {
+            result.getShardForUpdate(instanceInfo.getShardName()).setConnectionString(instanceInfo.connectionString);
+        }
+
+        return result;
     }
-
-
 
     public void updateRoutingTable(OracleRoutingTable routingTable)
             throws SQLException
@@ -116,6 +100,10 @@ public class ShardConfigurationInfo implements Serializable {
         OracleRoutingTable result = createMetadata().createRoutingTable();
         updateRoutingTable(result);
         return result;
+    }
+
+    public List<InstanceInfo> getInstances() {
+        return Collections.unmodifiableList(shards);
     }
 
     public void setChunkAnnotateCallback(Function<OracleChunkInfo, Object> chunkAnnotateCallback) {

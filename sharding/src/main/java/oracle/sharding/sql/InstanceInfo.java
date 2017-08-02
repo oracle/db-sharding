@@ -11,6 +11,7 @@ public class InstanceInfo implements Serializable {
     private final String instanceName;
     final boolean isCatalog;
     String connectionString;
+    transient boolean isPrimary;
 
     public InstanceInfo(String shardName, String instanceName) {
         this.shardName = shardName;
