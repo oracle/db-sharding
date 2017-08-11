@@ -713,14 +713,14 @@ void DirectPathInsert::setSink(const std::string& schemaName, const std::string&
 void DirectPathInsert::initStream(unsigned int rows)
 {
   MyAttributes attributes(*this, conn.ociEnv);
-
+/*
   attributes.setT<ub1>(OCI_ATTR_DIRPATH_MODE,  OCI_DIRPATH_LOAD);
   attributes.setT<ub1>(OCI_ATTR_DIRPATH_INPUT, OCI_DIRPATH_INPUT_TEXT);
   attributes.setT<ub4>(OCI_ATTR_DIRPATH_STORAGE_INITIAL, 100000);
   attributes.setT<ub4>(OCI_ATTR_DIRPATH_STORAGE_NEXT, 100000);
   attributes.setT<ub1>(OCI_ATTR_DIRPATH_NOLOG, 1);
   attributes.setT<ub1>(OCI_ATTR_DIRPATH_PARALLEL, 1);
-  
+*/
   attributes.setT<ub4>(OCI_ATTR_NUM_COLS, (ub4) columns.size());
   attributes.setT<ub4>(OCI_ATTR_NUM_ROWS, rows);
 

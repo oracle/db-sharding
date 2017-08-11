@@ -141,7 +141,6 @@ public final class OCIDirectPath implements AutoCloseable {
     }
 
     static {
-        System.out.println(System.getProperties().getProperty("java.library.path"));
         System.loadLibrary("dpjni");
         initialize();
     }

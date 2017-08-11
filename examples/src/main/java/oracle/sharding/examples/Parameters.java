@@ -15,10 +15,7 @@ import java.util.stream.Collectors;
  * Created by somestuff on 8/1/17.
  */
 public class Parameters {
-    static String connectionString = "jdbc:oracle:thin:@" +
-            "(DESCRIPTION=(ADDRESS=(HOST=slc07efe)(PORT=1522)(PROTOCOL=tcp))" +
-            "(CONNECT_DATA=(SERVICE_NAME=GDS$CATALOG.ORADBCLOUD)))";
-
+    static String connectionString = null;
     static String username = "dyn";
     static String password = "123";
     static String schemaName;

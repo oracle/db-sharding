@@ -11,7 +11,7 @@ import java.util.List;
  * and evaluating the performance.
  */
 public class DirectPathLoadSinkCounted extends DirectPathLoadSink {
-    private DirectPathLoadSinkCounted(Builder builder) {
+    DirectPathLoadSinkCounted(Builder builder) {
         super(builder.getDpl(), builder.getColumnCount());
     }
 
@@ -20,7 +20,7 @@ public class DirectPathLoadSinkCounted extends DirectPathLoadSink {
 
     @Override
     public void accept(List<SeparatedString> separatedStrings) {
-        metric.addCurrent(separatedStrings.size());
         super.accept(separatedStrings);
+        metric.addCurrent(separatedStrings.size());
     }
 }

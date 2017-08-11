@@ -30,6 +30,6 @@ link_directories(${OCI_LIBRARY_PATH})
 
 add_library(dpjni SHARED javadpl/OCIDirectPathJNI.cpp)
 
-target_link_libraries(dpjni clntshcore clntsh occi nnz12)
+target_link_libraries(dpjni clntsh nnz12 clntshcore ons mql1 ipc1 occi ociei pthread)
 
 install(TARGETS dpjni LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib64)

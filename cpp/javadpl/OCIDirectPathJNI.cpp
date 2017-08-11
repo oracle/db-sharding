@@ -12,8 +12,9 @@ struct JavaDirectPathAPI
   DynamicBuffer buffer;
   char * savedBuffer = nullptr;
   int currentRow = 0;
-  int maxRowCount = 1024*1024;
+  int maxRowCount = 100*1024;
   bool closed = true;
+  bool initialized = false;
 
   oci::StandaloneConnection connection;
   std::unique_ptr<oci::DirectPathInsert> dp;
@@ -106,13 +107,13 @@ static jclass RuntimeExceptionClass;
 
 using namespace jnihelpers;
 
-void Java_oracle_sharding_output_OCIDirectPath_initialize(JNIEnv * env, jclass cls)
+void Java_oracle_sharding_tools_OCIDirectPath_initialize(JNIEnv * env, jclass cls)
 {
   JavaDirectPathAPI::jniDesc.initialize(env, cls, "nativeObjectAddress");
   RuntimeExceptionClass = env->FindClass("java/lang/RuntimeException");
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_createInternal(JNIEnv * env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_createInternal(JNIEnv * env, jobject obj)
 {
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
 
@@ -125,7 +126,7 @@ void Java_oracle_sharding_output_OCIDirectPath_createInternal(JNIEnv * env, jobj
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_connectInternal(JNIEnv* env, jobject obj,
+void Java_oracle_sharding_tools_OCIDirectPath_connectInternal(JNIEnv* env, jobject obj,
     jstring connect, jstring username, jbyteArray password)
 {
   JAVA_BLOCK_BEGIN(env)
@@ -138,7 +139,7 @@ void Java_oracle_sharding_output_OCIDirectPath_connectInternal(JNIEnv* env, jobj
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_closeInternal(JNIEnv * env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_closeInternal(JNIEnv * env, jobject obj)
 {
   JAVA_BLOCK_BEGIN(env)
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
@@ -152,7 +153,7 @@ void Java_oracle_sharding_output_OCIDirectPath_closeInternal(JNIEnv * env, jobje
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_setTarget(JNIEnv* env, jobject obj, jstring schema, jstring table, jstring partition)
+void Java_oracle_sharding_tools_OCIDirectPath_setTarget(JNIEnv* env, jobject obj, jstring schema, jstring table, jstring partition)
 {
   JAVA_BLOCK_BEGIN(env)
 
@@ -164,7 +165,7 @@ void Java_oracle_sharding_output_OCIDirectPath_setTarget(JNIEnv* env, jobject ob
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_addColumnDefinition(JNIEnv*env, jobject obj, jstring columnName, jint dty, jint size)
+void Java_oracle_sharding_tools_OCIDirectPath_addColumnDefinition(JNIEnv*env, jobject obj, jstring columnName, jint dty, jint size)
 {
   JAVA_BLOCK_BEGIN(env)
 
@@ -173,7 +174,7 @@ void Java_oracle_sharding_output_OCIDirectPath_addColumnDefinition(JNIEnv*env, j
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_nextRow(JNIEnv*env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_nextRow(JNIEnv*env, jobject obj)
 {
   JAVA_BLOCK_BEGIN(env)
 
@@ -182,7 +183,7 @@ void Java_oracle_sharding_output_OCIDirectPath_nextRow(JNIEnv*env, jobject obj)
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_finish(JNIEnv* env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_finish(JNIEnv* env, jobject obj)
 {
   JAVA_BLOCK_BEGIN(env)
 
@@ -191,7 +192,7 @@ void Java_oracle_sharding_output_OCIDirectPath_finish(JNIEnv* env, jobject obj)
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_reopen(JNIEnv* env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_reopen(JNIEnv* env, jobject obj)
 {
   JAVA_BLOCK_BEGIN(env)
 
@@ -200,7 +201,7 @@ void Java_oracle_sharding_output_OCIDirectPath_reopen(JNIEnv* env, jobject obj)
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_discard(JNIEnv* env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_discard(JNIEnv* env, jobject obj)
 {
   JAVA_BLOCK_BEGIN(env)
 
@@ -209,10 +210,14 @@ void Java_oracle_sharding_output_OCIDirectPath_discard(JNIEnv* env, jobject obj)
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_setData(JNIEnv*env, jobject obj, jbyteArray data)
+void Java_oracle_sharding_tools_OCIDirectPath_setData(JNIEnv*env, jobject obj, jbyteArray data)
 {
   JAVA_BLOCK_BEGIN(env)
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
+
+  if (!self->initialized) {
+    env->ThrowNew(RuntimeExceptionClass, "Direct Path Loader is not initialized");
+  }
 
   int len = env->GetArrayLength(data);
   void * bytes = env->GetPrimitiveArrayCritical(data, nullptr);
@@ -222,7 +227,7 @@ void Java_oracle_sharding_output_OCIDirectPath_setData(JNIEnv*env, jobject obj, 
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_setValue__III(JNIEnv*env, jobject obj, jint column, jint offset, jint len)
+void Java_oracle_sharding_tools_OCIDirectPath_setValue__III(JNIEnv*env, jobject obj, jint column, jint offset, jint len)
 {
   JAVA_BLOCK_BEGIN(env)
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
@@ -232,10 +237,14 @@ void Java_oracle_sharding_output_OCIDirectPath_setValue__III(JNIEnv*env, jobject
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_setValue__I_3B(JNIEnv*env, jobject obj, jint column, jbyteArray data)
+void Java_oracle_sharding_tools_OCIDirectPath_setValue__I_3B(JNIEnv*env, jobject obj, jint column, jbyteArray data)
 {
   JAVA_BLOCK_BEGIN(env)
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
+
+  if (!self->initialized) {
+    env->ThrowNew(RuntimeExceptionClass, "Direct Path Loader is not initialized");
+  }
 
   int len = env->GetArrayLength(data);
   void * bytes = env->GetPrimitiveArrayCritical(data, nullptr);
@@ -247,10 +256,14 @@ void Java_oracle_sharding_output_OCIDirectPath_setValue__I_3B(JNIEnv*env, jobjec
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_setValue__I_3BII(JNIEnv*env, jobject obj, jint column, jbyteArray data, jint offset, jint len)
+void Java_oracle_sharding_tools_OCIDirectPath_setValue__I_3BII(JNIEnv*env, jobject obj, jint column, jbyteArray data, jint offset, jint len)
 {
   JAVA_BLOCK_BEGIN(env)
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
+
+  if (!self->initialized) {
+    env->ThrowNew(RuntimeExceptionClass, "Direct Path Loader is not initialized");
+  }
 
   int len2 = env->GetArrayLength(data);
 
@@ -267,16 +280,17 @@ void Java_oracle_sharding_output_OCIDirectPath_setValue__I_3BII(JNIEnv*env, jobj
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_begin(JNIEnv* env, jobject obj)
+void Java_oracle_sharding_tools_OCIDirectPath_begin(JNIEnv* env, jobject obj)
 {
   JAVA_BLOCK_BEGIN(env)
 
+  self(env, obj)->initialized = true;
   self(env, obj)->begin();
 
   JAVA_BLOCK_END(env)
 }
 
-void Java_oracle_sharding_output_OCIDirectPath_setAttribute(JNIEnv*env, jobject obj, jstring a_name, jstring a_value)
+void Java_oracle_sharding_tools_OCIDirectPath_setAttribute(JNIEnv*env, jobject obj, jstring a_name, jstring a_value)
 {
   JAVA_BLOCK_BEGIN(env)
   DECLARE_SELF(JavaDirectPathAPI, env, obj)
@@ -302,6 +316,7 @@ void Java_oracle_sharding_output_OCIDirectPath_setAttribute(JNIEnv*env, jobject 
     XX_ATTR_VALUE_INT(OCI_ATTR_DIRPATH_STORAGE_INITIAL, ub4);
     XX_ATTR_VALUE_INT(OCI_ATTR_DIRPATH_PARALLEL, ub1);
     case 'T' :
+    if (name == "BUFFER_ROW_COUNT") { self->maxRowCount = atoi(value.c_str()); break; } else
     XX_ATTR_VALUE_INT(OCI_ATTR_DIRPATH_STORAGE_NEXT, ub4);
     XX_ATTR_VALUE_STR(OCI_ATTR_DATEFORMAT);
     case 'G' :

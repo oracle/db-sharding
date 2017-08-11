@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 public class DirectPathLoadSink implements Consumer<List<SeparatedString>>, AutoCloseable {
     private final OCIDirectPath dpl;
     private int columnCount;
+    private boolean ready = false;
 
     protected DirectPathLoadSink(OCIDirectPath dpl, int columnCount) {
         this.dpl = dpl;
@@ -71,6 +72,11 @@ public class DirectPathLoadSink implements Consumer<List<SeparatedString>>, Auto
 
     @Override
     public void accept(List<SeparatedString> separatedStrings) {
+        if (!ready) {
+            dpl.begin();
+            ready = true;
+        }
+
         for (SeparatedString s : separatedStrings) {
             dpl.setData(StandardCharsets.UTF_8.encode(s.toCharSequence()).array());
 

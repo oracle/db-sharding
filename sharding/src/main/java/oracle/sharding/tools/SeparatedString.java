@@ -12,7 +12,9 @@ public class SeparatedString {
     final private char [] data;
 
     public static int[] splitArray(String s, char x, int limit) {
-        if (limit == -1) {
+        ++limit;
+
+        if (limit < 1) {
             limit = (int) s.chars().filter(c -> c == x).count();
         }
 
