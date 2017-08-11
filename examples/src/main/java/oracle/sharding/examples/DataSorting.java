@@ -29,7 +29,7 @@ public class DataSorting {
         final Map<Chunk, Writer> writers = new HashMap<>();
 
         try {
-            for (int i = 0; i < 1000000; ++i) {
+            for (int i = 0; i < Parameters.entriesToGenerate; ++i) {
                 DemoLogEntry entry = DemoLogEntry.generate();
                 Chunk chunk = routingTable.getAnyWritableChunk(entry.getCustomerId()).orElse(null);
 
@@ -48,6 +48,7 @@ public class DataSorting {
     public static void main(String [] args)
     {
         try {
+            Parameters.init(args);
             new DataSorting().run();
         } catch (Exception e) {
             throw new RuntimeException(e);

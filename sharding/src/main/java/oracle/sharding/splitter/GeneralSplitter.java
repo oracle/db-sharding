@@ -188,6 +188,7 @@ public class GeneralSplitter<ItemT> implements Feeder<ItemT> {
     @Override
     public void close() throws Exception {
         getLocalFeeder().close();
+        localFeederList.remove(getLocalFeeder());
         localFeeders.remove();
     }
 

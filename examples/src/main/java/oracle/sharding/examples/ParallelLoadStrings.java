@@ -4,61 +4,69 @@ import oracle.sharding.details.Chunk;
 import oracle.sharding.details.OracleRoutingTable;
 import oracle.sharding.splitter.PartitionEngine;
 import oracle.sharding.splitter.ThreadBasedPartition;
-import oracle.sharding.tools.UnbatchingSink;
+import oracle.sharding.tools.StatementSink;
 import oracle.util.metrics.Statistics;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Consumer;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.stream.Stream;
 
 /**
- * Example of partitioning.
+ *
  */
-public class GenToFile {
-    /* Create a function which writes  */
-    public Consumer<List<DemoLogEntry>> createOrderSink(String filename) {
+public class ParallelLoadStrings {
+    private PreparedStatement createInsertStatement(String connectionString) {
         try {
-            return UnbatchingSink.unbatchToStrings(
-                new BufferedWriter(new FileWriter(filename)),
-                    demoLogEntry -> {
-                        metric.inc();
-                        return demoLogEntry.toString();
-                    });
-        } catch (IOException e) {
+            return DriverManager.getConnection("jdbc:oracle:thin:@" + connectionString, Parameters.username, Parameters.password)
+                    .prepareStatement("insert /*+ append_values */ into log(cust_id, ip_addr, hits) values (?,?,?)");
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
     private final static Statistics.PerformanceMetric metric = Statistics.getGlobal()
-            .createPerformanceMetric("FileWrites", Statistics.PER_SECOND);
+            .createPerformanceMetric("QueryInserts", Statistics.PER_SECOND);
+
+    private void bindLogEntry(String entry, PreparedStatement statement) {
+        try {
+            int sep1 = entry.indexOf(',');
+            int sep2 = entry.indexOf(',', sep1 + 1);
+
+            statement.setString(1, entry.substring(0, sep1));
+            statement.setString(2, entry.substring(sep1 + 1, sep2));
+            statement.setString(3, entry.substring(sep2 + 1));
+
+            metric.inc();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void run() throws Exception {
         /* Load the routing table from the catalog or file */
         OracleRoutingTable routingTable = RoutingDataSerialization.loadRoutingData().createRoutingTable();
 
         /* Create a batching partitioning engine based on the catalog */
-        PartitionEngine<DemoLogEntry> engine = new ThreadBasedPartition<>(routingTable);
+        PartitionEngine<String> engine = new ThreadBasedPartition<>(routingTable);
 
         try {
-            /* Provide a function, which writes the data for each chunk to a separate file */
-            engine.setCreateSinkFunction(
-                    chunk -> createOrderSink("/tmp/test-CHUNK_" + ((Chunk) chunk).getChunkUniqueId()));
-
             /* Provide a function, which get the key given an object */
-            engine.setKeyFunction(a -> routingTable.createKey(a.getCustomerId()));
+            engine.setKeyFunction(a -> routingTable.createKey(a.substring(0, a.indexOf(','))));
+
+            engine.setCreateSinkFunction(chunk ->
+                    new StatementSink<>(() -> this.createInsertStatement(
+                            ((Chunk) chunk).getShard().getConnectionString()), this::bindLogEntry));
 
             new ParallelGenerator(() -> () -> {
                 ThreadLocalRandomSupplier random = new ThreadLocalRandomSupplier();
 
-                Stream.generate(() -> DemoLogEntry.generate(random))
+                Stream.generate(() -> DemoLogEntry.generateString(random))
                         .limit(Parameters.entriesToGenerate / Parameters.parallelThreads)
                         .forEach((x) -> engine.getSplitter().feed(x));
 
                 engine.getSplitter().flush();
             }).execute(Parameters.parallelThreads).awaitTermination();
-
         } finally {
             /* Flush all buffers */
             engine.getSplitter().closeAllInputs();
@@ -72,7 +80,7 @@ public class GenToFile {
     {
         try {
             Parameters.init(args);
-            new GenToFile().run();
+            new ParallelLoadStrings().run();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

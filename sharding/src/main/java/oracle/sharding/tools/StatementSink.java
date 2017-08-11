@@ -26,7 +26,7 @@ public class StatementSink<T> implements Consumer<List<T>>, AutoCloseable {
     public StatementSink<T> setCloseConnection(boolean value) {
         closeConnection = value;
         return this;
-    };
+    }
 
     @Override
     public void close() throws Exception {

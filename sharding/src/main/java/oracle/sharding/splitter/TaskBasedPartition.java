@@ -30,8 +30,7 @@ public class TaskBasedPartition<ItemT> extends PartitionEngine<ItemT>
         containerData.createJob(batch);
     }
 
-    public void createSink(Object chunk, Consumer<List<ItemT>> sink)
-    {
+    public void createSink(Object chunk, Consumer<List<ItemT>> sink) {
         containerInfo.computeIfAbsent(chunk, ContainerData::new).sinkList.offer(sink);
     }
 

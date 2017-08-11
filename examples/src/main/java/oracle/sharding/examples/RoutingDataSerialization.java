@@ -11,25 +11,29 @@ import java.sql.SQLException;
  * Created by somestuff on 7/31/17.
  */
 public class RoutingDataSerialization {
-    public ShardConfigurationInfo connectAndSave() throws SQLException, IOException {
-        try (ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(Common.routingTableFile))) {
-            ShardConfigurationInfo result;
+    public ShardConfigurationInfo connectAndSave() throws SQLException, IOException
+    {
+        ShardConfigurationInfo result;
 
         /* Create connection to the catalog */
-            try (Connection connection = DriverManager.getConnection(
-                    Common.connectionString, Common.username, Common.password))
-            {
+        try (Connection connection = DriverManager.getConnection(
+                Parameters.connectionString, Parameters.username, Parameters.password))
+        {
             /* Load the routing table from the catalog */
-                result = ShardConfigurationInfo.loadFromDatabase(connection, true);
+            result = ShardConfigurationInfo.loadFromDatabase(connection, true);
+        }
+
+        if (Parameters.routingTableFile != null) {
+            try (ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(Parameters.routingTableFile))) {
                 output.writeObject(result);
             }
-
-            return result;
         }
+
+        return result;
     }
 
     public ShardConfigurationInfo load() throws IOException, ClassNotFoundException {
-        try (ObjectInputStream output = new ObjectInputStream(new FileInputStream(Common.routingTableFile)))
+        try (ObjectInputStream output = new ObjectInputStream(new FileInputStream(Parameters.routingTableFile)))
         {
             return (ShardConfigurationInfo) output.readObject();
         }
@@ -38,7 +42,7 @@ public class RoutingDataSerialization {
     public ShardConfigurationInfo loadFromFileOrCatalog()
             throws IOException, ClassNotFoundException, SQLException
     {
-        if (new File(Common.routingTableFile).isFile()) {
+        if (new File(Parameters.routingTableFile).isFile()) {
             return load();
         } else {
             return connectAndSave();
@@ -48,27 +52,33 @@ public class RoutingDataSerialization {
     public static ShardConfigurationInfo loadRoutingData()
             throws IOException, ClassNotFoundException, SQLException
     {
-        if (new File(Common.routingTableFile).isFile()) {
-            try (ObjectInputStream output = new ObjectInputStream(new FileInputStream(Common.routingTableFile))) {
+        if (Parameters.routingTableFile != null && new File(Parameters.routingTableFile).isFile()) {
+            try (ObjectInputStream output = new ObjectInputStream(new FileInputStream(Parameters.routingTableFile))) {
                 return (ShardConfigurationInfo) output.readObject();
             }
         } else {
+            ShardConfigurationInfo result;
+
             /* Create connection to the catalog */
-            try (Connection connection = DriverManager.getConnection(Common.connectionString, Common.username, Common.password);
-                 ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(Common.routingTableFile)))
+            try (Connection connection = DriverManager.getConnection(Parameters.connectionString, Parameters.username, Parameters.password))
             {
                 /* Load the routing table from the catalog */
-                ShardConfigurationInfo result = ShardConfigurationInfo.loadFromDatabase(connection, true);
-                output.writeObject(result);
-                return result;
+                result = ShardConfigurationInfo.loadFromDatabase(connection, true);
             }
+
+            if (Parameters.routingTableFile != null) {
+                ObjectOutputStream output = new ObjectOutputStream(new FileOutputStream(Parameters.routingTableFile));
+                output.writeObject(result);
+            }
+
+            return result;
         }
     }
 
     public static void main(String [] args)
     {
         try {
-            new File(Common.routingTableFile).delete();
+            Parameters.init(args);
             new RoutingDataSerialization().connectAndSave();
         } catch (Exception e) {
             throw new RuntimeException(e);

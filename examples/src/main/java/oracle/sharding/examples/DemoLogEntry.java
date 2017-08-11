@@ -1,6 +1,7 @@
 package oracle.sharding.examples;
 
 import java.util.Random;
+import java.util.function.LongSupplier;
 
 /**
  * Created by somestuff on 7/28/17.
@@ -31,14 +32,41 @@ public class DemoLogEntry {
     public static final Random rand = new Random();
 
     public static DemoLogEntry generate() {
+        String bogus = String.format("%04x:%04x:%04x:%04x",
+                rand.nextInt(65000),
+                rand.nextInt(65000),
+                rand.nextInt(65000),
+                rand.nextInt(65000));
+
+        return new DemoLogEntry( String.valueOf(rand.nextInt(1024)), bogus, rand.nextInt(10240));
+    }
+
+    public static DemoLogEntry generate(LongSupplier rnd) {
         return new DemoLogEntry(
-                String.valueOf(rand.nextInt(1024)),
-                String.valueOf("" + rand.nextInt(250) + "."
-                    + rand.nextInt(250) + "."
-                    + rand.nextInt(250) + "."
-                    + rand.nextInt(250)),
+                String.valueOf(rnd.getAsLong() & 0xfff),
+                String.format("%04x:%04x:%04x:%04x",
+                        rnd.getAsLong() & 0xffff,
+                        rnd.getAsLong() & 0xffff,
+                        rnd.getAsLong() & 0xffff,
+                        rnd.getAsLong() & 0xffff),
+                rnd.getAsLong() & 0xfffff);
+    }
+
+    public static String generateString(LongSupplier rnd) {
+        return "" + (rnd.getAsLong() & 0xffff) + ","
+                + Long.toUnsignedString(rnd.getAsLong()) + ","
+                + Long.toUnsignedString(rnd.getAsLong());
+
+/*
+        return String.format("%d,%04x:%04x:%04x:%04x,%d",
+                rand.nextInt(1024),
+                rand.nextInt(65000),
+                rand.nextInt(65000),
+                rand.nextInt(65000),
+                rand.nextInt(65000),
                 rand.nextInt(10240));
-    };
+*/
+    }
 
     @Override
     public String toString() {

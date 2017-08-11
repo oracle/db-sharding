@@ -1,61 +1,66 @@
 package oracle.sharding.tools;
 
-import oracle.util.function.ConsumerWithError;
-import oracle.util.settings.JSWrapper;
-
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- * Created by somestuff on 7/21/17.
+ * //
  */
-public class DirectPathLoadSink implements AutoCloseable, ConsumerWithError<List<SeparatedString>, SQLException> {
+public class DirectPathLoadSink implements Consumer<List<SeparatedString>>, AutoCloseable {
     private final OCIDirectPath dpl;
-    private final int columnCount;
+    private int columnCount;
 
-    private static IllegalArgumentException fieldRequired(String value, String name) {
-        return new IllegalArgumentException(value + " ('" + name + "') must be specified for DirectPathLoad sink");
+    protected DirectPathLoadSink(OCIDirectPath dpl, int columnCount) {
+        this.dpl = dpl;
+        this.columnCount = columnCount;
     }
 
-    public DirectPathLoadSink(JSWrapper parameters) throws SQLException {
-        dpl = new OCIDirectPath(
-            parameters.get("connectionString")
-                .orElseThrow(() -> fieldRequired("Connection string", "connectionString"))
-                .asString()
-            , parameters.get("user")
-                .orElseThrow(() -> fieldRequired("Username", "user"))
-                .asString()
-            , parameters.get("password")
-                .orElseThrow(() -> fieldRequired("Password", "password"))
-                .asString().getBytes());
+    public static class Builder {
+        private final OCIDirectPath dpl;
+        private int columnCount = 0;
 
-        dpl.setTarget(
-                parameters.get("schema")
-                        .orElseThrow(() -> fieldRequired("Schema", "schema"))
-                        .asString()
-                , parameters.get("table")
-                        .orElseThrow(() -> fieldRequired("Table", "table"))
-                        .asString()
-                , parameters.get("partition")
-                        .orElseThrow(() -> fieldRequired("Partition or subpartition", "partition"))
-                        .asString());
+        public int getColumnCount() {
+            return columnCount;
+        }
 
-        Collection<Object> columnDefinitions = parameters.get("columns")
-                .orElseThrow(() -> fieldRequired("Column definition", "column"))
-                .asCollection();
+        public OCIDirectPath getDpl() {
+            return dpl;
+        }
 
-        this.columnCount = columnDefinitions.size();
+        private final static class ColumnDef {
+            private final String name;
+            private final int value;
 
-        for (Map.Entry<String, Object> entry : parameters.asMap().entrySet()) {
-            if (entry.getKey().startsWith("OCI")) {
-                dpl.setAttribute(entry.getKey(), JSWrapper.of(entry.getValue()).asString());
+            public ColumnDef(String name, int value) {
+                this.name = name;
+                this.value = value;
             }
         }
 
-        dpl.begin();
+        public Builder(String connectionString, String username, String password) {
+            dpl = new OCIDirectPath(connectionString, username, password.getBytes());
+        }
+
+        public Builder setTarget(String schema, String table, String partition) {
+            dpl.setTarget(schema, table, partition);
+            return this;
+        }
+
+        public Builder column(String name, int len) {
+            dpl.addColumnDefinition(name, len);
+            ++columnCount;
+            return this;
+        }
+
+        public Builder property(String key, String value) {
+            dpl.setAttribute(key, value);
+            return this;
+        }
+
+        public DirectPathLoadSink build() {
+            return new DirectPathLoadSink(dpl, columnCount);
+        }
     }
 
     @Override
@@ -65,18 +70,15 @@ public class DirectPathLoadSink implements AutoCloseable, ConsumerWithError<List
     }
 
     @Override
-    public void accept(List<SeparatedString> separatedStrings) throws SQLException {
+    public void accept(List<SeparatedString> separatedStrings) {
         for (SeparatedString s : separatedStrings) {
             dpl.setData(StandardCharsets.UTF_8.encode(s.toCharSequence()).array());
 
-            for (int i = 0; i < 9; ++i) {
+            for (int i = 0; i < columnCount; ++i) {
                 dpl.setValue(i, s.getOffset(i), s.getLength(i));
             }
 
             dpl.nextRow();
         }
-
-        System.out.println("Loaded");
-        System.out.flush();
     }
 }

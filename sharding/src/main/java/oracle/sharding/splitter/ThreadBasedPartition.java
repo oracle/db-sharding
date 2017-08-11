@@ -87,6 +87,5 @@ public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
     @Override
     public void close() throws Exception {
         chunkQueues.values().forEach(ConsumerQueue::closeIgnore);
-        interruptAll(); /* The best we can do */
     }
 }

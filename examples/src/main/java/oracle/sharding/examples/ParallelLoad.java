@@ -5,6 +5,7 @@ import oracle.sharding.details.OracleRoutingTable;
 import oracle.sharding.splitter.PartitionEngine;
 import oracle.sharding.splitter.ThreadBasedPartition;
 import oracle.sharding.tools.StatementSink;
+import oracle.util.metrics.Statistics;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -19,18 +20,22 @@ import java.util.stream.Stream;
 public class ParallelLoad {
     private PreparedStatement createInsertStatement(String connectionString) {
         try {
-            return DriverManager.getConnection("jdbc:oracle:thin:@" + connectionString, Common.username, Common.password)
+            return DriverManager.getConnection("jdbc:oracle:thin:@" + connectionString, Parameters.username, Parameters.password)
                     .prepareStatement("insert /*+ append_values */ into log(cust_id, ip_addr, hits) values (?,?,?)");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private final static Statistics.PerformanceMetric metric = Statistics.getGlobal()
+            .createPerformanceMetric("QueryInserts", Statistics.PER_SECOND);
+
     private void bindLogEntry(DemoLogEntry entry, PreparedStatement statement) {
         try {
             statement.setString(1, entry.getCustomerId());
             statement.setString(2, entry.getIpAddress());
             statement.setLong(3, entry.getHits());
+            metric.inc();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -51,9 +56,21 @@ public class ParallelLoad {
                     new StatementSink<>(() -> this.createInsertStatement(
                         ((Chunk) chunk).getShard().getConnectionString()), this::bindLogEntry));
 
+            new ParallelGenerator(() -> () -> {
+                ThreadLocalRandomSupplier random = new ThreadLocalRandomSupplier();
+
+                Stream.generate(() -> DemoLogEntry.generate(random))
+                        .limit(Parameters.entriesToGenerate / Parameters.parallelThreads)
+                        .forEach((x) -> engine.getSplitter().feed(x));
+
+                engine.getSplitter().flush();
+            }).execute(Parameters.parallelThreads).awaitTermination();
+
             /* Generate some demo objects and break  */
-            Stream.generate(DemoLogEntry::generate).limit(100000).parallel()
+            /*
+            Stream.generate(DemoLogEntry::generate).limit(Parameters.entriesToGenerate).parallel()
                     .forEach((x) -> engine.getSplitter().feed(x));
+            */
         } finally {
             /* Flush all buffers */
             engine.getSplitter().closeAllInputs();
@@ -66,10 +83,10 @@ public class ParallelLoad {
     public static void main(String [] args)
     {
         try {
+            Parameters.init(args);
             new ParallelLoad().run();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 }
