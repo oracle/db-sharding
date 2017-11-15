@@ -1,6 +1,3 @@
-# Oracle Sharding support library and tools
+# Oracle Sharding Tools Library
 
-Libraries which are primarily 
-
-fix email again
-
+This library provides Oracle Sharding routing implementation for use in client applications.

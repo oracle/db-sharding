@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  */
 public class Parameters {
     static String connectionString = null;
-    static String username = "dyn";
+    static String username = "testuser";
     static String password = "123";
     static String schemaName;
     static String routingTableFile = null;

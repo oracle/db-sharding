@@ -1,9 +1,7 @@
 package oracle.sharding.tools;
 
 import oracle.sharding.RoutingKey;
-import oracle.sharding.details.Chunk;
 import oracle.sharding.details.OracleRoutingTable;
-import oracle.sharding.details.Shard;
 import oracle.sharding.splitter.PartitionEngine;
 import oracle.sharding.splitter.TaskBasedPartition;
 import oracle.sharding.sql.MetadataReader;
@@ -14,14 +12,10 @@ import oracle.util.settings.JSWrapper;
 
 import java.io.*;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -41,74 +35,6 @@ public class Splitter {
     private int poolSize = 16;
     private int outputPoolSize = 16;
 
-    public Consumer<List<SeparatedString>> createOutputFile(Shard shard) {
-        try {
-            BufferedWriter writer = new BufferedWriter(
-                    new FileWriter("/tmp/test-" + shard.getName() + "-" + fileCounter.incrementAndGet()));
-
-            outputWriters.add(writer);
-
-            return x -> x.forEach(ConsumerWithError.create((SeparatedString y)
-                        -> writer.append(y.toCharSequence()).append('\n'))
-                    .onErrorRuntimeException());
-        } catch (IOException e) {
-            throw new RuntimeException();
-        }
-    }
-
-    public Consumer<List<SeparatedString>> createOutputFile(Chunk chunk) {
-        try {
-            BufferedWriter writer = new BufferedWriter(
-                    new FileWriter("/tmp/test-CHUNK_" + chunk.getChunkUniqueId()
-                            + "-" + fileCounter.incrementAndGet()));
-
-            outputWriters.add(writer);
-
-            return x -> x.forEach(ConsumerWithError.create((SeparatedString y)
-                    -> writer.append(y.toCharSequence()).append('\n'))
-                    .onErrorRuntimeException());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static class SQLSink implements AutoCloseable, ConsumerWithError<List<SeparatedString>, SQLException> {
-        private final Connection connection;
-        private final PreparedStatement statement;
-
-        public SQLSink(String connectionString, String statement) throws SQLException {
-            this.connection = DriverManager.getConnection(connectionString, "u1", "123");
-            this.statement = connection.prepareStatement(statement);
-        }
-
-        @Override
-        public void close() throws Exception {
-            try { statement.close(); } catch (Exception ignore) {}
-            connection.close();
-        }
-
-        @Override
-        public void accept(List<SeparatedString> separatedStrings) throws SQLException {
-            connection.setAutoCommit(false);
-            connection.commit();
-            int n = statement.getParameterMetaData().getParameterCount();
-
-            for (SeparatedString s : separatedStrings) {
-//                String data = s.toString();
-                for (int i = 0; i < n; ++i) {
-                    statement.setString(i + 1, s.part(i));
-                }
-
-                statement.addBatch();
-            }
-
-            statement.executeBatch();
-            connection.commit();
-            System.out.println("Loaded");
-            System.out.flush();
-        }
-    }
-
     public FunctionWithError<SeparatedString, RoutingKey, Exception> separatedStringKey(int n)
     {
         return FunctionWithError.create(
@@ -118,8 +44,28 @@ public class Splitter {
 
     private final Map<String, String> shardConnectionStrings = new HashMap<>();
 
-    public void loadMetadataFromCatalog(JSWrapper catalogInfo)
+    private class ColumnDef {
+        private final String name;
+        private final int size;
+
+        private ColumnDef(String name, int size) {
+            this.name = name;
+            this.size = size;
+        }
+    }
+
+    private final List<ColumnDef> columnDefs = new ArrayList<>();
+
+    public void loadMetadataFromCatalog(JSWrapper configurationMap)
     {
+        Optional<JSWrapper> catalogOption = configurationMap.get("catalog");
+
+        if (!catalogOption.isPresent()) {
+            return;
+        }
+
+        JSWrapper catalogInfo = catalogOption.get();
+
         try {
             String connectionString = catalogInfo.get("connectionString")
                     .orElseThrow(() -> new IllegalArgumentException("Catalog connection string must be provided"))
@@ -133,6 +79,11 @@ public class Splitter {
                 }
             }
 
+            String tableSchema = catalogInfo.get("schema")
+                    .orElseThrow(() -> new IllegalArgumentException("Schema name ('schema') must be specified")).asString();
+            String tableName = catalogInfo.get("table")
+                    .orElseThrow(() -> new IllegalArgumentException("Table name ('table') must be specified")).asString();
+
             try (Connection catalogConnection = DriverManager.getConnection(connectionString, info)) {
                 routingTable = ShardConfigurationInfo.loadFromDatabase(catalogConnection, true)
                         .createRoutingTable();
@@ -140,6 +91,27 @@ public class Splitter {
                 new MetadataReader(catalogConnection).readShardData().forEach(
                         instanceInfo -> shardConnectionStrings.put(instanceInfo.getShardName(),
                                 instanceInfo.getConnectionString()));
+
+                try (PreparedStatement statement = catalogConnection
+                        .prepareStatement("select column_name, data_type, data_length from dba_tab_columns" +
+                            " where owner=? and table_name=?");
+                     )
+                {
+                    statement.setString(1, tableSchema);
+                    statement.setString(2, tableName);
+
+                    try (ResultSet rs = statement.executeQuery()) {
+                        while (rs.next()) {
+                            int size = rs.getInt(3);
+
+                            switch (rs.getInt(2)) {
+                                default:
+                            }
+
+                            columnDefs.add(new ColumnDef(rs.getString(1), size));
+                        }
+                    }
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -158,11 +130,7 @@ public class Splitter {
                         : new InputStreamReader(((URL) x).openStream()));
 
                 return reader.lines().onClose(() -> {
-                    try {
-                        reader.close();
-                    } catch (IOException ignore) {
-                        /* */
-                    }
+                    try { reader.close(); } catch (IOException ignore) { }
                 });
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -176,13 +144,6 @@ public class Splitter {
         }
     }
 
-    /*
-    private Function<Object, Consumer<List<SeparatedString>>> resolveSink(String sinkName, JSWrapper) {
-        if (sinkName == )
-        return x -> ;
-    }
-    */
-
     public String getShardConnectionString(String name) {
         return shardConnectionStrings.get(name);
     }
@@ -192,17 +153,22 @@ public class Splitter {
             .orElseThrow(() -> new IllegalArgumentException("Configuration not found"))
             .callOrGetValue(this, this);
 
-        configurationMap.get("catalog").ifPresent(this::loadMetadataFromCatalog);
+        loadMetadataFromCatalog(configurationScript);
+
         configurationMap.get("sink").ifPresent(x ->
                 engine.setCreateSinkFunction(x.asFunction(configurationMap)));
+
         configurationMap.get("onCreateSink").ifPresent(x ->
                 engine.setCreateSinkFunction(x.asFunction(configurationMap)));
+
         configurationMap.get("keyIndex").ifPresent(x ->
                 engine.getSplitter().setGetKey(separatedStringKey(x.asNumber(0).intValue()).onErrorRuntimeException()));
+
         configurationMap.get("onGetKey").ifPresent(x ->
                 engine.getSplitter().setGetKey(x.asFunction(configurationMap)));
 
-        int maxColumns = configurationMap.get("maxColumns").orElse(JSWrapper.nullObject()).asNumber(-1).intValue();
+        int maxColumns = configurationMap.get("maxColumns")
+                .orElse(JSWrapper.nullObject()).asNumber(-1).intValue();
 
         inputFiles.addAll(configurationMap.get("source")
             .orElseThrow(() -> new java.lang.IllegalArgumentException("Configuration not found"))

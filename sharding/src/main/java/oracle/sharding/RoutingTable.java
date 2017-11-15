@@ -45,7 +45,6 @@ public interface RoutingTable<T> {
      */
     void atomicUpdate(Collection<T> removeChunks, Collection<T> updateChunks, Function<T, SetOfKeys> getKeySet);
 
-
     boolean isEmpty();
 
     /**
