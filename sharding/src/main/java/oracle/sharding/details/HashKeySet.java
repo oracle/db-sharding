@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.details;
 
 import oracle.sharding.SetOfKeys;
@@ -7,7 +15,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
- * Created by somestuff on 4/19/17.
+ * Created by itaranov on 4/19/17.
  */
 public class HashKeySet extends SetOfKeys implements Comparable<HashKeySet> {
     final public long lowerClosed;

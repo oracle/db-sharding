@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.details;
 
 import oracle.sharding.RoutingKey;
@@ -6,7 +14,7 @@ import oracle.sharding.SimpleRoutingKey;
 import java.util.Comparator;
 
 /**
- * Created by somestuff on 6/23/17.
+ * Created by itaranov on 6/23/17.
  */
 public class CompositeRoutingKey extends RoutingKey {
     private final SimpleRoutingKey superShardingKey;

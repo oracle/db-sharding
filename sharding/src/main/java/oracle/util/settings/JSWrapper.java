@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.util.settings;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -9,7 +17,7 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * Created by somestuff on 5/7/17.
+ * Created by itaranov on 5/7/17.
  */
 public class JSWrapper {
     private Object object;

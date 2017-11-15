@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.sql;
 
 import oracle.sharding.details.OracleKeyColumn;
@@ -5,7 +13,7 @@ import oracle.sharding.details.OracleKeyColumn;
 import java.io.Serializable;
 
 /**
- * Created by somestuff on 6/28/17.
+ * Created by itaranov on 6/28/17.
  */
 public class ColumnInfo implements Serializable {
     final int dty, charSet, size;

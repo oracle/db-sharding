@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.tools;
 
 import oracle.util.function.ConsumerWithError;
@@ -8,7 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Created by somestuff on 7/28/17.
+ * Created by itaranov on 7/28/17.
  */
 public class UnbatchingSink<T> implements Consumer<List<T>>, AutoCloseable {
     public final AutoCloseable closable;

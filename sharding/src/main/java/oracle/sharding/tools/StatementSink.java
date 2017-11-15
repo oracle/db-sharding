@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.tools;
 
 import java.sql.Connection;
@@ -9,7 +17,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Created by somestuff on 8/1/17.
+ * Created by itaranov on 8/1/17.
  */
 public class StatementSink<T> implements Consumer<List<T>>, AutoCloseable {
     private boolean closeConnection = true;

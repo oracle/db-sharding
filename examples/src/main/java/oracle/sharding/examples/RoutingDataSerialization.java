@@ -5,6 +5,14 @@
 ** Licensed under the Universal Permissive License v 1.0 as shown at 
 **   http://oss.oracle.com/licenses/upl 
 */
+
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
 package oracle.sharding.examples;
 
 import oracle.sharding.sql.ShardConfigurationInfo;
@@ -15,7 +23,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Created by somestuff on 7/31/17.
+ * Created by itaranov on 7/31/17.
  */
 public class RoutingDataSerialization {
     public ShardConfigurationInfo connectAndSave() throws SQLException, IOException

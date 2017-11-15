@@ -1,9 +1,17 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.examples;
 
 import java.util.function.LongSupplier;
 
 /**
- * Created by somestuff on 8/10/17.
+ * Created by itaranov on 8/10/17.
  */
 public class ThreadLocalRandomSupplier implements LongSupplier {
     private long x = System.currentTimeMillis();

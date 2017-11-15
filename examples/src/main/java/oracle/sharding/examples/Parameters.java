@@ -1,3 +1,11 @@
+/*
+** Oracle Sharding Tools Library
+**
+** Copyright © 2017 Oracle and/or its affiliates. All rights reserved.
+** Licensed under the Universal Permissive License v 1.0 as shown at 
+**   http://oss.oracle.com/licenses/upl 
+*/
+
 package oracle.sharding.examples;
 
 import oracle.util.metrics.Statistics;
@@ -12,7 +20,7 @@ import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 /**
- * Created by somestuff on 8/1/17.
+ * Created by itaranov on 8/1/17.
  */
 public class Parameters {
     static String connectionString = null;
