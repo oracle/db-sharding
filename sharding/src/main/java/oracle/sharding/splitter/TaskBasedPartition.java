@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 /**
- * Created by itaranov on 6/21/17.
+ * Task based partition engine
  */
 public class TaskBasedPartition<ItemT> extends PartitionEngine<ItemT>
 {

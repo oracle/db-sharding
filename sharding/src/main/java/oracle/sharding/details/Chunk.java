@@ -11,7 +11,7 @@ package oracle.sharding.details;
 import oracle.sharding.SetOfKeys;
 
 /**
- * Created by itaranov on 4/5/17.
+ * Represents a chunk in Sharding Metadata
  */
 public final class Chunk implements Comparable<Chunk> {
     /* The chunk is uniquely identified by chunkUniqueId + shardName */
@@ -21,9 +21,14 @@ public final class Chunk implements Comparable<Chunk> {
     private final SetOfKeys keySet;
 
     private int status;
+    private int priority; /* Golden Gate priority */
+
     private int chunkId; /* Optional informative field */
 
-    /* Modifiable by whoever whishes to */
+    /*
+     * User annotation.
+     * Modifiable by whoever whishes to
+     **/
     public volatile Object annotation;
 
     @Override
@@ -58,7 +63,7 @@ public final class Chunk implements Comparable<Chunk> {
         this.status = status;
     }
 
-    public int getChunkUniqueId() {
+    public int getUniqueId() {
         return chunkUniqueId;
     }
 
@@ -81,4 +86,16 @@ public final class Chunk implements Comparable<Chunk> {
     public void setChunkId(int chunkId) {
         this.chunkId = chunkId;
     }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public boolean isPrimary() { return status == 0 && priority == 0 && shard.isPrimary(); }
+
+    public boolean isWritable() { return status == 0 && shard.isPrimary(); }
 }

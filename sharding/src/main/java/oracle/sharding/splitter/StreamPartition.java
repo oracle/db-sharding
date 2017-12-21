@@ -16,10 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-/**
- * Created by itaranov on 7/28/17.
- */
-public class StreamPartition<ItemT> {
+class StreamPartition<ItemT> {
     private int queueSize = 1024;
     protected final GeneralSplitter<ItemT> splitter;
     private final Map<Object, ConsumerQueue<List<ItemT>>> chunkQueues = new ConcurrentHashMap<>();

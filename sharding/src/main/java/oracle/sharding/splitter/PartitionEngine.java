@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Created by itaranov on 7/19/17.
+ * Data partitioner
  */
 public abstract class PartitionEngine<ItemT> implements AutoCloseable {
     protected final GeneralSplitter<ItemT> splitter;

@@ -12,8 +12,6 @@ import java.nio.CharBuffer;
 
 /**
  * Represents a char array, annotated by delimiter indices.
- *
- * Created by itaranov on 6/26/2017.
  */
 public class SeparatedString {
     final private int []  tabs;

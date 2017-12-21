@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Created by itaranov on 4/6/17.
+ * Queue for a multithreaded consumer
  */
 public class ConsumerQueue<T> implements Consumer<T>, AutoCloseable {
     private final BlockingQueue<Object> queue;

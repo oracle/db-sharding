@@ -8,7 +8,9 @@
 
 package oracle.sharding.details;
 
-import oracle.sharding.KeyColumn;
+import oracle.sharding.ShardConfigurationException;
+import oracle.sharding.routing.KeyColumn;
+import oracle.sharding.RoutingKey;
 import oracle.sql.CHAR;
 import oracle.sql.CharacterSet;
 import oracle.sql.NUMBER;
@@ -16,14 +18,15 @@ import oracle.sql.RAW;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 /**
- * Created by itaranov on 4/1/17.
+ * Oracle type routing key wrappers
  */
 public abstract class OracleKeyColumn implements KeyColumn {
     private final int dataType;
 
-    public static class OracleNumberWrapper extends NUMBER implements Comparable<Object>
+    static class OracleNumberWrapper extends NUMBER implements RoutingKey
     {
         BigDecimal decimalRepresentation;
 
@@ -50,7 +53,7 @@ public abstract class OracleKeyColumn implements KeyColumn {
         }
 
         @Override
-        public int compareTo(Object o) {
+        public int compareTo(RoutingKey o) {
             try {
                 return this.bigDecimalValue().compareTo(((OracleNumberWrapper) o).bigDecimalValue());
             } catch (SQLException e) {
@@ -66,7 +69,7 @@ public abstract class OracleKeyColumn implements KeyColumn {
         }
 
         @Override
-        public Object createValue(Object from) throws SQLException {
+        public RoutingKey createValue(Object from) throws SQLException {
             if (from instanceof NUMBER) {
                 return new OracleNumberWrapper((NUMBER) from);
             } else if (from instanceof byte[]) {
@@ -96,11 +99,11 @@ public abstract class OracleKeyColumn implements KeyColumn {
         return 0;
     }
 
-    public static class OracleComparableBinary implements Comparable<Object>
+    static class OracleComparableBinary implements RoutingKey
     {
-        byte[] data; /* Data in database internal encoding */
+        private final byte[] data; /* Data in database internal encoding */
 
-        public OracleComparableBinary(byte[] from) {
+        OracleComparableBinary(byte[] from) {
             data = from;
         }
 
@@ -110,7 +113,12 @@ public abstract class OracleKeyColumn implements KeyColumn {
         }
 
         @Override
-        public int compareTo(Object o) {
+        public boolean equals(Object obj) {
+            return obj instanceof OracleComparableBinary && Arrays.equals(data, ((OracleComparableBinary) obj).data);
+        }
+
+        @Override
+        public int compareTo(RoutingKey o) {
             return memcmp(data, ((OracleComparableBinary) o).data);
         }
     }
@@ -125,7 +133,7 @@ public abstract class OracleKeyColumn implements KeyColumn {
         }
 
         @Override
-        public Object createValue(Object from) throws SQLException {
+        public RoutingKey createValue(Object from) throws SQLException {
             if (from instanceof RAW) {
                 return new OracleComparableBinary(((RAW) from).getBytes());
             } else if (from instanceof byte[]) {
@@ -140,15 +148,15 @@ public abstract class OracleKeyColumn implements KeyColumn {
 
     public static class VariableCharacter extends VariableBinaryString
     {
-        protected final CharacterSet charSet;
+        final CharacterSet charSet;
 
-        public VariableCharacter(int dataType, int maxSize, int charSet) {
+        VariableCharacter(int dataType, int maxSize, int charSet) {
             super(dataType, maxSize);
             this.charSet = CharacterSet.make(charSet);
         }
 
         @Override
-        public Object createValue(Object from) throws SQLException {
+        public RoutingKey createValue(Object from) throws SQLException {
             if (from instanceof CHAR) {
                 from = ((CHAR) from).getString();
             } else if (from instanceof CharSequence) {
@@ -173,36 +181,44 @@ public abstract class OracleKeyColumn implements KeyColumn {
         }
 
         @Override
-        public Object createValue(Object from) throws SQLException {
+        public RoutingKey createValue(Object from) throws SQLException {
             if (from instanceof CHAR) {
                 from = ((CHAR) from).getString();
             }
 
             if (from instanceof String) {
-                return this.charSet.convert(String.format(paddedFormat, (String) from));
+                return new OracleComparableBinary(this.charSet.convert(String.format(paddedFormat, (String) from)));
             }
 
             throw new SQLException("TODO");
         }
     }
 
+    public static final int DTY_VARCHAR = 1;
+    public static final int DTY_NUMBER  = 2;
+    public static final int DTY_RAW     = 23;
+    public static final int DTY_CHAR    = 96;
+
     public static OracleKeyColumn createOracleKeyColumn(int dataType, int charSet, int size)
+            throws ShardConfigurationException
     {
+        switch (dataType) {
+            case DTY_VARCHAR :
+                return new VariableCharacter(dataType, size, charSet);
+            case DTY_NUMBER :
+                return new Number(dataType);
+            case DTY_RAW :
+                return new VariableBinaryString(dataType, size);
+            case DTY_CHAR :
+                return new FixedCharacter(dataType, size, charSet);
 /*
-        switch(dataType) {
             case 12:
             case 180:
             case 231:
-        }
 */
-        switch (dataType) {
-            case 1  : return new VariableCharacter(dataType, size, charSet);
-            case 2  : return new Number(dataType);
-            case 23 : return new VariableBinaryString(dataType, size);
-            case 96 : return new FixedCharacter(dataType, size, charSet);
+            default : throw new ShardConfigurationException(
+                    String.format("Type %d is not supported by implementation", dataType));
         }
-
-        return null;
     }
 
     public OracleKeyColumn(int dataType) {

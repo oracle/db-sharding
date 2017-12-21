@@ -9,7 +9,7 @@
 package oracle.sharding.tools;
 
 /**
- * Created by itaranov on 5/14/17.
+ * JNI bindings for OCI Direct Path operations
  */
 public final class OCIDirectPath implements AutoCloseable {
     private long nativeObjectAddress;

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * //
+ * OCI direct path consumer
  */
 public class DirectPathLoadSink implements Consumer<List<SeparatedString>>, AutoCloseable {
     private final OCIDirectPath dpl;

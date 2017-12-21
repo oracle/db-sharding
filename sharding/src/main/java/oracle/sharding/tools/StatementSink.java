@@ -17,7 +17,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Created by itaranov on 8/1/17.
+ * A DML consumer
+ * @param <T>
  */
 public class StatementSink<T> implements Consumer<List<T>>, AutoCloseable {
     private boolean closeConnection = true;

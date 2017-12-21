@@ -5,7 +5,6 @@
 ** Licensed under the Universal Permissive License v 1.0 as shown at 
 **   http://oss.oracle.com/licenses/upl 
 */
-
 package oracle.sharding.splitter;
 
 import oracle.sharding.RoutingKey;

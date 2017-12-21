@@ -12,10 +12,7 @@ import java.io.*;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Created by itaranov on 7/26/17.
- */
-public class StreamOutputSink implements Consumer<List<String>>, AutoCloseable {
+class StreamOutputSink implements Consumer<List<String>>, AutoCloseable {
     private final Writer writer;
 
     public StreamOutputSink(File file) {

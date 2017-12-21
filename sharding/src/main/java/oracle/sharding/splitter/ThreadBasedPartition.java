@@ -19,7 +19,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
 /**
- * Created by itaranov on 6/21/17.
+ * Partition engine which uses a thread per consumer
  */
 public class ThreadBasedPartition<ItemT> extends PartitionEngine<ItemT> {
     private final Map<Object, ConsumerQueue<List<ItemT>>> chunkQueues = new ConcurrentHashMap<>();

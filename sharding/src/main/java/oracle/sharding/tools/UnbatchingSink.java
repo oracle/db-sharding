@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Created by itaranov on 7/28/17.
- */
 public class UnbatchingSink<T> implements Consumer<List<T>>, AutoCloseable {
     public final AutoCloseable closable;
     public final Consumer<T> writer;

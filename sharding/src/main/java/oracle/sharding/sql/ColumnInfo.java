@@ -8,12 +8,13 @@
 
 package oracle.sharding.sql;
 
+import oracle.sharding.ShardConfigurationException;
 import oracle.sharding.details.OracleKeyColumn;
 
 import java.io.Serializable;
 
 /**
- * Created by itaranov on 6/28/17.
+ * Sharding column information from LOCAL_CHUNK_COLUMNS
  */
 public class ColumnInfo implements Serializable {
     final int dty, charSet, size;
@@ -27,7 +28,7 @@ public class ColumnInfo implements Serializable {
         this.number = number;
     }
 
-    public OracleKeyColumn toOracleColumn() {
+    public OracleKeyColumn toOracleColumn() throws ShardConfigurationException {
         return OracleKeyColumn.createOracleKeyColumn(dty, charSet, size);
     }
 }

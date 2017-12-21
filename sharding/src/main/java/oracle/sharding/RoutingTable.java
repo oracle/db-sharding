@@ -9,27 +9,30 @@
 package oracle.sharding;
 
 import java.util.Collection;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * RoutingTable class represents an object that virtually maps routing keys to values,
- * representing parts, containing that values. Normally, value would be a chunk.
+ * RoutingTable class represents an multimap that virtually maps routing keys to values.
+ * Normally, value would be a chunk, but it can be anything.
+ *
+ * The routing table implementation should be thread-safe.
  */
 public interface RoutingTable<T> {
     /**
-     * Find the createKey (complex) in the routing table and return all objects,
-     * which correspond to that createKey.
+     * Find the routing key in the routing table and return all objects,
+     * which correspond to that routing key.
      *
-     * NOTE: there can be many items, which correspond to one single createKey
+     * NOTE: there can be many items, which correspond to one single key
      * (for example, in case of range being partially split)
      *
-     * @param result Collection to put the result in. If null, some List implementation is created.
-     * @param key    Set of createKey parts to lookup
+     * @param result Collection to put the result in. If null, some List
+     *               implementation is created.
+     * @param key    Set of routing keys parts to lookup
      * @return Collection either created, or passed in as result parameter.
      */
     default Collection<T> lookup(RoutingKey key, Collection<T> result) {
+        if (result == null) { return lookup(key); }
         streamLookup(key).forEach(result::add);
         return result;
     }
@@ -38,35 +41,76 @@ public interface RoutingTable<T> {
         return streamLookup(key).collect(Collectors.toSet());
     }
 
-    Stream<T> streamLookup(RoutingKey key);
-
     /**
-     * Atomically update a set of chunks.
+     * Find the routing key in the routing table and return all objects,
+     * which correspond to that routing key.
      *
-     * First, remove all chunks from remove list.
-     * Second, update or add all the chunks from update list.
-     * Sets can intersect, but remove is applied before update.
+     * This method differs from lookup only in return type.
+     * It returns iterable, making it possible to optimize implementation
+     * by avoiding a redundant collection creation.
      *
-     * @param removeChunks Set of chunks to remove.
-     * @param updateChunks Set of chunks to update/add.
-     * @param getKeySet Mapping between chunks and createKey sets.
+     * @param key key to find
+     * @return "finder" object, which returns a new iterator each time to
+     *          traverse all values for the given key
      */
-    void atomicUpdate(Collection<T> removeChunks, Collection<T> updateChunks, Function<T, SetOfKeys> getKeySet);
+    default Iterable<T> find(RoutingKey key) {
+        return lookup(key);
+    }
+
+    Stream<T> streamLookup(RoutingKey key);
 
     boolean isEmpty();
 
     /**
-     * Return all the chunks (values) known to the object.
+     * Return all the values known to the object.
      *
      * @return Unmodifiable collection of values.
      */
     Collection<T> values();
 
-    default void update(T chunk, SetOfKeys keys) {
-        throw new UnsupportedOperationException("Method is not implemented for this object");
+    /**
+     * Interface for atomic updating of a routing table.
+     *
+     * To allow for more efficient implementations, all
+     * routing table updates are expected to be bulk updates.
+     **/
+    interface RoutingTableModifier<T> {
+        /**
+         * Add key set
+         *
+         * @param value value
+         * @param keys set of keys
+         */
+        RoutingTableModifier<T> add(T value, SetOfKeys keys);
+
+        /**
+         * Remove value (all appearances)
+         *
+         * @param value value
+         */
+        RoutingTableModifier<T> remove(T value);
+
+        default void removeAll(Collection<? extends T> values) {
+            for (T value : values) { remove(value); }
+        }
+
+        /**
+         * Apply the modification.
+         * Modifier object should be discarded after apply.
+         */
+        void apply();
+
+        /**
+         * Clear the routing table and set the newly added values.
+         * Modifier object should be discarded after apply.
+         */
+        void clearAndSet();
     }
 
-    default void remove(T chunk) {
-        throw new UnsupportedOperationException("Method is not implemented for this object");
-    }
+    /**
+     * Request an bulk atomic modifier for the routing table structure.
+     *
+     * @return a new modifier object
+     */
+    RoutingTableModifier<T> modifier();
 }

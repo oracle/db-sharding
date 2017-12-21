@@ -9,44 +9,41 @@
 package oracle.sharding.sql;
 
 import java.io.Serializable;
-import java.sql.Connection;
 
 /**
- * Created by itaranov on 4/6/17.
+ * Shard information from SHA_DATABASE
  */
 public class InstanceInfo implements Serializable {
     private final String shardName;
-    private final String instanceName;
-    final boolean isCatalog;
-    String connectionString;
-    transient boolean isPrimary;
+    private String connectionString;
+    private boolean isPrimary;
 
-    public InstanceInfo(String shardName, String instanceName) {
+    public InstanceInfo(String shardName) {
         this.shardName = shardName;
-        this.instanceName = instanceName;
-        this.isCatalog = false;
     }
 
-    public InstanceInfo(String shardName, String instanceName, String connectionString) {
+    public InstanceInfo(String shardName, String connectionString) {
         this.shardName = shardName;
-        this.instanceName = instanceName;
         this.connectionString = connectionString;
-        this.isCatalog = false;
-    }
-
-    public InstanceInfo(Connection connection) {
-        this.shardName = "";
-        this.instanceName = "";
-        this.isCatalog = true;
     }
 
     public String getShardName() {
         return shardName;
     }
 
-    public String getInstanceName() { return instanceName; }
-
     public String getConnectionString() {
         return connectionString;
+    }
+
+    public void setConnectionString(String connectionString) {
+        this.connectionString = connectionString;
+    }
+
+    public void setPrimary(boolean primary) {
+        isPrimary = primary;
+    }
+
+    public boolean isPrimary() {
+        return isPrimary;
     }
 }

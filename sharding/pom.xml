@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.oracle</groupId>
     <artifactId>routing</artifactId>
-    <version>1.0</version>
+    <version>0.1</version>
     <name>Sharding Routing Library</name>
     <packaging>jar</packaging>
 
@@ -26,6 +26,12 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
+
         <dependency>
             <groupId>com.oracle.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>

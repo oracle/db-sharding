@@ -1,0 +1,6 @@
+**/.idea
+**/*.kdev4
+**/*.iml
+*/target
+*/build/
+

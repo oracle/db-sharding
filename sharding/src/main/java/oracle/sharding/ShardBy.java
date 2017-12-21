@@ -9,11 +9,22 @@
 package oracle.sharding;
 
 /**
- * Created by itaranov on 4/1/17.
+ * Enumeration with different types of sharding
  */
 public enum ShardBy {
-    HASH(1), RANGE(2), LIST(4), NONE(0);
+    /* Shard by hash (consistent OR partition hash) */
+    HASH(1),
 
+    /* Shard by range */
+    RANGE(2),
+
+    /* Shard by list */
+    LIST(4),
+
+    /* Sharding level not used */
+    NONE(0);
+
+    /* Id corresponds to internal oracle identifiers for both partitioning and sharding */
     int id;
     ShardBy(int aid) { id = aid; }
 }

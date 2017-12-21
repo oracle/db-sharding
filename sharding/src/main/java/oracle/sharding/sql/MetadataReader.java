@@ -8,41 +8,124 @@
 
 package oracle.sharding.sql;
 
-import oracle.sharding.details.OracleKeyColumn;
-import oracle.sharding.details.OracleShardingMetadata;
-import oracle.util.sql.QueryStream;
+import oracle.sharding.OracleShardingMetadata;
+import oracle.sharding.ShardConfigurationException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
- * Created by itaranov on 4/3/17.
+ * SQL queries to read metadata from the catalog or shards.
  */
 public class MetadataReader {
     private final Connection connection;
+    private boolean isCatalog;
+    private ShardConfiguration tfConfig = null;
 
+    /**
+     * Create a metadata reader given a specific connection
+     * @param connection to a database
+     */
     public MetadataReader(Connection connection) {
         this.connection = connection;
     }
 
-    final Map<Integer, TableFamilyInfo> tfmap = new HashMap<>();
-
-    public Collection<InstanceInfo> readShardData(Collection<InstanceInfo> instanceList) throws SQLException
+    /**
+     * Set table family scope to the specific table family id
+     * @param tableFamily table family ID
+     */
+    public void setTableFamily(int tableFamily) throws SQLException
     {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "select tabfam_id, table_name, schema_name, group_type, group_col_num, "
+                + " shard_type, shard_col_num, def_version from local_chunk_types "
+                + " where tabfam_id=:1"))
+        {
+            statement.setInt(1, tableFamily);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    tfConfig = new ShardConfiguration(rs);
+                } else {
+                    throw new ShardConfigurationException("Table family not found");
+                }
+            }
+        }
+    }
+
+    /**
+     * Set table family scope to the specific table family name
+     *
+     * @param schemaName schema name
+     * @param tableName table family name (not always the same as root table name)
+     */
+    public void setTableFamily(String schemaName, String tableName) throws SQLException
+    {
+        try (PreparedStatement statement = connection.prepareStatement(
+                "select tabfam_id, table_name, schema_name, group_type, group_col_num, "
+                + " shard_type, shard_col_num, def_version from local_chunk_types "
+                + " where table_name=:1 and schema_name=:2"))
+        {
+            statement.setString(1, tableName);
+            statement.setString(2, schemaName);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    tfConfig = new ShardConfiguration(rs);
+                } else {
+                    throw new ShardConfigurationException("Table family not found");
+                }
+
+                if (rs.next()) {
+                    throw new ShardConfigurationException("Ambiguous table family specified");
+                }
+            }
+        }
+    }
+
+    public void setTableFamily() throws SQLException {
+        Collection<ShardConfiguration> tfs = readTableFamilies();
+
+        if (tfs.size() > 1) {
+            throw new ShardConfigurationException("Multiple table families exist");
+        }
+
+        if (tfs.size() == 0) {
+            throw new ShardConfigurationException("No table family information");
+        }
+
+        tfConfig = tfs.iterator().next();
+    }
+
+    private void checkTableFamily() throws SQLException {
+        if (tfConfig == null) {
+            setTableFamily();
+        }
+    }
+
+    /**
+     * Read the list of databases known to the catalog (if connected to the catalog)
+     * If connected to shards, empty list is most likely returned.
+     *
+     * @return the collection of database
+     * @throws SQLException in case of SQL error
+     */
+    public Collection<InstanceInfo> readShardInformation() throws SQLException
+    {
+        Collection<InstanceInfo> instanceList = new ArrayList<>();
+
         try (PreparedStatement statement = connection.prepareStatement(
                 "select db_unique_name, connect_string, is_primary from sha_databases"))
         {
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    InstanceInfo instance = new InstanceInfo(rs.getString(1), null);
-                    instance.connectionString = rs.getString(2);
+                    InstanceInfo instance = new InstanceInfo(rs.getString(1), rs.getString(2));
+                    instance.setPrimary(rs.getString(3).equalsIgnoreCase("Y"));
+
                     instanceList.add(instance);
                 }
             }
@@ -51,21 +134,91 @@ public class MetadataReader {
         return instanceList;
     }
 
-    public Stream<InstanceInfo> readShardData() throws SQLException
+    /**
+     * Read the list of shard columns
+     *
+     * @return the collection of shard column descriptions
+     * @throws SQLException in case of SQL error
+     */
+    public Collection<ColumnInfo> readShardColumns() throws SQLException
     {
-        return QueryStream.create(connection.prepareStatement(
-                "select db_unique_name, connect_string, is_primary from sha_databases")).map(
-                (ResultSet x) -> {
-                    try {
-                        return new InstanceInfo(x.getString(1), null, x.getString(2));
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+        checkTableFamily();
+
+        Collection<ColumnInfo> columnList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "select tabfam_id, shard_level, col_idx_in_key, col_name, eff_type, character_set, "
+                        + " col_size from local_chunk_columns where tabfam_id = :1 "
+                        + " order by shard_level, col_idx_in_key"))
+        {
+            statement.setInt(1, tfConfig.tableFamilyId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    columnList.add(new ColumnInfo(
+                            rs.getInt("eff_type"),
+                            rs.getInt("character_set"),
+                            rs.getInt("col_size"),
+                            rs.getInt("shard_level"),
+                            rs.getInt("col_idx_in_key")));
+                }
+            }
+        }
+
+        return columnList;
     }
 
-    private void readTableFamilies() throws SQLException {
-        tfmap.clear();
+    /**
+     * Read LOCAL_CHUNKS view and return the chunk collection
+     * @return the chunk collection
+     * @throws SQLException in case of SQL error
+     */
+    public Collection<ChunkInfo> readChunks() throws SQLException {
+        checkTableFamily();
+
+        Collection<ChunkInfo> chunkList = new ArrayList<>();
+
+        try (PreparedStatement statement = connection.prepareStatement(
+                "select chunk_name, grp_id, chunk_id, chunk_unique_id, " +
+                        " shard_key_low, shard_key_high, group_key_low, group_key_high, " +
+                        " priority, state, shard_name, shardspace_name, " +
+                        " (select dd.flags from gsmadmin_internal.database dd where dd.name=c.shard_name) as database_state " +
+                        " from local_chunks c where tabfam_id=:1 " +
+                        " order by grp_id, chunk_id"))
+        {
+            statement.setInt(1, tfConfig.tableFamilyId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    String shardName = rs.getString("shard_name");
+
+                    if (shardName == null && isCatalog) {
+                        throw new ShardConfigurationException("SHARD_NAME information was not found. " +
+                                "User is not granted with gsmadmin_role privileges, or you are " +
+                                " connected to a shard, when catalog connection is expected.");
+                    }
+
+                    if ((shardName == null || shardName.length() == 0) && !isCatalog)
+                    {
+                        throw new ShardConfigurationException("Reading local shard information is not supported");
+                    }
+
+                    chunkList.add(new ChunkInfo(rs, shardName));
+                }
+            }
+        }
+
+        return chunkList;
+    }
+
+    /**
+     * Read table families and return the list of table family descriptions
+     *
+     * @return table family descriptor collection
+     * @throws SQLException in case of SQL error
+     */
+    public  Collection<ShardConfiguration> readTableFamilies() throws SQLException {
+        Collection<ShardConfiguration> tfList = new ArrayList<>();
 
         try (PreparedStatement statement = connection.prepareStatement(
             "select tabfam_id, table_name, schema_name, group_type, group_col_num, "
@@ -74,106 +227,44 @@ public class MetadataReader {
         {
             try (ResultSet rs = statement.executeQuery()) {
                 while (rs.next()) {
-                    TableFamilyInfo tf = new TableFamilyInfo(rs);
-                    tfmap.put(tf.id, tf);
-                }
-            }
-        }
-    }
-
-    private int getLastTf() throws SQLException {
-        Optional<Integer> tfIdMax = tfmap.keySet().stream().max(Integer::compareTo);
-
-        if (!tfIdMax.isPresent()) {
-            throw new SQLException("TODO");
-        }
-
-        return tfIdMax.get();
-    }
-
-    public TableFamilyInfo getShardingInfo() throws SQLException
-    {
-        return getShardingInfo(-1);
-    }
-
-    public TableFamilyInfo getShardingInfo(int tableFamilyId) throws SQLException
-    {
-        if (tfmap.isEmpty()) {
-            readTableFamilies();
-        }
-
-        if (tableFamilyId == -1) {
-            tableFamilyId = getLastTf();
-        }
-
-        return tfmap.get(tableFamilyId);
-    }
-
-    public OracleShardingMetadata readMetadata() throws SQLException
-    {
-        return readMetadata(-1);
-    }
-
-    public OracleShardingMetadata readMetadata(int tableFamilyId) throws SQLException
-    {
-        TableFamilyInfo tf = getShardingInfo(tableFamilyId);
-
-        if (tableFamilyId == -1) { tableFamilyId = tf.id; }
-
-        OracleShardingMetadata.OracleMetadataBuilder builder
-                = OracleShardingMetadata.builder(tableFamilyId, tf.superShardingType, tf.shardingType);
-
-        try (PreparedStatement statement = connection.prepareStatement(
-                "select tabfam_id, shard_level, col_idx_in_key, col_name, eff_type, character_set, "
-                    + " col_size from local_chunk_columns where tabfam_id = :1 "
-                    + " order by shard_level, col_idx_in_key"))
-        {
-            statement.setInt(1, tf.id);
-
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    OracleKeyColumn column =
-                            OracleKeyColumn.createOracleKeyColumn(
-                                    rs.getInt("eff_type"), rs.getInt("character_set"), rs.getInt("col_size"));
-
-                    switch (rs.getInt("shard_level")) {
-                        case 0:
-                            builder.addSuperColumn(column);
-                            break;
-                        case 1:
-                            builder.addShardColumn(column);
-                            break;
-                        default:
-                            throw new UnexpectedChunkConfigurationException("Unexpected sharding level");
-                    }
+                    tfList.add(new ShardConfiguration(rs));
                 }
             }
         }
 
-        return builder.build();
+        return tfList;
     }
 
-    public Collection<ColumnInfo> readShardColumns(int tableFamilyId, Collection<ColumnInfo> columnList) throws SQLException
+    public ShardConfiguration getShardConfiguration() throws SQLException
     {
-        TableFamilyInfo tf = getShardingInfo(tableFamilyId);
-        if (tableFamilyId == -1) { tableFamilyId = tf.id; }
+        checkTableFamily();
+        fillConfig();
+        return tfConfig;
+    }
 
-        try (PreparedStatement statement = connection.prepareStatement(
-                "select tabfam_id, shard_level, col_idx_in_key, col_name, eff_type, character_set, "
-                        + " col_size from local_chunk_columns where tabfam_id = :1 "
-                        + " order by shard_level, col_idx_in_key"))
-        {
-            statement.setInt(1, tf.id);
+    private void fillConfig() throws SQLException
+    {
+        checkTableFamily();
 
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    columnList.add(new ColumnInfo(
-                            rs.getInt("eff_type"), rs.getInt("character_set"), rs.getInt("col_size"),
-                            rs.getInt("shard_level"), rs.getInt("col_idx_in_key")));
-                }
-            }
-        }
+        tfConfig.columns.clear();
+        tfConfig.columns.addAll(readShardColumns());
 
-        return columnList;
+        tfConfig.databases.clear();
+        tfConfig.databases.addAll(readShardInformation());
+
+        tfConfig.chunks.clear();
+        tfConfig.chunks.addAll(readChunks());
+    }
+
+    public OracleShardingMetadata getMetadata() throws SQLException
+    {
+        fillConfig();
+        return tfConfig.createMetadata();
+    }
+
+    public void updateMetadata(OracleShardingMetadata metadata) throws SQLException
+    {
+        fillConfig();
+        tfConfig.updateMetadata(metadata);
     }
 }

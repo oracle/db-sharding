@@ -11,9 +11,28 @@ package oracle.sharding;
 import java.sql.SQLException;
 
 /**
- * Created by itaranov on 4/1/17.
+ * Routing metadata, which would normally contain type information
+ * and sharding method information
  */
-public abstract class RoutingMetadata {
-    public abstract RoutingKey createKey(Object [] a, int begin) throws SQLException;
-    public abstract RoutingKey createKey(Object ... a) throws SQLException;
+public interface RoutingMetadata {
+    /**
+     * Create a routing key given an array of corresponding values, making
+     * required transformations if necessary.
+     *
+     * @param a array of values
+     * @param begin number of elements to skip from the beginning
+     * @return a valid routing key, corresponding to the metadata
+     * @throws SQLException if values does not satisfy metadata requirements
+     */
+    RoutingKey createKey(Object [] a, int begin) throws SQLException;
+
+    /**
+     * Create a routing key given an array of corresponding values, making
+     * required transformations if necessary.
+     *
+     * @param a values
+     * @return a valid routing key, corresponding to the metadata
+     * @throws SQLException if values does not satisfy metadata requirements
+     */
+    RoutingKey createKey(Object ... a) throws SQLException;
 }
