@@ -12,10 +12,6 @@
 var fs  = require('fs');
 var https = require('https');
 
-var options = {
-      key: fs.readFileSync('./certs/key.pem'),
-      cert: fs.readFileSync('./certs/cert.pem')
-  };
 
 var proxyOptions = { 
     xfwd: false,
@@ -35,13 +31,12 @@ var getInvoiceDetails = {
 var shardConnectionParams = {
     user          : "app_schema",
     password      : "app_schema",
-    connectString : "slc15zym:6216/sitemtrd.regress.rdbms.dev.us.oracle.com"
+    connectString : "host:port/service"
   };
 
 var registryPort = process.env.PORT || 40000; // port which the registry server will listen on.
 
 exports.getInvoiceDetails = getInvoiceDetails;
-exports.options = options;
 exports.proxyOptions = proxyOptions;
 exports.registryPort = registryPort;
 exports.shardConnectionParams = shardConnectionParams;  
