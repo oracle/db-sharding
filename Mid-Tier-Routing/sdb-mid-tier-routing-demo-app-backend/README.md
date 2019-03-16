@@ -17,11 +17,17 @@ Note :  Configuration of the backend is available at com.oracle.sdb.config.Confi
 
 ### Using the SDB mid-tier-routing demo backend app 
 
--  postman / dhc for Backend app REST APIs. 
+**Backend app REST APIs** 
 
-API documentation : https://documenter.getpostman.com/view/754319/RztsnRCC
+-  _API Collection_ : https://documenter.getpostman.com/view/754319/RztsnRCC
 
-https://backendHost:backendPort/api/invoice?custId=X -  fetches all the invoices from different vendors for a specific customer. Each customer (for example a company that needs to host all its vendor data including invoices in a specific shard) is on a separate app backend hosted at backendHost:backendPort. 
+**Fetch invoice for a specific customer**   
+
+-  `https://backendHost:backendPort/api/invoice?custId=X`  
+
+**Description** : Retrieves all the invoices from different vendors for a specific customer. Each customer (for example a company that needs to host all its vendor data including invoices in a specific shard) is on a separate app backend hosted at backendHost:backendPort. 
+
+**Backend API CURLs for various backends** 
 
       curl --location --request GET "http://localhost:10000/api/invoice?custId=999" --data ""
       
