@@ -12,10 +12,6 @@
 var fs  = require('fs');
 var https = require('https');
 
-var options = {
-      key: fs.readFileSync('./certs/key.pem'),
-      cert: fs.readFileSync('./certs/cert.pem')
-  };
 
 var proxyOptions = { 
     xfwd: false,
@@ -41,7 +37,6 @@ var shardConnectionParams = {
 var registryPort = process.env.PORT || 10000; // port which the registry server will listen on.
 
 exports.getInvoiceDetails = getInvoiceDetails;
-exports.options = options;
 exports.proxyOptions = proxyOptions;
 exports.registryPort = registryPort;
 exports.shardConnectionParams = shardConnectionParams;  
