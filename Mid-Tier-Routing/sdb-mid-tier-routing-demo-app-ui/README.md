@@ -1,7 +1,7 @@
 # Sharded database Mid-Tier routing demo app UI
 
 ## Installation instructions 
-     https://github.com/oracle/db-sharding/wiki/SDB-Mid-Tier-Routing-Demo-App#invoice-app-frontend 
+https://github.com/oracle/db-sharding/wiki/SDB-Mid-Tier-Routing-Demo-App#invoice-app-frontend 
      
 ## Steps summary 
 
