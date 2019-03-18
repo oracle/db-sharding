@@ -1,4 +1,4 @@
-## Sharded database Mid-Tier routing demo app backend setup instructions
+## Sharded database Mid-Tier routing - Demo app backend 
 
 ### Pre-Requisites
 
