@@ -1,4 +1,4 @@
- ## Mid-Tier Routing
+ ## Sharded Database Mid-Tier Routing
  
  
  - **Mid-Tier routing** : https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing 
