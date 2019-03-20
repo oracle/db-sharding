@@ -5,4 +5,7 @@
 
  - **Mid-Tier routing setup** :  https://github.com/oracle/db-sharding/wiki/SDB-Mid-Tier-Routing-Services
 
-- **Mid-Tier routing demo setup** :  https://github.com/oracle/db-sharding/wiki/SDB-Mid-Tier-Routing-Demo-App
+ - **Mid-Tier routing demo setup** :  https://github.com/oracle/db-sharding/wiki/SDB-Mid-Tier-Routing-Demo-App
+ 
+ - **Scaling Mid-Tier routing** : https://github.com/oracle/db-sharding/wiki/Scaling-Sharded-Database-Mid-Tier-Routing
+
