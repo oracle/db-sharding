@@ -8,8 +8,6 @@
 
 ## Sharded database Mid-Tier Routing Services
 
-**Note**: If you need to only run the docker image of Mid-tier-routing-services and consume the services thereof then head over to https://github.com/oracle/db-sharding/wiki/SDB-Mid-Tier-Routing-Services
-
 **Note**: If you want to extend and build the sdb-mid-tier-routing-services project after cloning/forking, then follow the steps below after importing the project into your IDE/Shell of choice:
 
 1.  Download ojdbc8.jar, ons.jar and ucp.jar from Oracle download center or the follwing link : https://www.oracle.com/technetwork/database/features/jdbc/jdbc-ucp-122-3110062.html
@@ -18,8 +16,12 @@
 
 ### To build a docker image : 
 
+Note : Set the docker repository variables in pom.xml to your docker repository 
+
 clean package dockerfile:build -X -e -DskipDockerPush
 
 ### To build and push a docker image into your repo : 
+
+Note : Set the docker repository variables in pom.xml to your docker repository 
 
 clean package dockerfile:build dockerfile:push -X -e
