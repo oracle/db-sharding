@@ -8,7 +8,7 @@
 
 ## Sharded database Mid-Tier Routing Services
 
-**Note**: If you want to extend and build the sdb-mid-tier-routing-services project after cloning/forking, then follow the steps below after importing the project into your IDE/Shell of choice:
+**Note**: If you want to extend and build the sdb-mid-tier-routing-services project after cloning/forking, then follow the steps below after importing the project:
 
 1.  Download ojdbc8.jar, ons.jar and ucp.jar from Oracle download center or the follwing link : https://www.oracle.com/technetwork/database/features/jdbc/jdbc-ucp-122-3110062.html
 2.  Create a libs folder at the root of the sdb-mid-tier-routing-services project and copy the downloaded jars into it.
