@@ -1,0 +1,37 @@
+# Copyright 2017, 2019, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+
+###############################################################################
+## Copyright(c) Oracle Corporation 1998,2019. All rights reserved.           ##
+##                                                                           ##
+## Specify values for the variables listed below to customize                ##
+## your installation.                                                        ##
+##                                                                           ##
+## Each variable is associated with a comment. The comment                   ##
+## can help to populate the variables with the appropriate                   ##
+## values.							             ##
+##                                                                           ##
+###############################################################################
+
+#-------------------------------------------------------------------------------
+# Do not change the following system generated value. 
+#-------------------------------------------------------------------------------
+oracle.install.responseFileVersion=/oracle/install/rspfmt_gsminstall_response_schema_v${gsm_major_version}.0.0
+
+#-------------------------------------------------------------------------------
+# Unix group to be set for the inventory directory.  
+#-------------------------------------------------------------------------------
+UNIX_GROUP_NAME=${unix_group_name}
+#-------------------------------------------------------------------------------
+# Inventory location.
+#-------------------------------------------------------------------------------
+INVENTORY_LOCATION=${ora_inventory_location}
+#-------------------------------------------------------------------------------
+# Complete path of the Oracle Home  
+#-------------------------------------------------------------------------------
+ORACLE_HOME=${gsm_home_path}
+
+#-------------------------------------------------------------------------------
+# Complete path of the Oracle Base. 
+#-------------------------------------------------------------------------------
+ORACLE_BASE=${oracle_base_path}
