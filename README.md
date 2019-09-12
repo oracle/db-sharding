@@ -2,12 +2,18 @@
 
 [SDB-terraform-modules]: https://github.com/oracle/db-sharding/tree/master/sdb-terraform
 [SDB-Mid-Tier-Routing]: https://github.com/oracle/db-sharding/tree/master/Mid-Tier-Routing
+[MTR-Intro]: https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing#introduction
 
-- [Terraform modules and scripts for deployment of Oracle sharded database](#terraform-modules-and-scripts-for-deployment-of-oracle-sharded-database)
-- [Mid-tier routing for use in Oracle sharded database (SDB) client applications](#mid-tier-routing-for-use-in-oracle-sharded-database--sdb--client-applications)
+- [About](#about)
+- [Terraform scripts and modules for deployment of Oracle sharded database](#terraform-scripts-and-modules-for-deployment-of-oracle-sharded-database)
+  * [Overview](#overview)
+  * [Details](#details)
+- [Mid-tier routing for use in Oracle sharded database client applications](#mid-tier-routing-for-use-in-oracle-sharded-database-client-applications)
+  * [Overview](#overview-1)
+  * [Details](#details-1)
 - [Routing implementations for use in Oracle sharding client applications](#routing-implementations-for-use-in-oracle-sharding-client-applications)
   * [Motivation](#motivation)
-  * [Overview](#overview)
+  * [Overview](#overview-2)
     + [Routing Tables](#routing-tables)
     + [Sharding Metadata](#sharding-metadata)
     + [Metadata Queries](#metadata-queries)
@@ -16,21 +22,34 @@
   * [Examples](#examples)
     + [Schema](#schema)
 
+## About
+
 This library provides Oracle Sharding tools for the following :
 
-* Terraform modules and scripts for deployment of Oracle sharded database.
+* Terraform scripts and modules for deployment of Oracle sharded database.
 * Mid-tier routing for use in Oracle sharded database client applications.
 * Routing implementations for use in Oracle sharding client applications.
 
-## Terraform modules and scripts for deployment of Oracle sharded database
+## Terraform scripts and modules for deployment of Oracle sharded database
+
+### Overview 
 
 Provides Oracle Sharded Database (SDB) Terraform modules and scripts that provisions the necessary components and resources required for a quick and easy setup of Oracle Sharded Database. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
 
+### Details
+
 For more details, please refer to the [SDB-Terraform][SDB-terraform-modules] documentation. 
 
-## Mid-tier routing for use in Oracle sharded database (SDB) client applications
+## Mid-tier routing for use in Oracle sharded database client applications
+
+### Overview
+
+Please refer to the Sharded database [Mid-Tier Routing introduction][MTR-Intro] for an overview.
+
+### Details
 
 For more details, please refer to the [SDB Mid-Tier routing][SDB-Mid-Tier-Routing] documentation. 
+
 
 ## Routing implementations for use in Oracle sharding client applications 
 
