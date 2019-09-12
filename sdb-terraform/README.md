@@ -40,7 +40,7 @@ Provides Oracle Sharded Database (SDB) Terraform modules that provisions the nec
 
 ## Pre-requisites
 
-1. Download [Terraform][terraform] (v0.11.13) zip and extract the <em>terraform<em> binary to any directory on the machine 
+1. Download [Terraform][terraform] (v0.11.13) zip and extract the <em>terraform</em> binary to any directory on the machine 
    (will be referred to as current machine in the rest of the documentation) where you are going to clone or download the sdb-terraform repository and want to invoke the SDB terraform scripts from.  
 2. Target hosts are created and Oracle Linux 7+ OS installed on them.
 3. Required ports are open on the target machines. (1522, 6123 and 6234 on shard directors and 1521 on shards and catalog(s))
