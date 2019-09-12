@@ -1,16 +1,42 @@
 # Oracle Sharding Tools Library
 
-# Oracle Sharding Tools Library
+[SDB-terraform-modules]: https://github.com/oracle/db-sharding/tree/master/sdb-terraform
+[SDB-Mid-Tier-Routing]: https://github.com/oracle/db-sharding/tree/master/Mid-Tier-Routing
+
+- [Terraform modules and scripts for deployment of Oracle sharded database](#terraform-modules-and-scripts-for-deployment-of-oracle-sharded-database)
+- [Mid-tier routing for use in Oracle sharded database (SDB) client applications](#mid-tier-routing-for-use-in-oracle-sharded-database--sdb--client-applications)
+- [Routing implementations for use in Oracle sharding client applications](#routing-implementations-for-use-in-oracle-sharding-client-applications)
+  * [Motivation](#motivation)
+  * [Overview](#overview)
+    + [Routing Tables](#routing-tables)
+    + [Sharding Metadata](#sharding-metadata)
+    + [Metadata Queries](#metadata-queries)
+    + [Splitter](#splitter)
+  * [Setup](#setup)
+  * [Examples](#examples)
+    + [Schema](#schema)
 
 This library provides Oracle Sharding tools for the following :
 
-* Terraform scripts for deployment of Oracle sharded database.
+* Terraform modules and scripts for deployment of Oracle sharded database.
 * Mid-tier routing for use in Oracle sharded database client applications.
 * Routing implementations for use in Oracle sharding client applications.
 
+## Terraform modules and scripts for deployment of Oracle sharded database
+
+Provides Oracle Sharded Database (SDB) Terraform modules and scripts that provisions the necessary components and resources required for a quick and easy setup of Oracle Sharded Database. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
+
+For more details, please refer to the [SDB-Terraform][SDB-terraform-modules] documentation. 
+
+## Mid-tier routing for use in Oracle sharded database (SDB) client applications
+
+For more details, please refer to the [SDB Mid-Tier routing][SDB-Mid-Tier-Routing] documentation. 
+
+## Routing implementations for use in Oracle sharding client applications 
+
 NOTE: this is a *beta* 0.1 version of the library.
 
-## Motivation
+### Motivation
 
 When using Oracle Sharding ...
 
@@ -31,7 +57,7 @@ We propose a lightweight Java library for reading and manipulating that informat
 It can be used to develop streaming applications which would take into
 account Oracle Sharded Database data distribution.
 
-## Overview
+### Overview
 
 The library consist of several parts:
  * Generic routing table interfaces
@@ -39,7 +65,7 @@ The library consist of several parts:
  * Metadata reader (encapsulated select queries)
  * Tools for efficient parallel splitting with respect to sharding key
 
-### Routing Tables
+#### Routing Tables
 
 `RoutingTable` interface is a generic multimap (may contain multiple objects for the same key) 
 from routing key to any object. The main methods it has are `lookup`, which returns all
@@ -57,7 +83,7 @@ Please see CustomDataSorting example, where it is used to map routing keys to fi
 `RoutingKey` is only there to prevent passing invalid object as a routing key, 
 see javadoc on that class.
 
-### Sharding Metadata
+#### Sharding Metadata
 
 `OracleShardingMetadata` is mainly a routing key factory, but it can also store 
 information on the chunk topology. Please see Oracle Sharding documentation on the concepts.
@@ -72,19 +98,19 @@ method is called.
 The instance of this class can be created by `MetadataReader` or manually,
 providing with required type information if the application is aware of it.
 
-### Metadata Queries
+#### Metadata Queries
 
 `MetadataReader` class encapsulates queries to the catalog database to read the 
 information on sharding. The full information is represented by 
 `ShardConfiguration` class, which can be serialized to cache this information
 or pass it to some other server (examples TBD).
 
-### Splitter
+#### Splitter
 
 `PartitionEngine` allows to split objects with respect to the routing 
 table in parallel. See `DirectLoad` and `ParallelLoad` examples for more information.
 
-## Setup
+### Setup
 
 The library requires OJDBC 12.2 library, which can be downloaded from the Oracle website. 
 If you are using Maven, it makes sense to install it into your local repository: 
@@ -108,7 +134,7 @@ cd sharding
 mvn install
 ```
 
-## Examples
+### Examples
 
 Examples require a sharding environment with a shard user created:
 
@@ -125,7 +151,7 @@ Examples require a sharding environment with a shard user created:
 Note, that the user must have `gsmadmin_role` in order to read
 `LOCAL_CHUNKS` view from the catalog database correctly.
 
-### Schema
+#### Schema
 
 Most of the examples are working with a single sharded table:
 
