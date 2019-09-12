@@ -1,6 +1,12 @@
 # Oracle Sharding Tools Library
 
-This library provides Oracle Sharding routing implementation for use in client applications.
+# Oracle Sharding Tools Library
+
+This library provides Oracle Sharding tools for the following :
+
+* Terraform scripts for deployment of Oracle sharded database.
+* Mid-tier routing for use in Oracle sharded database client applications.
+* Routing implementations for use in Oracle sharding client applications.
 
 NOTE: this is a *beta* 0.1 version of the library.
 
