@@ -125,10 +125,10 @@ This mode uses the [create shard method][SDB-Deploy-Method] of deploying Oracle 
 
 #### SDB Setup command example 
 ```
-$ nohup ./sdb-setup-new-install.sh with-catalog-standby with-demo with-shard-standby >> nohup-new-install.log 2>&1 &
+$ nohup ./sdb-setup-new-install.sh with-catalog-standby with-demo with-shard-standby >> nohup-setup-new-install.log 2>&1 &
 ```
 
-Verify that everything was successfully setup from the nohup output log. If there are any deployment errors for a particular sdb terraform resource, please attempt to fix the specific resource in error manually if possible and then re-run the setup or teardown script. If the deployment is left in a inconsistent state and you can't recover even after attempting to fix the input configuration, lookup the corresponding teardown section. Please destroy *.tfstate.* files in your sdb-terraform workspace post such issues before attempting to re-run setup after running the corresponding teardown script.
+Verify that everything was successfully setup from the nohup output log. If there are any deployment errors for a particular sdb terraform resource, please attempt to fix the specific resource in error manually if possible and then re-run the setup or teardown script. If the deployment is left in a inconsistent state and you can't recover even after attempting to fix the input configuration, lookup the corresponding teardown section. Please destroy \*.tfstate.\* files in your sdb-terraform workspace post such issues before attempting to re-run setup after running the corresponding teardown script.
 
 If the errors still persist, lookup the error codes on Oracle database or Oracle Sharded database release documentation. If the issue still persists and you think this is a bug with sharded database terraform modules, then file an [issue][SDB-Issues] or send a pull request on [SDB repository][SDB-Repo]. If you think it is a configuration issue that you are facing or need further clarification, then refer the SDB Terraform documentation or contact the Oracle support. 
 
@@ -178,7 +178,7 @@ For a complete list of pre-requisites before running the above setup command for
 
 If you want to manually setup dataguard then please refer to [Dataguard documention][DG-Doc].
 
-Verify that everything was successfully setup from the nohup output log. If there are any deployment errors for a particular sdb terraform resource, please attempt to fix the specific resource in error manually if possible and then re-run the setup or teardown script. If the deployment is left in a inconsistent state and you can't recover even after attempting to fix the input configuration, lookup the corresponding teardown section. Please destroy *.tfstate.* files in your sdb-terraform workspace post such issues before attempting to re-run setup after running the corresponding teardown script.
+Verify that everything was successfully setup from the nohup output log. If there are any deployment errors for a particular sdb terraform resource, please attempt to fix the specific resource in error manually if possible and then re-run the setup or teardown script. If the deployment is left in a inconsistent state and you can't recover even after attempting to fix the input configuration, lookup the corresponding teardown section. Please destroy \*.tfstate.\* files in your sdb-terraform workspace post such issues before attempting to re-run setup after running the corresponding teardown script.
 
 If the errors still persist, lookup the error codes on Oracle database or Oracle Sharded database release documentation. If the issue still persists and you think this is a bug with sharded database terraform modules, then file an [issue][SDB-Issues] or send a pull request on [SDB repository][SDB-Repo]. If you think it is a configuration issue that you are facing or need further clarification, then refer the SDB Terraform documentation or contact the Oracle support. 
 
