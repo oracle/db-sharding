@@ -14,7 +14,7 @@
     + [Setup & Deploy Oracle Sharded database in from_existing_dbs mode](#setup---deploy-oracle-sharded-database-in-from-existing-dbs-mode)
       - [Command Usage](#command-usage-2)
       - [SDB Setup command options](#sdb-setup-command-options)
-    + [For tearing down the Sharded Database deployment (which was setup previously using the from_existing_dbs mode)](#for-tearing-down-the-sharded-database-deployment--which-was-setup-previously-using-the-from-existing-dbs-mode-)
+    + [For tearing down the Sharded Database deployment which was setup previously using the from_existing_dbs mode](#for-tearing-down-the-sharded-database-deployment-which-was-setup-previously-using-the-from-existing-dbs-mode)
       - [Command Usage](#command-usage-3)
       - [SDB Teardown command options](#sdb-teardown-command-options)
   * [Current limitations of SDB Terraform](#current-limitations-of-sdb-terraform)
@@ -50,7 +50,7 @@ Provides Oracle Sharded Database (SDB) Terraform modules that provisions the nec
     
    OR
 
-   scp ~/.ssh/id_rsa.pub username@targethost:~/.ssh/authorized_keys
+   scp \~/.ssh/id_rsa.pub username@targethost:\~/.ssh/authorized_keys
 
 5. Place the Global Service Manager(GSM) and Database(DB) binary zips in a directory where they can be accessed on the current machine and provide the paths for them in terraform.tfvars after you download SDB terraform source.
  
@@ -78,7 +78,8 @@ Provides Oracle Sharded Database (SDB) Terraform modules that provisions the nec
     $ bash
     $ source ~/.bashrc  
     $ git clone https://github.com/oracle/db-sharding.git  (Using HTTPS) 
-    OR git clone git@github.com:oracle/db-sharding.git     (Using SSH)
+      OR 
+    $ git clone git@github.com:oracle/db-sharding.git      (Using SSH)
     $ cd sdb-terraform
     $ cp sdb-*.terraform.tfvars.example terraform.tfvars
     $ cp sdb-*.secrets.tfvars.example secrets.tfvars
@@ -89,14 +90,16 @@ Provides Oracle Sharded Database (SDB) Terraform modules that provisions the nec
 3. Set variables in terraform.tfvars and secrets.tfvars. See the variables.tf file for description on each of the variables 
    found in the *.tfvars files. Also refer to the *.tfvars example files for valid values of properties for variables.
 
-* <strong> Note <strong> : Don't remove any variables defined in *.tfvars defined irrespective of the mode or option you are running the setup or teardown scripts with.
+* <strong> Note </strong> : Don't remove any variables defined in *.tfvars defined irrespective of the mode or option you are running the setup or teardown scripts with.
 
 4.  Follow the steps below to initialize, plan and deploy in the mode that you want Oracle Sharded Database to be setup.
 
 ### Initialize Terraform
+
 ```
 $ terraform init
 ```
+
 Initialize step downloads any terraform modules needed and initializes the terraform state machine.
 
 ### View Terraform's SDB Deployment blueprint
@@ -158,13 +161,13 @@ When running setup in the from_existing_dbs mode, there are two options for sett
 
 1.  If you run the command leaving out the with-shard-standby OR with-catalog-standby option, then you will have to create the primary database instance and standby db instance and make sure the listeners are up and running on both primary and standby dbs. After SDB deployment has succesfully completed, if you encounter any data guard related issues then refer to the [data guard troubleshooting documentation][DG-Troubleshoot]
 
-Make sure to pass the deploy-shard-standby option as shown in the example command below, if you choose to leave out the with-shard-standby option, so that standby shard(s) that you have setup is deployed. <strong> Note <strong> : When you pass deploy-shard-standby option, DO NOT pass the with-shard-standby option as these options are mutually exclusive.
+Make sure to pass the deploy-shard-standby option as shown in the example command below, if you choose to leave out the with-shard-standby option, so that standby shard(s) that you have setup is deployed. <strong> Note </strong> : When you pass deploy-shard-standby option, DO NOT pass the with-shard-standby option as these options are mutually exclusive.
 
 ```
 $ nohup ./sdb-setup-from-existing-dbs.sh deploy-shard-standby with-catalog-standby with-demo >> nohup-setup-from-existing-dbs.log 2>&1 &
 ```
 
-2. If you run the below command and pass it the with-shard-standby OR the with-catalog-standby option, then you only have to  create the primary database instance and install the database software onto the standby machine. Make sure the listener is running on the primary database instance. DO NOT start the listener on the standby. <strong> Note <strong> : When you pass with-shard-standby option DO NOT pass the deploy-shard-standby option as these options are mutually exclusive.
+2. If you run the below command and pass it the with-shard-standby OR the with-catalog-standby option, then you only have to  create the primary database instance and install the database software onto the standby machine. Make sure the listener is running on the primary database instance. DO NOT start the listener on the standby. <strong> Note </strong> : When you pass with-shard-standby option DO NOT pass the deploy-shard-standby option as these options are mutually exclusive.
 
 ```
 $ nohup ./sdb-setup-from-existing-dbs.sh  with-shard-standby with-catalog-standby with-demo >> nohup-setup-from-existing-dbs.log 2>&1 &
@@ -180,7 +183,7 @@ Verify that everything was successfully setup from the nohup output log. If ther
 If the errors still persist, lookup the error codes on Oracle database or Oracle Sharded database release documentation. If the issue still persists and you think this is a bug with sharded database terraform modules, then file an [issue][SDB-Issues] or send a pull request on [SDB repository][SDB-Repo]. If you think it is a configuration issue that you are facing or need further clarification, then refer the SDB Terraform documentation or contact the Oracle support. 
 
 
-### For tearing down the Sharded Database deployment (which was setup previously using the from_existing_dbs mode) 
+### For tearing down the Sharded Database deployment which was setup previously using the from_existing_dbs mode
 
 #### Command Usage
 ```
