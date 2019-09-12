@@ -14,7 +14,7 @@
     + [Setup & Deploy Oracle Sharded database in from_existing_dbs mode](#setup---deploy-oracle-sharded-database-in-from-existing-dbs-mode)
       - [Command Usage](#command-usage-2)
       - [SDB Setup command options](#sdb-setup-command-options)
-    + [For tearing down the Sharded Database deployment which was setup previously using the from_existing_dbs mode](#for-tearing-down-the-sharded-database-deployment-which-was-setup-previously-using-the-from-existing-dbs-mode)
+    + [For tearing down the Sharded Database deployment setup previously in the from_existing_dbs mode](#for-tearing-down-the-sharded-database-deployment-setup-previously-in-the-from-existing-dbs-mode)
       - [Command Usage](#command-usage-3)
       - [SDB Teardown command options](#sdb-teardown-command-options)
   * [Current limitations of SDB Terraform](#current-limitations-of-sdb-terraform)
@@ -183,7 +183,7 @@ Verify that everything was successfully setup from the nohup output log. If ther
 If the errors still persist, lookup the error codes on Oracle database or Oracle Sharded database release documentation. If the issue still persists and you think this is a bug with sharded database terraform modules, then file an [issue][SDB-Issues] or send a pull request on [SDB repository][SDB-Repo]. If you think it is a configuration issue that you are facing or need further clarification, then refer the SDB Terraform documentation or contact the Oracle support. 
 
 
-### For tearing down the Sharded Database deployment which was setup previously using the from_existing_dbs mode
+### For tearing down the Sharded Database deployment setup previously in the from_existing_dbs mode
 
 #### Command Usage
 ```
