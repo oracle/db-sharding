@@ -29,7 +29,6 @@ resource "null_resource" "sdb_schema_setup" {
     destination = "${var.db_home_path}/sharding-schema-setup.sh"
   }
 
-  #Catalog config
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${var.db_home_path}/sharding-schema-setup.sh",  

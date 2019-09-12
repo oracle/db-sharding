@@ -3,7 +3,7 @@
 
 resource "null_resource" "sdb_deploy_invoker" {
  # depends_on  = ["null_resource.sdb_create_standby_shard"]
-  #creates ssh connection to gsm host
+
   connection {
     type = "ssh"
     user = "${var.os_user}"
@@ -13,7 +13,6 @@ resource "null_resource" "sdb_deploy_invoker" {
     timeout = "${var.ssh_timeout}"
   } 
 
-  # copying
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash

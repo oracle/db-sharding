@@ -58,7 +58,6 @@ provisioner "file" {
     when   = "destroy"
     inline = [
     "cd ${var.db_home_path}/bin",
-   # "./dbca -silent -deleteDatabase -sourceDB ${lookup(var.shards[element(keys(var.shards), count.index)], "sid")} -sysDBAUserName sys -sysDBAPassword ${var.sys_pass}",
     "echo ${local.db_major_version}",
     "mkdir -p ${var.oracle_base}/deinstall-db",
     "cd ${var.db_home_path}/deinstall",

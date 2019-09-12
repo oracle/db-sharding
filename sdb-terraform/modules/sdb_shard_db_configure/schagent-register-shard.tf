@@ -30,7 +30,6 @@ resource "null_resource" "sdb_schagent_register_shard" {
     destination = "${var.db_home_path}/schagent-register-shard.sh"
   }
 
-  #Shard validation 
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${var.db_home_path}/schagent-register-shard.sh",  

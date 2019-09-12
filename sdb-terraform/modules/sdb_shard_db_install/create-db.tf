@@ -633,8 +633,7 @@ EOF
     destination = "${var.db_home_path}/dbca.rsp"
 }
 
-
-  # Creating db install and tns listener 
+  # db install 
   provisioner "remote-exec" {
     inline = [ <<EOF
     cd ${var.db_home_path}/bin
@@ -668,18 +667,4 @@ EOF
     "rm -f ${var.db_home_path}/stop-tns-listener.sh"
     ]
   }
-
-  #Destroying db
-  #TODO - Move it to a separate resource such that it gets executed only when db_destroy flag is set when 
-  # terrform destroy is called and there are more than one elements in the shards map.
-  # provisioner "remote-exec" {
-  #   when   = "destroy"
-  #   inline = [ <<EOF
-  #   echo Database ${lookup(var.shards[element(keys(var.shards), count.index)], "sid")} will be deleted now
-  #   cd ${var.db_home_path}/bin
-  #   ./dbca -silent -deleteDatabase -sourceDB ${lookup(var.shards[element(keys(var.shards), count.index)], "sid")} -sysDBAUserName sys -sysDBAPassword ${var.sys_pass}
-  #   echo Database ${lookup(var.shards[element(keys(var.shards), count.index)], "sid")} has been deleted.
-  #   EOF
-  #   ]
-  # }
 }

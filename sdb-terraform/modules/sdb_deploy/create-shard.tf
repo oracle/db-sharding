@@ -5,7 +5,6 @@
   # depends_on  = ["null_resource.sdb_add_standby_shard_group"]
   count = "${var.setup_mode == "new_install" ? length(var.shards) : 0}"
 
-  #creates ssh connection to gsm host
   connection {
     type = "ssh"
     user = "${var.os_user}"
@@ -33,7 +32,6 @@
     destination = "${local.gsm_home_full_path}/netparamfile-for-${lookup(var.shards[element(keys(var.shards), count.index)], "sid")}.rsp"
   }
 
-  # copying
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash 

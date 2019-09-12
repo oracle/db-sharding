@@ -19,24 +19,16 @@ resource "null_resource" "sdb_shard_catalog_configure_with_standby" {
     destination = "${var.db_home_path}/catalog-config.sql"
   }
 
-  # provisioner "file" {
-  #   source = "${path.module}/sql/prvtgwmpl.plb"
-  #   destination = "${var.db_home_path}/prvtgwmpl.plb"
-  # }
-
-
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash
       echo ${var.sdb_shard_catalog_create_deps_check}  
       source ${var.db_home_path}/shardcat.sh
-      sqlplus / as sysdba @${var.db_home_path}/catalog-config.sql 
-      # echo exit | sqlplus / as sysdba @${var.db_home_path}/prvtgwmpl.plb
+      sqlplus / as sysdba @${var.db_home_path}/catalog-config.sql
       EOF
     destination = "${var.db_home_path}/catalog-config-setup.sh"
   }
 
-  #Catalog config
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${var.db_home_path}/catalog-config-setup.sh", 
@@ -60,7 +52,6 @@ resource "null_resource" "sdb_shard_catalog_configure_with_standby" {
     destination = "${var.db_home_path}/shard-db-config-setup.sh"
   }
 
-  #Shard db config setup
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${var.db_home_path}/shard-db-config-setup.sh",  
@@ -86,7 +77,6 @@ resource "null_resource" "sdb_shard_catalog_configure_with_standby" {
       rm -f ${var.db_home_path}/shard-db-config.sql
       rm -f ${var.db_home_path}/shard-db-config-setup.sh
       rm -f ${var.db_home_path}/catalog-config-setup.sh
-      # rm -f ${var.db_home_path}/prvtgwmpl.plb 
       EOF
     destination = "${var.db_home_path}/catalog-config-teardown.sh"
   }

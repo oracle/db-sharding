@@ -38,7 +38,7 @@ resource "null_resource" "sdb_shard_catalog_standby_db_install_sw" {
     ]
   }
 
-  # copying
+  # copying env
   provisioner "file" {    
     content  = <<-EOF
         #! /bin/bash
@@ -58,7 +58,7 @@ provisioner "file" {
 }
 
 
-  # Creating db install and tns listener 
+  # db install 
   provisioner "remote-exec" {
     inline = [ <<EOF
     cd ${var.db_home_path}
@@ -69,22 +69,6 @@ provisioner "file" {
     EOF
     ]
   }
-
- # ${var.db_home_path}/bin/netca -silent -responseFile ${var.db_home_path}/assistants/netca/netca.rsp
-
-  #Destroying db
-  #TODO - Move it to a separate resource such that it gets executed only when db_destroy flag is set when 
-  # terrform destroy is called and there are more than one elements in the shards map.
-  # provisioner "remote-exec" {
-  #   when   = "destroy"
-  #   inline = [ <<EOF
-  #   echo Database ${lookup(var.shard_catalog_standbys[element(keys(var.shard_catalog_standbys), count.index)], "sid")} will be deleted now
-  #   cd ${var.db_home_path}/bin
-  #   ./dbca -silent -deleteDatabase -sourceDB ${lookup(var.shard_catalog_standbys[element(keys(var.shard_catalog_standbys), count.index)], "sid")} -sysDBAUserName sys -sysDBAPassword ${var.sys_pass}
-  #   echo Database ${lookup(var.shard_catalog_standbys[element(keys(var.shard_catalog_standbys), count.index)], "sid")} has been deleted.
-  #   EOF
-  #   ]
-  # }
 
   provisioner "file" {
     when = "destroy"

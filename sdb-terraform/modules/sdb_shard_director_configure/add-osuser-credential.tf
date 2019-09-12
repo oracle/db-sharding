@@ -14,7 +14,6 @@ resource "null_resource" "sdb_add_osuser_credential" {
     timeout = "${var.ssh_timeout}"
   } 
 
-  # copying
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash

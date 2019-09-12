@@ -5,7 +5,7 @@ resource "null_resource" "sdb_shard_director_install" {
 
   count = "${length(var.shard_directors)}"
 
-  #creates ssh connection to gsm host
+  # ssh connection to gsm host
   connection {
     type = "ssh"
     user = "${var.os_user}"
@@ -21,13 +21,11 @@ resource "null_resource" "sdb_shard_director_install" {
     ]
   }
 
-  #copying a file over
   provisioner "file" {
     source = "${var.gsm_zip_location}/${var.gsm_zip_name}.zip"
     destination = "${var.oracle_base}/${var.gsm_zip_name}.zip"
   }
 
-  # copying
   provisioner "file" {
     content  = "${data.template_file.shard_director_env_template.rendered}"
     destination = "${var.oracle_base}/shard-director.sh"
@@ -41,11 +39,11 @@ resource "null_resource" "sdb_shard_director_install" {
     ]
    }
 
-  # copying 
   provisioner "file" {
     content = "${data.template_file.shard_director_worker_template.rendered}"
     destination = "${var.oracle_base}/shard-director-worker.sh"
   }
+  
   # destroying
   provisioner "remote-exec" {
     when    = "destroy"
@@ -53,11 +51,12 @@ resource "null_resource" "sdb_shard_director_install" {
     "rm -f ${var.oracle_base}/shard-director-worker.sh"
     ]
   }
-  # copying
+
   provisioner "file" {
       content   = "${data.template_file.shard_director_rsp_template.rendered}"
       destination = "${var.oracle_base}/gsm_install.rsp"
   }
+
   # destroying
   provisioner "remote-exec" {
     when    = "destroy"
@@ -66,7 +65,6 @@ resource "null_resource" "sdb_shard_director_install" {
     ]
   }
 
-  #Creating 
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${var.oracle_base}/shard-director-worker.sh",

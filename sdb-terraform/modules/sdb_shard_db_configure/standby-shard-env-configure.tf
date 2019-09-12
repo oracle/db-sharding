@@ -14,7 +14,7 @@ resource "null_resource" "sdb_standby_shard_env_configure" {
     timeout = "${var.ssh_timeout}"
   } 
 
-  # copying
+  # copying env
   provisioner "file" {  
     content  = <<-EOF
         #! /bin/bash

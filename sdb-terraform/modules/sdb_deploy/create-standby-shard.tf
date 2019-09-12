@@ -5,7 +5,6 @@
   # depends_on  = ["null_resource.sdb_create_shard"]
   count = "${var.setup_mode == "new_install" ? length(var.standby_shards) : 0}"
 
-  #creates ssh connection to gsm host
   connection {
     type = "ssh"
     user = "${var.os_user}"

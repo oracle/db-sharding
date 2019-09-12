@@ -13,7 +13,6 @@ resource "null_resource" "sdb_shard_director_configure" {
     timeout = "${var.ssh_timeout}"
   } 
 
-  # copying
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash

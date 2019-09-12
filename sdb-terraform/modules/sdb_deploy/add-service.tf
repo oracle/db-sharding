@@ -5,7 +5,6 @@
   # depends_on  = ["null_resource.sdb_deploy_invoker"]
   count = "${length(var.global_services)}"
 
-  #creates ssh connection to gsm host
   connection {
     type = "ssh"
     user = "${var.os_user}"
@@ -15,7 +14,6 @@
     timeout = "${var.ssh_timeout}"
   }
 
-  # copying
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash 
@@ -28,7 +26,6 @@
     destination = "${local.gsm_home_full_path}/add-service-config-setup-for-${lookup(var.global_services[element(keys(var.global_services), count.index)], "service_name")}.sh"
   }
 
-  #shard director config setup
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${local.gsm_home_full_path}/add-service-config-setup-for-${lookup(var.global_services[element(keys(var.global_services), count.index)], "service_name")}.sh", 

@@ -37,7 +37,7 @@ resource "null_resource" "sdb_setup_data_guard_catalog" {
         ]
     }
 
-        # destroying
+    # destroying
     provisioner "remote-exec" {
         when    = "destroy"
         inline = [

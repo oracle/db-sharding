@@ -34,7 +34,7 @@
     ]
    }
 
-     # destroying
+  # destroying
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [
@@ -43,11 +43,4 @@
     "rm -rf ${var.db_home_path}/__MACOSX"
     ]
    }
-
-  #  provisioner "remote-exec" {
-  #   when    = "destroy" 
-  #   inline = [
-  #   "kill $(ps aux | grep '[o]racle.monitor.Main' | awk '{print $2}')"
-  #   ]
-  #  }
   }

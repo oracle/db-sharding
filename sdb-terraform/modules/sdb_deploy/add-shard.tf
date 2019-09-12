@@ -5,7 +5,6 @@
   # depends_on  = ["null_resource.sdb_add_standby_shard_group"]
   count = "${var.setup_mode == "new_install" ? 0 : length(var.shards)}"
 
-  #creates ssh connection to gsm host
   connection {
     type = "ssh"
     user = "${var.os_user}"
@@ -15,7 +14,6 @@
     timeout = "${var.ssh_timeout}"
   }
 
-  # copying
   provisioner "file" {
     content  = <<-EOF
       #! /bin/bash 
@@ -27,7 +25,6 @@
     destination = "${local.gsm_home_full_path}/add-shard-config-setup-for-${lookup(var.shards[element(keys(var.shards), count.index)], "sid")}.sh"
   }
 
-  #shard director config setup
   provisioner "remote-exec" {
     inline = [
     "chmod 700 ${local.gsm_home_full_path}/add-shard-config-setup-for-${lookup(var.shards[element(keys(var.shards), count.index)], "sid")}.sh", 

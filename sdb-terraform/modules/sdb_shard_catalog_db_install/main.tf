@@ -44,7 +44,7 @@ resource "null_resource" "sdb_shard_catalog_db_install" {
     ]
   }
 
-  # copying
+  # copying env
   provisioner "file" {
     
     content  = <<-EOF
@@ -59,8 +59,7 @@ resource "null_resource" "sdb_shard_catalog_db_install" {
     destination = "${var.db_home_path}/shardcat.sh"
   }
 
-  # # destroying db home
-
+  # destroying
   provisioner "remote-exec" {
     when    = "destroy"
     inline = [

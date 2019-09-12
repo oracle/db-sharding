@@ -1,7 +1,6 @@
 # Copyright 2017, 2019, Oracle Corporation and/or affiliates.  All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
 resource "null_resource" "sdb_standby_shard_db_install_sw" {
-  # depends_on  = ["${var.setup_mode == "new_install" ? "" : "null_resource.sdb_shard_db_create"}"]
   # depends_on  = ["null_resource.sdb_shard_db_create"]
   count = "${length(var.standby_shards)}"
 
@@ -45,7 +44,7 @@ resource "null_resource" "sdb_standby_shard_db_install_sw" {
   }
 
 
-  # copying
+  # copying env
   provisioner "file" {
     
     content  = <<-EOF
@@ -66,7 +65,7 @@ provisioner "file" {
 }
 
 
-  # Creating db install and tns listener 
+  # db install 
   provisioner "remote-exec" {
     inline = [ <<EOF
     cd ${var.db_home_path}
@@ -77,20 +76,6 @@ provisioner "file" {
     EOF
     ]
   }
-
-  #Destroying db
-  #TODO - Move it to a separate resource such that it gets executed only when db_destroy flag is set when 
-  # terrform destroy is called and there are more than one elements in the shards map.
-  # provisioner "remote-exec" {
-  #   when   = "destroy"
-  #   inline = [ <<EOF
-  #   echo Database ${lookup(var.standby_shards[element(keys(var.standby_shards), count.index)], "sid")} will be deleted now
-  #   cd ${var.db_home_path}/bin
-  #   ./dbca -silent -deleteDatabase -sourceDB ${lookup(var.standby_shards[element(keys(var.standby_shards), count.index)], "sid")} -sysDBAUserName sys -sysDBAPassword ${var.sys_pass}
-  #   echo Database ${lookup(var.standby_shards[element(keys(var.standby_shards), count.index)], "sid")} has been deleted.
-  #   EOF
-  #   ]
-  # }
 
   provisioner "file" {
     when = "destroy"
