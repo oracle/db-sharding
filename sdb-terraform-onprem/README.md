@@ -17,7 +17,7 @@
     + [For tearing down the Sharded Database deployment setup previously in the from_existing_dbs mode](#for-tearing-down-the-sharded-database-deployment-setup-previously-in-the-from-existing-dbs-mode)
       - [Command Usage](#command-usage-3)
       - [SDB Teardown command options](#sdb-teardown-command-options)
-  * [Current limitations of SDB Terraform](#current-limitations-of-sdb-terraform)
+  * [Current limitations of SDB Terraform OnPrem](#current-limitations-of-sdb-terraform)
 
 
 [terraform]: https://releases.hashicorp.com/terraform/0.11.13/
@@ -41,7 +41,7 @@ Provides Oracle Sharded Database (SDB) Terraform modules that provisions the nec
 ## Pre-requisites
 
 1. Download [Terraform][terraform] (v0.11.13) zip and extract the <em>terraform</em> binary to any directory on the machine 
-   (will be referred to as current machine in the rest of the documentation) where you are going to clone or download the sdb-terraform repository and want to invoke the SDB terraform scripts from.  
+   (will be referred to as current machine in the rest of the documentation) where you are going to clone or download the sdb-terraform-onprem repository and want to invoke the SDB terraform scripts from.  
 2. Target hosts are created and Oracle Linux 7+ OS installed on them.
 3. Required ports are open on the target machines. (1522, 6123 and 6234 on shard directors and 1521 on shards and catalog(s))
 4. Copy public key of the current machine to the remote target hosts.
@@ -80,12 +80,12 @@ Provides Oracle Sharded Database (SDB) Terraform modules that provisions the nec
     $ git clone https://github.com/oracle/db-sharding.git  (Using HTTPS) 
       OR 
     $ git clone git@github.com:oracle/db-sharding.git      (Using SSH)
-    $ cd sdb-terraform
+    $ cd sdb-terraform-onprem
     $ cp sdb-*.terraform.tfvars.example terraform.tfvars
     $ cp sdb-*.secrets.tfvars.example secrets.tfvars
     $ chmod 700 *.sh
     ```
-2. Optionally, if you also want to setup the [SDB Demo application][SDB-Demo] with sample (dummy) data in all the shards and monitor the shards, copy the [SDB demo zip][SDB-Demo-zip] and place the sdb_demo_app.zip file into the directory where you downloaded terraform scripts at the following path : {sdb-terraform}/modules/sdb_demo_setup/demo-binaries/
+2. Optionally, if you also want to setup the [SDB Demo application][SDB-Demo] with sample (dummy) data in all the shards and monitor the shards, copy the [SDB demo zip][SDB-Demo-zip] and place the sdb_demo_app.zip file into the directory where you downloaded terraform scripts at the following path : {sdb-terraform-onprem}/modules/sdb_demo_setup/demo-binaries/
     
 3. Set variables in terraform.tfvars and secrets.tfvars. See the variables.tf file for description on each of the variables 
    found in the *.tfvars files. Also refer to the *.tfvars example files for valid values of properties for variables.
