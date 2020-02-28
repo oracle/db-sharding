@@ -207,7 +207,7 @@ $ nohup ./sdb-teardown-from-existing-dbs.sh deploy-shard-standby with-catalog-st
 nohup ./sdb-teardown-from-existing-dbs.sh with-shard-standby with-catalog-standby with-demo >> nohup-teardown-from-existing-dbs.log 2>&1 &
 ```
 
-## Current limitations of SDB Terraform
+## Current limitations of SDB Terraform On-Premise
 
 1. Doesn't support user-defined and composite sharding.
 2. Doesn't support Oracle Golden Gate (OGG) replication.
