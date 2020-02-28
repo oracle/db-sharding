@@ -58,11 +58,11 @@ For more details, please refer to the [SDB-Terraform-OCI][SDB-terraform-oci] doc
 
 ### Overview 
 
-Provides Oracle Sharded Database (SDB) Terraform modules and scripts that provisions the necessary components and resources required for a quick and easy setup of Oracle Sharded Database on-prem. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
+Provides [Oracle Sharded Database][SDB] (SDB) Terraform modules and scripts that provisions the necessary components and resources required for a quick and easy setup of Oracle Sharded Database on-prem. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
 
 ### Details
 
-For more details, please refer to the [SDB-Terraform][SDB-terraform-onprem] documentation.
+For more details, please refer to the [SDB-Terraform-OnPrem][SDB-terraform-onprem] documentation.
 
 ## Mid-tier routing for use in Oracle sharded database client applications
 
