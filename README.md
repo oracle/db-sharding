@@ -6,22 +6,22 @@
 [MTR-Intro]: https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing#introduction
 [SDB-prod-page]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 [SDB-prod-doc]: https://docs.oracle.com/en/database/oracle/oracle-database/19/shard/
-[OCI]: https://www.oracle.com/cloud/ 
+[OCI]: https://www.oracle.com/cloud/
+[SDB]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 
 - [About](#about)
-- [Terraform based deployment of Oracle sharded database on Oracle Cloud Infrastructure]
-(#terraform-based-deployment-of-oracle-sharded-database-on-oracle-cloud-infrastructure)
+- [Terraform based deployment of Oracle sharded database on Oracle Cloud Infrastructure](#terraform-based-deployment-of-oracle-sharded-database-on-oracle-cloud-infrastructure)
   * [Overview](#overview)
   * [Details](#details)
 - [Terraform based On-Premise deployment of Oracle sharded database](#terraform-based-deployment-of-oracle-sharded-database-on-premise)
+  * [Overview](#overview-1)
+  * [Details](#details-1)
+- [Mid-tier routing for use in Oracle sharded database client applications](#mid-tier-routing-for-use-in-oracle-sharded-database-client-applications)
   * [Overview](#overview-2)
   * [Details](#details-2)
-- [Mid-tier routing for use in Oracle sharded database client applications](#mid-tier-routing-for-use-in-oracle-sharded-database-client-applications)
-  * [Overview](#overview-3)
-  * [Details](#details-3)
 - [Routing implementations for use in Oracle sharding client applications](#routing-implementations-for-use-in-oracle-sharding-client-applications)
   * [Motivation](#motivation)
-  * [Overview](#overview-4)
+  * [Overview](#overview-3)
     + [Routing Tables](#routing-tables)
     + [Sharding Metadata](#sharding-metadata)
     + [Metadata Queries](#metadata-queries)
@@ -34,8 +34,8 @@
 
 This library provides Oracle Sharding tools for the following :
 
-* Terraform based On-Premise deployment of Oracle sharded database.
 * Terraform based deployment of Oracle sharded database on Oracle Cloud Infrastructure.
+* Terraform based deployment of Oracle sharded database On-Premise.
 * Mid-tier routing for use in Oracle sharded database client applications.
 * Routing implementations for use in Oracle sharding client applications.
 

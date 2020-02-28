@@ -30,7 +30,7 @@ Provides Terraform scripts that provisions the necessary components and resource
 
 3. A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. Please follow the [OCI API signing key documentation][api-signing-key] for steps to upload public key to OCI and make a copy of finger print which will need to be keyed into terraform.tfvars.
 
-4. Atleast one non-regional [subnet][subnet] per AD exists and are created along with any  route/ingress/egress rules. (Make sure ingress and egress rules are defined for tcp ports 1521 and 1522 to be open on the subnets which are going to be used for sharded database deployment).
+4. Atleast one <strong>non-regional [subnet][subnet]</strong> per AD exists and are created along with any  route/ingress/egress rules. (Make sure ingress and egress rules are defined for tcp ports 1521 and 1522 to be open on the subnets which are going to be used for sharded database deployment).
 
 NOTE: regional subnets are not supported at this time.
 
@@ -80,7 +80,7 @@ Note: Make sure terraform -v works and shows a version later than 0.12
 
    ```
    $  terraform init
-   $  nohup ./sdb-setup.sh deploy >> nohup-setup-sdb.log 2>&1 & 
+   $  nohup ./sdb-setup.sh deploy >> nohup-setup-sdb.log 2>&1 &
    ```
 ## To teardown an existing sharded database setup
 
