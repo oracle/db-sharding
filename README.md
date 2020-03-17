@@ -1,4 +1,4 @@
-# Oracle Sharded Database tools and deployment automation library
+# Oracle Sharding tools and deployment automation library
 
 [SDB-terraform-onprem]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/sdb-terraform-onprem
 [SDB-terraform-oci]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/sdb-terraform-oci
