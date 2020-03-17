@@ -4,7 +4,7 @@
 [SDB-terraform-oci]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/sdb-terraform-oci
 [SDB-terraform]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/
 [SDB-Mid-Tier-Routing]: https://github.com/oracle/db-sharding/tree/master/Mid-Tier-Routing
-[SDB-Fast-Data-Ingest]: https://github.com/oracle/db-sharding/tree/master/fast-data-ingest
+[SDB-Fast-Data-Ingest]: https://github.com/oracle/db-sharding/tree/master/sharding-fast-data-ingest
 [OKE-sharding]: https://github.com/oracle/db-sharding/tree/master/oke-based-sharding-deployment
 [MTR-Intro]: https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing#introduction
 [SDB-prod-page]: https://www.oracle.com/database/technologies/high-availability/sharding.html
@@ -30,10 +30,10 @@
 
 This repository provides Oracle Sharded database deployment automation and tools :
 
-* Terraform based Infrastructure as code(IaaC) deployment of Oracle sharded database.
-* Kubernetes based deployment of Oracle sharded database.
-* Mid-tier routing for use in Oracle sharded database client applications.
-* Routing implementations for use in Oracle sharding client applications.
+* Terraform based deployment of Oracle sharded database.
+* Mid-tier routing for use in Oracle sharded database applications.
+* OKE based deployment of Oracle sharded database.
+* Fast data ingest for sharding applications.
 
 If you want to learn more about Oracle sharding a.k.a Oracle Sharded Database, please refer to the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
 
@@ -44,7 +44,7 @@ If you want to learn more about Oracle sharding a.k.a Oracle Sharded Database, p
 
 ### Overview 
 
-Provides Terraform scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Sharded Database][SDB] (SDB) on either [Oracle Cloud Infrastructure][OCI] (OCI) or On-Premise. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
+Provides Terraform modules, configuration and scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Sharded Database][SDB] (SDB) on either [Oracle Cloud Infrastructure][OCI] (OCI) or On-Premise. It creates and configures SDB infrastructure components necessary for a successful Sharded Database setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
 
 ### Details
 
@@ -60,7 +60,7 @@ Please refer to the Sharded database [Mid-Tier Routing introduction][MTR-Intro] 
 
 For more details, please refer to the [SDB Mid-Tier routing][SDB-Mid-Tier-Routing] documentation.
 
-## Kubernetes based deployment of Oracle sharded database 
+## OKE based deployment of Oracle sharded database 
 
 ### Overview 
 
