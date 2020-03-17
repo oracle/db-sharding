@@ -40,6 +40,16 @@ NOTE: regional subnets are not supported at this time.
 
 6. Download the Global Service Manager(GSM) zip from OTN onto the current machine and provide 
    the full path for the same in terraform.tfvars
+
+7. Ensure that you have ssh rsa key pair generated on your current/local machine. If not generate them with empty   
+   passphrase. 
+   
+   ssh-keygen -b 2048 -t rsa
+
+8. Ensure that you copy the local machine's ssh pub key into your local machine's list of authorized keys.
+
+   cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
  
 ## Environment variables
 
