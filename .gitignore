@@ -1,8 +1,0 @@
-**/.idea
-**/*.kdev4
-**/*.iml
-*/target
-*/build/
-**/.vscode
-# Ignore self
-.gitignore
