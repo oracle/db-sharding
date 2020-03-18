@@ -17,12 +17,10 @@
 
 ## About
 
-This library provides Oracle Sharding tools for the following :
+This library provides the following Oracle Sharded database deployment automation tools:
 
 * Terraform based deployment of Oracle sharded database on Oracle Cloud Infrastructure.
 * Terraform based deployment of Oracle sharded database On-Premise.
-* Mid-tier routing for use in Oracle sharded database client applications.
-* Routing implementations for use in Oracle sharding client applications.
 
 If you want to learn more about Oracle sharding a.k.a Oracle Sharded Database, please refer to the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
 
