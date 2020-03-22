@@ -1,0 +1,21 @@
+## Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "oracle-sharding-si-chart.fullname" . }}
+  labels:
+{{ include "oracle-sharding-si-chart.labels" . | indent 4 }}
+spec:
+  storageClassName: "{{ .Values.gsm.pvc.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.gsm.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.gsm.oci.zone }}
+  accessModes:
+    - {{ .Values.gsm.pvc.accessModes }}
+  resources:
+    requests:
+      storage: {{ .Values.gsm.pvc.storageSize }}

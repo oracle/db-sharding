@@ -1,0 +1,121 @@
+---
+# author: "Paramdeep Saini <Paramdeep.saini@oracle.com>"
+# tasks file for oci-launch-oke-cluster
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+- set_fact:
+    lb_subnet1_id: "{{ hostvars['oracle-sharding-si-k8s_subnets']['LB_SUBNET1_ID'] }}"
+    lb_subnet2_id: "{{ hostvars['oracle-sharding-si-k8s_subnets']['LB_SUBNET2_ID'] }}"
+    ad1_subnet_id: "{{ hostvars['oracle-sharding-si-k8s_subnets']['AD1_SUBNET_ID'] }}"
+    ad2_subnet_id: "{{ hostvars['oracle-sharding-si-k8s_subnets']['AD2_SUBNET_ID'] }}"
+    ad3_subnet_id: "{{ hostvars['oracle-sharding-si-k8s_subnets']['AD3_SUBNET_ID'] }}"
+
+- name: Print collected facts
+  debug:
+    msg: "Allocated ad3 subnet -> {{ ad3_subnet_id }}"
+
+- name: Get Kubernetes version available for creating cluster
+  oci_cluster_options_facts:
+    cluster_option_id: all
+  register: result
+- debug:
+    msg: "{{ result }}"
+- set_fact:
+    k8s_version: "{{ result.cluster_options.kubernetes_versions[1] }}"
+
+- name: Create an OKE cluster
+  oci_cluster:
+    compartment_id: "{{ cluster_compartment }}"
+    name: "{{ cluster_name }}"
+    vcn_id: "{{ vcn_id }}"
+    kubernetes_version: "{{ k8s_version }}"
+    options:
+      service_lb_subnet_ids:
+        - "{{ lb_subnet1_id }}"
+        - "{{ lb_subnet2_id }}"
+  register: result
+- debug:
+    msg: "{{ result }}"
+- set_fact:
+    cluster_id: "{{result.cluster.id }}"
+
+- name: Get node shapes and images available for creating nodes in the cluster
+  oci_node_pool_options_facts:
+    id: "{{ cluster_id }}"
+  register: result
+- debug:
+    msg: "{{ result }}"
+
+- name: Create a Shards node pool
+  oci_node_pool:
+    cluster_id: "{{ cluster_id }}"
+    compartment_id: "{{ cluster_compartment }}"
+    name: "{{ oracle_shards_pool_name }}"
+    kubernetes_version: "{{ k8s_version }}"
+    node_image_name: "{{ node_image_name }}"
+    node_shape: "{{ node_shape }}"
+    quantity_per_subnet: 1
+    ssh_public_key: "{{ oke_cluster_ssh_public_key }}"
+    subnet_ids:
+      - "{{ ad1_subnet_id }}"
+      - "{{ ad2_subnet_id }}"
+      - "{{ ad3_subnet_id }}"
+    initial_node_labels:
+      - key: "oracleshard"
+        value: "ad1"
+      - key: "oracleshard"
+        value: "ad2"
+      - key: "oracleshard"
+        value: "ad3"
+  register: result
+- debug:
+    msg: "{{ result }}"
+- set_fact:
+    shards_node_pool_id: "{{ result.node_pool.id }}"
+
+- name: Create a GSM node pool
+  oci_node_pool:
+    cluster_id: "{{ cluster_id }}"
+    compartment_id: "{{ cluster_compartment }}"
+    name: "{{ oracle_gsm_pool_name  }}"
+    kubernetes_version: "{{ k8s_version }}"
+    node_image_name: "{{ node_image_name }}"
+    node_shape: "{{ node_shape }}"
+    quantity_per_subnet: 1
+    ssh_public_key: "{{ oke_cluster_ssh_public_key }}"
+    subnet_ids:
+      - "{{ ad1_subnet_id }}"
+      - "{{ ad3_subnet_id }}"
+    initial_node_labels:
+      - key: "oraclegsm"
+        value: "ad1"
+      - key: "oraclegsm"
+        value: "ad3"
+  register: result
+- debug:
+    msg: "{{ result }}"
+- set_fact:
+    gsm_node_pool_id: "{{ result.node_pool.id }}"
+
+- name: Download kubeconfig
+  oci_kubeconfig:
+    cluster_id: "{{ cluster_id }}"
+    dest: "{{ kubeconfig_path }}"
+    force: true
+
+- name: Get the cluster Info
+  command: kubectl cluster-info
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: result
+- debug:
+    msg: "{{ result }}"
+
+- name: Get the node details
+  command: kubectl get nodes
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  register: result
+- debug:
+    msg: "{{ result }}"
