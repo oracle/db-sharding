@@ -73,8 +73,8 @@ NOTE: regional subnets are not supported at this time.
     ```
     $ bash
     $ source ~/.bashrc  
-    $ git clone https://orahub.oraclecorp.com/sharding/sdb-terraform-oci.git
-    $ cd sdb-terraform-oci
+    $ git clone https://github.com/oracle/db-sharding.git
+    $ cd db-sharding/deployment-with-terraform/sdb-terraform-oci
     $ cp terraform.tfvars-example terraform.tfvars
     $ cp secrets.auto.tfvars-example secrets.auto.tfvars
     $ cp optional-variables.auto.tfvars-example optional-variables.auto.tfvars
