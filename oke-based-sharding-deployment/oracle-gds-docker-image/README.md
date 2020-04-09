@@ -6,14 +6,12 @@ Sample Docker build files to facilitate installation, configuration, and environ
 ## How to build and run
 This project offers sample Dockerfiles for:
   * Oracle Database 19c Client (19.3) for Linux x86-64
-  * Oracle Database 18c Client (18.3) for Linux x86-64
-  * Oracle Database 12c Release 2 Client (12.2.0.1.0) for Linux x86-64
 
-To assist in building the images, you can use the [buildDockerImage.sh](dockerfiles/buildDockerImage.sh) script. See section **Create Oracle Global Service Manager Image** for instructions and usage.
+To assist in building the images, you can use the [buildDockerImage.sh](dockerfiles/buildDockerImage.sh) script.See section **Create Oracle Global Service Manager Image** for instructions and usage.
 
 **IMPORTANT:** Oracle Global Service Manager container is useful when you want to configure Global Data Service Framework. The Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases. 
 
-For complete Oracle Sharding Database setup, please go though following steps and execute them as per your environment:
+For complete Oracle Sharding Database setup, please go through following steps and execute them as per your environment:
 
 ### Create Oracle Global Service Manager Image
 **IMPORTANT:** You will have to provide the installation binaries of Oracle Global Service Manager Oracle Database 19c  (19.3) for Linux x86-64 and put them into the `dockerfiles/<version>` folder. You  only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You also have to make sure to have internet connectivity for yum. Note that you must not uncompress the binaries.
@@ -28,6 +26,10 @@ For detailed usage of command, please execute following command:
 ```
 ./buildDockerImage.sh -h
 ```
+### Create Oracle Database Image
+You can create Oracle 19.3 Database image by following the steps provided in [oracle/docker-images](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance). 
+
+**Note**: You just need to create the image. You will create the container as per the steps given in this document.
 
 ### Create Network Bridge
 Before creating container, create the macvlan bridge. If you are using same bridge with same network then you can use same IPs mentioned in **Create Containers** section.
