@@ -27,18 +27,18 @@ For detailed usage of command, please execute following command:
 ./buildDockerImage.sh -h
 ```
 ### Create Oracle Database Image
-You can create Oracle 19.3 Database image by following the steps provided in [oracle/docker-images](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance). 
+To download and build Oracle 19.3 Database image, please refer [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) of Oracle Single Database available on Oracle GitHub repository.
 
 **Note**: You just need to create the image. You will create the container as per the steps given in this document.
 
 ### Create Network Bridge
-Before creating container, create the macvlan bridge. If you are using same bridge with same network then you can use same IPs mentioned in **Create Containers** section.
+Before creating container, create the macvlan bridge. If you are using same bridge name with same network subnet then you can use same IPs mentioned in **Create Containers** section.
 
 ```
 # docker network create -d macvlan --subnet=172.16.1.0/24 --gateway=172.16.1.1 -o parent=eth0 shard_pub1_nw
 ```
 
-If you are planing to create a test env within a single machine, you can use docker bridge but these IPs will not reachable on user network.
+If you are planing to create a test env within a single machine, you can use docker bridge but these IPs will not be reachable on user network.
 
 ```
 # docker network create --driver=bridge --subnet=172.16.1.0/24 shard_pub1_nw
@@ -47,9 +47,7 @@ If you are planing to create a test env within a single machine, you can use doc
 **Note:** You can change subnet according to your environment.
 
 ### Create Containers.
-Before creating the GSM container, you must setup Oracle Shard Catalog and oracle Shards. Download and create Oracle database images. Database version must match with GSM version. To download and build Oracle 19.3 Database image, please refer [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md)  of Oracle Single Database available on Oracle GitHub repository.
-
-Once the Oracle database 19.3.0 image is created, you need to build the catalog and shard containers. Execute following steps to create containers:
+Before creating the GSM container, you need to build the catalog and shard containers. Execute following steps to create containers:
 
 #### Setup Hostfile
 All containers will share a host file for name resolution.  The shared hostfile must be available to all container. Create the shared host file (if it doesn't exist) at `/opt/containers/shard_host_file`:
