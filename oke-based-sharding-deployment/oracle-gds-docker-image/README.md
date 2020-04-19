@@ -81,8 +81,13 @@ mkdir /opt/.secrets/
 openssl rand -hex 64 -out /opt/.secrets/pwd.key
 ```
 
-Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle and database. It will be a common password for all the database users. Execute following command:
+Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle and database. It will be a common password for all the database users. Execute following command:  
+```
+vi /opt/.secrets/common_os_pwdfile
+```
+**Note**: Enter your secure password in above file and save the file.
 
+After seeding password and savint the `/opt/.secrets/common_os_pwdfile` file, execute following command:  
 ```
 openssl enc -aes-256-cbc -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
 rm -f /opt/.secrets/common_os_pwdfile
