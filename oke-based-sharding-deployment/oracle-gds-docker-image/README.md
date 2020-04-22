@@ -293,6 +293,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
    -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
    -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
+   -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
    -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
    -e PWD_KEY=pwd.key \
    -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
