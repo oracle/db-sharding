@@ -38,7 +38,8 @@ ENV GSM_BASE="/u01/app/oracle" \
     USER_SCRIPTS_FILE="runUserScripts.sh" \
     INSTALL_GSM_BINARIES_FILE="installGSMBinaries.sh" \
     GSM_SETUP_FILE="setupOshardEnv.sh"  \
-    GSM_ENV_SETUP_FILE="setupGSM.sh"
+    GSM_ENV_SETUP_FILE="setupGSM.sh" \
+    GSM_SCRIPTS="scripts"
 # Use second ENV so that variable get substituted
 ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
      ORACLE_HOME=$GSM_HOME \
@@ -53,6 +54,7 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
 # ------------
 COPY $INSTALL_FILE_1 $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_RSP $GSM_ENV_SETUP_FILE $INSTALL_GSM_BINARIES_FILE $GSM_SETUP_FILE $INSTALL_DIR/install/
 COPY $RUN_FILE $GSM_SETUP_FILE $USER_SCRIPTS_FILE $INSTALL_DIR/startup/ 
+COPY $GSM_SCRIPTS $INSTALL_DIR/startup/scripts
 
 RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     sync && \
