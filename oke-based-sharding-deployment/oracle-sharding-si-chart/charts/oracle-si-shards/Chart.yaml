@@ -1,0 +1,10 @@
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+apiVersion: v1
+appVersion: "1.0"
+description: A Helm chart for Kubernetes
+name: oracle-si-shards
+version: 0.1.0

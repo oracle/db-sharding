@@ -1,0 +1,99 @@
+## Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+apiVersion: apps/v1
+kind: StatefulSet 
+metadata:
+  name: {{ .Values.shardHostName }} 
+  labels:
+{{ include "oracle-si-shards.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  serviceName: {{ .Values.shardHostName }}
+  strategy:
+    type:  {{ .Values.global.strategy }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.global.registrySecret }}
+      securityContext:
+          runAsNonRoot: true
+          runAsUser: 54321
+          fsGroup: 54321
+      volumes:
+          - name: {{ include "oracle-si-shards.fullname" . }}
+            persistentVolumeClaim:
+              claimName: {{ include "oracle-sharding-si-chart.fullname" . }} 
+          - name: dshm
+            emptyDir:
+              medium: Memory
+          - name: "staging-{{ .Chart.Name }}" 
+            emptyDir:
+              medium: Memory
+          - name: "oraclepwd-{{ .Values.shardHostName }}"  
+            secret:
+              secretName: {{ .Values.global.secret.oraclePwd }} 
+              defaultMode: 256        
+      nodeSelector:
+          oracleshard: {{ .Values.nodeselector }}
+      initContainers:
+        - name: "clone-{{ .Chart.Name }}"
+          image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
+          imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }} 
+          command:
+           - bash
+           - "-c"
+           - |
+             set -ex
+             {{ .Values.global.getScrCmd }}
+             cp -p setupOshardEnv.sh "{{ .Values.pvc.stagingLoc }}"
+             chmod 777 "{{ .Values.pvc.stagingLoc }}/setupOshardEnv.sh"
+          volumeMounts:
+           - name:  "staging-{{ .Chart.Name }}"
+             mountPath: "{{ .Values.pvc.stagingLoc }}"
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
+          imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }}
+          ports:
+           - containerPort: {{ .Values.global.dbports.containerDBPort }}
+             name: {{ .Values.global.dbports.containerDBPortName }}  
+           - containerPort: {{ .Values.global.dbports.containerONSlPort }}
+             name: {{ .Values.global.dbports.containerONSlPortName }} 
+           - containerPort: {{ .Values.global.dbports.containerONSrPort }}
+             name: {{ .Values.global.dbports.containerONSrPortName }}
+           - containerPort: {{ .Values.global.dbports.containerAgentPort }}
+             name: {{ .Values.global.dbports.containerAgentPortName }}
+          env:
+           - name: ORACLE_SID
+             value: {{ .Values.env.dbSid }}
+           - name: ORACLE_PDB
+             value: {{ .Values.env.dbPdb }}
+           - name: KUBE_SVC
+             value: {{ .Values.shardHostName }}
+           - name: ORACLE_HOSTNAME 
+             value: "{{ .Values.shardHostName }}-0.{{ .Values.shardHostName }}"
+           - name: DB_MEMORY
+             value: {{ .Values.env.dbMemory }}
+           - name: OP_TYPE
+             value: {{ .Values.env.opType }}
+          volumeMounts:
+           - name: {{ include "oracle-si-shards.fullname" . }}
+             mountPath: {{ .Values.pvc.DBMountLoc }} 
+           - name: "staging-{{ .Chart.Name }}"
+             mountPath: {{ .Values.pvc.stagingLoc }}
+           - name: "oraclepwd-{{ .Values.shardHostName }}"
+             readOnly: true
+             mountPath: {{ .Values.global.secret.oraclePwdLoc }}
+           - name: dshm
+             mountPath: /dev/shm
