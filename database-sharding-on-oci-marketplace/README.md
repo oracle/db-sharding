@@ -1,15 +1,27 @@
 - [Deploying Oracle Database Sharding on Oracle Cloud Marketplace](#deploying-oracle-database-sharding-on-oracle-cloud-marketplace)
   * [Finding Oracle Database Sharding on Oracle Cloud (OCI) Marketplace](#finding-oracle-database-sharding-on-oracle-cloud--oci--marketplace)
     + [Finding Oracle Database Sharding  on Public cloud marketplace](#finding-oracle-database-sharding--on-public-cloud-marketplace)
-    + [Finding Oracle Database Sharding on OCI console.](#finding-oracle-database-sharding-on-oci-console)
-  * [Pre-Requisites before creating an Oracle Database Sharding instance on OCI marketplace.](#pre-requisites-before-creating-an-oracle-database-sharding-instance-on-oci-marketplace)
-  * [Fill in the required Stack information after clicking on Launch instance on the Oracle Database Sharding Marketplace product page](#fill-in-the-required-stack-information-after-clicking-on-launch-instance-on-the-oracle-database-sharding-marketplace-product-page)
-  * [Fill in the Sharding configuration details.](#fill-in-the-sharding-configuration-details)
-- [Managing Oracle Database Sharding created from OCI Marketplace](#managing-oracle-database-sharding-created-from-oci-marketplace)
+    + [Finding Oracle Database Sharding on OCI console](#finding-oracle-database-sharding-on-oci-console)
+  * [Pre-Requisites for creating an Oracle Database Sharding instance on OCI marketplace](#pre-requisites-for-creating-an-oracle-database-sharding-instance-on-oci-marketplace)
+  * [Fill in the required Stack information](#fill-in-the-required-stack-information)
+  * [Fill in the Sharding configuration details](#fill-in-the-sharding-configuration-details)
+  * [Oracle Database Sharding Deployment job](#oracle-database-sharding-deployment-job)
+    + [Oracle Database Sharding Deployment job status](#oracle-database-sharding-deployment-job-status)
+    + [Oracle Database Sharding Deployment job outputs](#oracle-database-sharding-deployment-job-outputs)
+    + [Oracle Database Sharding Deployment job associated resources](#oracle-database-sharding-deployment-job-associated-resources)
+      - [Navigating to a Shard Director from associated resources](#navigating-to-a-shard-director-from-associated-resources)
+      - [Navigating to a Shard from associated resources](#navigating-to-a-shard-from-associated-resources)
+    + [Oracle Database Sharding initial random credentials](#oracle-database-sharding-initial-random-credentials)
+- [Managing Oracle Database Sharding previously created from OCI Marketplace](#managing-oracle-database-sharding-previously-created-from-oci-marketplace)
   * [Scaling Shards](#scaling-shards)
+    + [Oracle Database Sharding edit stack apply job](#oracle-database-sharding-edit-stack-apply-job)
+      - [Oracle Database Sharding edit stack job running](#oracle-database-sharding-edit-stack-job-running)
+      - [Oracle Database Sharding edit stack job completion](#oracle-database-sharding-edit-stack-job-completion)
+      - [Oracle Database Sharding edit stack job outputs](#oracle-database-sharding-edit-stack-job-outputs)
   * [Scaling Shard Directors](#scaling-shard-directors)
 - [Terminating Oracle Database Sharding created from Oracle Cloud Marketplace](#terminating-oracle-database-sharding-created-from-oracle-cloud-marketplace)
 - [Oracle Database Sharding Resources](#oracle-database-sharding-resources)
+
 
 # Deploying Oracle Database Sharding on Oracle Cloud Marketplace
 
@@ -34,7 +46,7 @@ Oracle Database Sharding can be found on the featured list right at the top of t
 2. Go directly to the following listing link at :  
 [Oracle Database Sharding Listing on Oracle Cloud Public Marketplace ](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/74654105) 
 
-### Finding Oracle Database Sharding on OCI console.
+### Finding Oracle Database Sharding on OCI console
 
 1. Once you login to the OCI console, Click on the left hamburger navigation menu.
 2. Next, select OCI marketplace under solutions & marketplace section in the left navigation menu.
@@ -52,7 +64,7 @@ Oracle Database Sharding Listing
         https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Listing-page-1.png
       )
 
-## Pre-Requisites before creating an Oracle Database Sharding instance on OCI marketplace.
+## Pre-Requisites for creating an Oracle Database Sharding instance on OCI marketplace
 
 As specified in the system requirements section of the Oracle Database Sharding listing, the following pre-requisites are recommended to be checked before deploying sharded database. 
 
@@ -64,7 +76,9 @@ The resources/services to check for limits, quotas and availability in the Gover
 
 2. Compute service for Shard Directors (based on the shape that user wants to select).
 
-## Fill in the required Stack information after clicking on Launch instance on the Oracle Database Sharding Marketplace product page 
+## Fill in the required Stack information
+
+After clicking on Launch instance on the Oracle Database Sharding Marketplace product page, Fill in the required Stack information.
 
 ![Oracle Database Sharding Fill in Stack Info - part 1](
         https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Fill-in-stack-Info.png
@@ -82,7 +96,7 @@ The resources/services to check for limits, quotas and availability in the Gover
  
 Click Next.
 
-## Fill in the Sharding configuration details. 
+## Fill in the Sharding configuration details 
 
 **Oracle Sharded Database General Configuration**
 
@@ -177,8 +191,82 @@ Click Next.
 * After clicking Create, you will be navigated to the Stacks Job Details page. You can monitor the creation of the Oracle Database Sharding using this page.
 * Upon completion, you can now view the output pane on the left for connection information to Oracle Sharded Database.
 
+## Oracle Database Sharding Deployment job
 
-# Managing Oracle Database Sharding created from OCI Marketplace
+Once you click create on the review page show above, an Oracle Resource Manager (ORM) job is automatically created which starts deploying Oracle Sharded Database.
+
+![Oracle Sharded Database deployment job](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-post-clicking-Create-ORM-job.png
+      )
+
+### Oracle Database Sharding Deployment job status
+
+After, about 15 minutes for deployments with Replication Factor set to 1 or 45 minutes for deployments with Replication Factor set to 2, the Oracle Sharded Database deployment job would have succeeded as show below.
+
+![Oracle Sharded Database Deployment success](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-stack-orm-job-success.png
+      )
+
+![Oracle Sharded Database Deployment orm job success details](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-orm-job-success-details.png
+      ) 
+
+### Oracle Database Sharding Deployment job outputs
+
+![Oracle Sharded Database Deployment orm job success details](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-orm-job-outputs.png
+      )
+
+
+### Oracle Database Sharding Deployment job associated resources
+
+All resources that are provisioned for the successful deployment of Oracle Sharded Database are listed in the associated resources pane on the left menu within the job page, as shown below.
+
+![Oracle Sharded Database Deployment orm job associated resources](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-associated-resources.png
+      )
+
+
+#### Navigating to a Shard Director from associated resources
+
+Shard Director which is a compute can be directly accessed by clicking on the *sd* resource link.
+
+1. Click on the shard director resource selected below.
+
+![Oracle Sharded Database Deployment orm job associated resource shard director selection](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-associated-resource-shard-director-compute.png
+      )
+2. A new tab opens up with the details of the compute on which the Shard Director runs and is as shown below 
+
+![Oracle Sharded Database Deployment orm job associated resource shard director compute details](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-associated-compute-details-for-shard-director.png
+      )
+
+#### Navigating to a Shard from associated resources
+
+Shard which is a Oracle database can be directly accessed by clicking on the *sh* resource link.
+
+1. Click on the shard resource selected below.
+
+![Oracle Sharded Database Deployment orm job associated resource shard database selection](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Associated-resource-Select-shard.png
+      )
+
+2. A new tab opens up with the details of the database db system on which the Shard lives and is as shown below
+
+![Oracle Sharded Database Deployment orm job associated resource shard database details](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-dbvm.png
+      )
+
+### Oracle Database Sharding initial random credentials
+
+The initial random credentials for Oracle Database Sharding is available in the view state which is securely stored within Oracle Resource Manager. Users are recommended to change this on their first attempt to use these initial random passwords.
+
+![Oracle Sharded Database Deployment orm job associated resource shard database details](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Default-initial-random-passwords.png
+      )
+
+# Managing Oracle Database Sharding previously created from OCI Marketplace
 
 * Click on the left hamburger navigation Menu. Choose Resource Manager under Solutions and Marketplace.
 * Select the stack that you created from marketplace.
@@ -215,12 +303,51 @@ Shards can be scaled in (decreased) or out (decreased)  based on user requiremen
        https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Apply-after-edit-stack.png
       )
 
+### Oracle Database Sharding edit stack apply job
+
+After clicking on apply job, a confirmation dialog pops up to make sure that the user wants to indeed apply the changes to the existing sharded database deployment.
+
+![Oracle Sharded Database edit stack apply job approve dialog](
+       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Apply-dialog-post-edit-stack.png
+      )
+
+#### Oracle Database Sharding edit stack job running
+
+![Oracle Sharded Database edit stack apply job running](
+      https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-post-apply-job-running.png
+      )
+
+#### Oracle Database Sharding edit stack job completion
+
+Depending upon the changes requested in the sharding edit stack, the apply job will make the necessary changes in the sharded database resources. Once the changes are successfully applied, the job status would be as shown below :
+
+![Oracle Sharded Database edit stack apply job completed](
+      https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Edit-stack-apply-job-completed.png
+      )
+
+The apply job details which is responsible for making the changes to the sharded database is as shown below : 
+
+![Oracle Sharded Database edit stack apply job details completed](
+      https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Edit-stack-apply-job-drill-down.png
+      )
+
+#### Oracle Database Sharding edit stack job outputs
+
+Once the edit stack apply job has completed successfully, the outputs section on the left pane of the apply job page would contain the details on how to access the sharded database as show below :
+
+![Oracle Sharded Database edit stack job outputs](
+      https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-edit-stack-job-output.png
+      )
+
 ## Scaling Shard Directors
 
 Shard directors can be scaled in (decreased) or out (decreased) based on user requirements and as needed without affecting performance and with zero downtime.
 
-The steps for scaling are the same as scaling shards as shown in the previous section. 
+The steps for scaling are the same as scaling shards as shown in the previous section. Change the shard director configuration as show below before saving changes and running an apply job to deploy the changes.
 
+![Oracle Sharded Database edit stack for shard directors](
+      https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-edit-stack-after-toggling.png
+      )
 
 # Terminating Oracle Database Sharding created from Oracle Cloud Marketplace
 
