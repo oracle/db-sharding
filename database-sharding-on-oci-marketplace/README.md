@@ -1,3 +1,16 @@
+- [Deploying Oracle Database Sharding on Oracle Cloud Marketplace](#deploying-oracle-database-sharding-on-oracle-cloud-marketplace)
+  * [Finding Oracle Database Sharding on Oracle Cloud (OCI) Marketplace](#finding-oracle-database-sharding-on-oracle-cloud--oci--marketplace)
+    + [Finding Oracle Database Sharding  on Public cloud marketplace](#finding-oracle-database-sharding--on-public-cloud-marketplace)
+    + [Finding Oracle Database Sharding on OCI console.](#finding-oracle-database-sharding-on-oci-console)
+  * [Pre-Requisites before creating an Oracle Database Sharding instance on OCI marketplace.](#pre-requisites-before-creating-an-oracle-database-sharding-instance-on-oci-marketplace)
+  * [Fill in the required Stack information after clicking on Launch instance on the Oracle Database Sharding Marketplace product page](#fill-in-the-required-stack-information-after-clicking-on-launch-instance-on-the-oracle-database-sharding-marketplace-product-page)
+  * [Fill in the Sharding configuration details.](#fill-in-the-sharding-configuration-details)
+- [Managing Oracle Database Sharding created from OCI Marketplace](#managing-oracle-database-sharding-created-from-oci-marketplace)
+  * [Scaling Shards](#scaling-shards)
+  * [Scaling Shard Directors](#scaling-shard-directors)
+- [Terminating Oracle Database Sharding created from Oracle Cloud Marketplace](#terminating-oracle-database-sharding-created-from-oracle-cloud-marketplace)
+- [Oracle Database Sharding Resources](#oracle-database-sharding-resources)
+
 # Deploying Oracle Database Sharding on Oracle Cloud Marketplace
 
 ## Finding Oracle Database Sharding on Oracle Cloud (OCI) Marketplace
@@ -39,8 +52,19 @@ Oracle Database Sharding Listing
         https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Listing-page-1.png
       )
 
+## Pre-Requisites before creating an Oracle Database Sharding instance on OCI marketplace.
 
-### Fill in the required Stack information after clicking on Launch instance on the Oracle Database Sharding Marketplace product page 
+As specified in the system requirements section of the Oracle Database Sharding listing, the following pre-requisites are recommended to be checked before deploying sharded database. 
+
+Since automatic and uniform distribution of Sharded database resources within a region is employed, users are recommended to check if they have sufficient number of the below listed resources/services in each availability domain within the region selected, before initial deployment/scaling of Sharded Database.
+
+The resources/services to check for limits, quotas and availability in the Governance section of the hamburger menu on the left navigation pane are :
+
+1. Database service for Shard and Catalog databases (based on the shape that user wants to select).
+
+2. Compute service for Shard Directors (based on the shape that user wants to select).
+
+## Fill in the required Stack information after clicking on Launch instance on the Oracle Database Sharding Marketplace product page 
 
 ![Oracle Database Sharding Fill in Stack Info - part 1](
         https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Fill-in-stack-Info.png
@@ -58,7 +82,7 @@ Oracle Database Sharding Listing
  
 Click Next.
 
-### Fill in the required details to configure variables. 
+## Fill in the Sharding configuration details. 
 
 **Oracle Sharded Database General Configuration**
 
@@ -160,7 +184,7 @@ Click Next.
 * Select the stack that you created from marketplace.
 * Click on Edit Stack.
 
-## **Scaling Shards**
+## Scaling Shards
 
 ![Oracle Sharded Database Edit stack select Configuration](
       https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Edit-Stack-select.png
