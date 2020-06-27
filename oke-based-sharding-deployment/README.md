@@ -1,12 +1,12 @@
 # Oracle Sharding on OKE
-Oracle Sharding is a feature of Oracle Database that lets you distribute and replicate data across a pool of Oracle databases that share no hardware or software. Benefits of sharding include extreme scalability, fault isolation and geographical distribution of data.
+Oracle Sharding is a feature of Oracle Database that lets you distribute and replicate data across a pool of Oracle databases that share no hardware or software. Benefits of sharding include extreme scalability, fault isolation, and geographical distribution of data.
 
-These deployment procedures automate provisioning of Oracle Sharded Databases on Oracle Kubernetes Engine (OKE) using Oracle Cloud Infrastructure Ansible Modules and Helm/Chart.
+These deployment procedures automate the provisioning of Oracle Sharded Databases on Oracle Kubernetes Engine (OKE) using Oracle Cloud Infrastructure Ansible Modules and Helm/Chart.
 
 # Deployment Overview
-To deploy Oracle Sharding on OKE, Oracle Cloud Infrastructure Ansible Modules create compute resources, configure network, create block storage volumes. It does so by using a yaml files passed to ansible playbooks. 
+To deploy Oracle Sharding on OKE, Oracle Cloud Infrastructure Ansible Modules create compute resources, configure the network, create block storage volumes. It does so by using yaml files passed to ansible playbooks. 
 
-The deployment is divided into following tasks:
+The deployment is divided into the following tasks:
 
 * Task1 - Setting up Ansible control machine
 * Task2 - Deploy OKE Cluster on OCI
@@ -14,13 +14,13 @@ The deployment is divided into following tasks:
 * Task4 - Oracle Sharding Deployment using Helm/Charts
 
 # Deployment Steps
-You need to execute following steps in a given order to deploy Oracle Sharding on OKE.
+You need to execute the following steps in a given order to deploy Oracle Sharding on OKE.
 ## Task1 - Setting up Ansible control machine  
-This section provides steps to setup the Ansible machine to run Oracle Sharding ansible playbooks on OKE. It has following setps:
+This section provides steps to setup the Ansible machine to run Oracle Sharding ansible playbooks on OKE. It has following steps:
 
 * Configuration of prerequisites
 * Installation and configuration of pip (Python Manager)
-* Install Ansibe Engine and OCI specific Ansible modules
+* Install Ansible Engine and OCI specific Ansible modules
 * Setup OCI configuration file for Ansible for your tenancy
 
 ### Prerequisites
@@ -28,8 +28,8 @@ The Python SDK requires:
 * Python version 2.7.5 or 3.5 or later installed on Ansible machine
 * OpenSSL version 1.0.1 or later.
 * An Oracle Cloud Infrastructure account
-* A user created in that account, in a group with a policy that grants the desired permissions. For an example of how to set up a new user, group, compartment, and policy, see [Adding Users](https://docs.us-phoenix-1.oraclecloud.com/Content/GSG/Tasks/addingusers.htm) in the Getting Started Guide.
-* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute following steps to upload public key to OCI and make a copy of finger print which will be used later in the playbook.
+* A user created in that account, in a group with a policy that grants the desired permissions. For an example of how to set up a new user, group, compartment, and policy see [Adding Users](https://docs.us-phoenix-1.oraclecloud.com/Content/GSG/Tasks/addingusers.htm) in the Getting Started Guide.
+* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute the following steps to upload the public key to OCI and make a copy of finger print which will be used later in the playbook.
 ** Create a .oci directory to store the credentials
 ```
  mkdir ~/.oci
@@ -51,14 +51,14 @@ openssl rsa -pubout -in ~/.oci/oci_api_key.pem -out ~/.oci/oci_api_key_public.pe
 **Note**: You can find all the pre-requisites details for OCI ansible machine on [oracle-cloud-infrastructure documentation] (https://oracle-cloud-infrastructure-python-sdk.readthedocs.io/en/latest/installation.html#downloading-and-installing-the-sdk).
 
 ### Install and configure pip
-You need to install and configure pip on ansible machine. Execute following steps if the pip is not installed. This step can be executed aa non-root user.
+You need to install and configure pip on ansible machine. Execute the following steps if the pip is not installed. This step can be executed a non-root user.
 ```
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python get-pip.py --user
 ```
 
 ### Install Ansible and OCI modules
-* Oracle recommends that you run the SDK in a virtual environment with virtualenv. This allows you to isolate the dependencies for the SDK and avoids any potential conflicts with other Python packages which may already be installed (e.g. in your system-wide Python). Change your directory to the location where you want to keep Oracle Sharding on OKE files and we will refer the base location as OCI_ANSIBLE_DIR.
+* Oracle recommends that you run the SDK in a virtual environment with virtualenv. This allows you to isolate the dependencies for the SDK and avoids any potential conflicts with other Python packages that may already be installed (e.g. in your system-wide Python). Change your directory to the location where you want to keep Oracle Sharding on OKE files and we will refer the base location as OCI_ANSIBLE_DIR.
 
 ```
 pip install virtualenv 
@@ -82,10 +82,10 @@ cd $OCI_ANSIBLE_DIR/oracle-sharding-si-k8s/oci-ansible-modules
 cd $OCI_ANSIBLE_DIR/oracle-sharding-si-k8s
 ```
 
-**Note**: You can find the installation and configuration steps  for OCI ansible machine on [Downloading and Installing the SDK documentation] (https://oracle-cloud-infrastructure-python-sdk.readthedocs.io/en/latest/installation.html#downloading-and-installing-the-sdk).
+**Note**: You can find the installation and configuration steps for OCI ansible machine on [Downloading and Installing the SDK documentation] (https://oracle-cloud-infrastructure-python-sdk.readthedocs.io/en/latest/installation.html#downloading-and-installing-the-sdk).
 
 ### Setup OCI Configuration File for Ansible
-* The default configuration file name and location is ```~/.oci/config```. You need to populate the config file with following parameters:
+* The default configuration file name and location is ```~/.oci/config```. You need to populate the config file with the following parameters:
 ```
 [DEFAULT]
 user=<OCID of the user calling the API. To get the value, [see Required Keys and OCIDs](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm). E.g. ```ocid1.user.oc1..aaaaaaaa65vwl75tewwm32rgqvm6i34unq```>
@@ -111,7 +111,7 @@ cd $OCI_ANSIBLE_DIR/oracle-sharding-si-k8s
 git clone https://orahub.oraclecorp.com/paramdeep_saini/oracle-sharding-si-k8s.git
 cd oracle-sharding-si-k8s
 ```
-* Create public and private key for compute instance
+* Create a public and private key for compute instance
 ```
 ssh-keygen -t rsa -N "" -b 2048 -C "oracle-sharding-si-k8s_keys"
 ```
@@ -124,7 +124,7 @@ You need to create ```oci_export_vars.sh``` under ```$OCI_ANSIBLE_DIR/oracle-sha
 * export ANSIBLE_HOST_KEY_CHECKING=False  # Do not change it.
 
 ### Understand OKE deployment for Oracle Sharding on OCI using Ansible playbook 
-Before executing the playbook, it is important to understand the anisble playbook. This playbook executes following operations
+Before executing the playbook, it is important to understand the ansible playbook. This playbook executes following operations
 
 * Create and configure VCN
 * Launch OKE cluster. OKE cluster contains 3 worker node
@@ -132,9 +132,9 @@ Before executing the playbook, it is important to understand the anisble playboo
 * 
 
 ### Execute Ansible Playbook
-Oracle Kubernetes cluster deployment using Ansible playbook provide an easy way to provision the Kubernetes cluster on OCI.
+Oracle Kubernetes cluster deployment using Ansible playbook provides an easy way to provision the Kubernetes cluster on OCI.
 
-**Note:** Before proceeding to next section, you need to meet all the pre-requisites.
+**Note:** Before proceeding to the next section, you need to meet all the pre-requisites.
 #### Getting Started
  * Change directory to oracle-sharding-si-ansible-playbooks
  * Modify parameter file for Oracle Kubernetes Cluster deployment on OCI. You need to refer section `Parameters - OKE Deployment on OCI`
@@ -145,11 +145,11 @@ Oracle Kubernetes cluster deployment using Ansible playbook provide an easy way 
 
 ### Parameters - OKE Deployment on OCI
 
-Edit the file samples/oci-oke-setup-env.yaml and make changes based on your requirement. If it is a new a setup, you can keep the default values except following and change them based on your requirement:
+Edit the file samples/oci-oke-setup-env.yaml and make changes based on your requirement. If it is a new setup, you can keep the default values except following and change them based on your requirement:
 
-* oke_cluster_ssh_public_key: Specify the public SSH key to login to worker nodes. You need to make sure you have private key available on your ansible control machine to login to worker nodes. You need to provide publich ssh key under double quoates. Default set to "<PUBLIC_SSH_KEY>".
+* oke_cluster_ssh_public_key: Specify the public SSH key to login to worker nodes. You need to make sure you have a private key available on your ansible control machine to login to worker nodes. You need to provide public ssh key under double quotes. Default set to "<PUBLIC_SSH_KEY>".
 
-### Customize the setup by modifying the parameters in each section based on user environment.
+### Customize the setup by modifying the parameters in each section based on the user environment.
 
 * quad_zero_route: Default set to "0.0.0.0/0".
 * TCP_protocol: Default set to "6". Do not change this value.
@@ -201,4 +201,4 @@ This steps is optional and you need to execute this when you do not have access 
 To setup this, please follow [Oracle Sharding on OKE](./oracle-sharding-si-chart/README.md)
 
 ## FAQ
-You can refer following Faqs before filing the ticket.
+You can refer to following Faqs before filing the ticket.
