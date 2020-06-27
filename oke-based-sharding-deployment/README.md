@@ -1,7 +1,7 @@
 # Oracle Sharding on OKE
-Oracle Sharding is a feature of Oracle Database that lets you distribute and replicate data across a pool of Oracle databases that share no hardware or software. Benefits of sharding include extreme scalabiltiy, fault isolation and geographical distribution of data.
+Oracle Sharding is a feature of Oracle Database that lets you distribute and replicate data across a pool of Oracle databases that share no hardware or software. Benefits of sharding include extreme scalability, fault isolation and geographical distribution of data.
 
-These deployment procedures automate provisioning of Oracle Sharded Databases on Oracle Kubernities Engine (OKE) using Oracle Cloud Infrastructure Ansible Modules and Helm/Chart.
+These deployment procedures automate provisioning of Oracle Sharded Databases on Oracle Kubernetes Engine (OKE) using Oracle Cloud Infrastructure Ansible Modules and Helm/Chart.
 
 # Deployment Overview
 To deploy Oracle Sharding on OKE, Oracle Cloud Infrastructure Ansible Modules create compute resources, configure network, create block storage volumes. It does so by using a yaml files passed to ansible playbooks. 
