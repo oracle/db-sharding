@@ -1,0 +1,151 @@
+# Default values for oracle-sharding-si-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+global:
+  gsmimage:
+   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/databse-gsm 
+   tag: 19.3.0
+   pullPolicy: IfNotPresent
+  dbimage:
+   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/database:19.3.0-ee  
+   tag: 19.3.0-ee
+   pullPolicy: IfNotPresent
+  secret:
+   oraclePwd: db-user-pass
+   oraclePwdLoc: /mnt/secrets
+  strategy: Recreate
+  getScrCmd: "curl -OL https://github.com/psaini79/oracle-sharding-si-k8s/raw/master/scripts/setupOshardEnv.sh"
+  registrySecret: oshardsecret
+  gsmports:
+   containerGSMProtocol: TCP
+   containerGSMPortName: oshardgsm-port
+   containerGSMPort: 1521
+   containerONSrPortName:  gsm-onsrport
+   containerONSrPort: 6234
+   containerONSlPortName:  gsm-onslport
+   containerONSlPort: 6123
+   containerAgentPortName:  gsm-agentport
+   containerAgentPort: 8080
+  dbports:
+   containerDBProtocol: TCP
+   containerDBPortName: db1-port
+   containerDBPort: 1521
+   containerONSrPortName:  db1-onsrport
+   containerONSrPort: 6234
+   containerONSlPortName:  db1-onslport
+   containerONSlPort: 6123
+   containerAgentPortName:  db1-agentport
+   containerAgentPort: 8080
+  service:
+   type: LoadBalancer
+   port: 1521
+
+gsm:
+  replicaCount: 1
+  gsmHostName: gsmhost
+  nodeselector: ad3
+  oci:
+   region: phx
+   zone: PHX-AD-1
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /u01/app/oracle/gsmdata 
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   catalogParams: oshard-catalog-0.oshard-catalog:CATCDB:CAT1PDB
+   primaryShardParams: oshard1-0.oshard1:ORCL1CDB:ORCL1PDB;oshard2-0.oshard2:ORCL2CDB:ORCL2PDB;oshard3-0.oshard3:ORCL3CDB:ORCL3PDB
+   opType: gsm
+   customScript: setupOshardEnv.sh
+  service:
+   type: LoadBalancer
+   port: 1521
+
+oshard1:
+  replicaCount: 1
+  app: oshard-db1
+  nodeselector: ad3
+  shardHostName: oshard1
+  oci:
+   region: phx
+   zone: PHX-AD-1
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   dbSid: ORCL1CDB
+   dbPdb: ORCL1PDB 
+   dbMemory: 12G
+   opType: primaryshard
+
+
+oshard2:
+  replicaCount: 1
+  app: oshard-db2
+  nodeselector: ad3
+  shardHostName: oshard2
+  oci:
+   region: phx
+   zone: PHX-AD-1
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   dbSid: ORCL2CDB
+   dbPdb: ORCL2PDB
+   dbMemory: 12G
+   opType: primaryshard
+
+oshard3:
+  replicaCount: 1
+  app: oshard-db3
+  nodeselector: ad3
+  shardHostName: oshard3
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   dbSid: ORCL3CDB
+   dbPdb: ORCL3PDB
+   dbMemory: 12G
+   opType: primaryshard
+
+oshard-catalog:
+  replicaCount: 1
+  app: oshard-cat
+  nodeselector: ad3
+  shardHostName: oshard-catalog
+  oci:
+   region: phx
+   zone: PHX-AD-1
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   dbSid: CATCDB
+   dbPdb: CAT1PDB
+   dbMemory: 12G
+   opType: catalog
