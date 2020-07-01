@@ -29,24 +29,24 @@ The Python SDK requires:
 * OpenSSL version 1.0.1 or later.
 * An Oracle Cloud Infrastructure account
 * A user created in that account, in a group with a policy that grants the desired permissions. For an example of how to set up a new user, group, compartment, and policy, see [Adding Users](https://docs.us-phoenix-1.oraclecloud.com/Content/GSG/Tasks/addingusers.htm) in the Getting Started Guide.
-* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute following steps to upload public key to OCI and make a copy of finger print which will be used later in the playbook. 
- ** Create a .oci directory to store the credentials
+* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute following steps to upload public key to OCI and make a copy of finger print which will be used later in the playbook.   
+  * Create a .oci directory to store the credentials
 ```
  mkdir ~/.oci
 ```
- ** Generate the private key with one of the following commands
+  * Generate the private key with one of the following commands
 ```
 openssl genrsa -out ~/.oci/oci_api_key.pem 2048
 ```
- ** Ensure that only you can read the private key file
+  * Ensure that only you can read the private key file
 ```
 chmod go-rwx ~/.oci/oci_api_key.pem
 ```
- ** Generate the public key:
+  * Generate the public key:
 ```
 openssl rsa -pubout -in ~/.oci/oci_api_key.pem -out ~/.oci/oci_api_key_public.pem
 ```
- ** Your API requests will be signed with your private key, and Oracle will use the public key to verify the authenticity of the request. You must upload the public key to IAM. Copy the contents of the public key to the clipboard and you'll need to paste the value into the Console. Refer to How to Upload the Public Key section in [Oracle Cloud Infrastructure Documentation](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm).
+  * Your API requests will be signed with your private key, and Oracle will use the public key to verify the authenticity of the request. You must upload the public key to IAM. Copy the contents of the public key to the clipboard and you'll need to paste the value into the Console. Refer to How to Upload the Public Key section in [Oracle Cloud Infrastructure Documentation](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm).
 
 **Note**: You can find all the pre-requisites details for OCI ansible machine on [oracle-cloud-infrastructure documentation] (https://oracle-cloud-infrastructure-python-sdk.readthedocs.io/en/latest/installation.html#downloading-and-installing-the-sdk).
 
