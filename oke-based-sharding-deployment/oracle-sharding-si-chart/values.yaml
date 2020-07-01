@@ -19,7 +19,7 @@ global:
    oraclePwd: db-user-pass
    oraclePwdLoc: /mnt/secrets
   strategy: Recreate
-  getScrCmd: "curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=5 db-sharding-master/oke-based-sharding-deployment/oracle-gds-docker-image/dockerfiles/19.3.0/scripts"
+  getScrCmd: "curl https://codeload.github.com/psaini79/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
   registrySecret: oshardsecret
   gsmports:
    containerGSMProtocol: TCP
@@ -58,7 +58,7 @@ gsm:
    accessModes: ReadWriteOnce
    storageClassName: oci
    DBMountLoc: /u01/app/oracle/gsmdata 
-   stagingLoc: /opt/oracle/scripts/setup
+   stagingLoc: /opt/oracle/gsm/scripts/setup
   service:
    type: LoadBalancer
    port: 1521
@@ -71,6 +71,7 @@ gsm:
    SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" 
    SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
    SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
+   BASE_DIR: /opt/oracle/gsm/scripts/setup
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
    OP_TYPE: gsm  

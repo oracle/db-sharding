@@ -89,6 +89,8 @@ spec:
              value: {{ .Values.gsm.env.SERVICE2_PARAMS }}
            - name: OP_TYPE
              value: {{ .Values.gsm.env.OP_TYPE }}
+           - name: BASE_DIR
+             value: {{ .Values.gsm.env.BASE_DIR }}
            - name: KUBE_SVC
              value: {{ .Values.gsm.gsmHostName }}
           volumeMounts:
