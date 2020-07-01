@@ -59,6 +59,7 @@ class OraGSM:
              self.status_gsm_director()
              self.setup_gsm_shardg()
              self.add_invited_node()
+             self.remove_invited_node() 
              self.setup_gsm_shard()
              self.stop_gsm_director()
              time.sleep(30)
@@ -873,6 +874,34 @@ class OraGSM:
                          exit;
                         '''.format(dtrname,cadmin,cpasswd,shard_host)
                         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+
+      def remove_invited_node(self):
+                """
+                This function remove the invited in the GSM configuration
+                """
+                self.ocommon.log_info_message("Inside remove_invited_node()",self.file_name)
+                reg_exp= self.shard_regex()
+                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                cpasswd="HIDDEN_STRING"
+                dtrname,dtrport,dtregion=self.process_director_vars()
+                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+
+                if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
+                   for key in self.ora_env_dict.keys():
+                       if(reg_exp.match(key)):
+                           shard_db,shard_pdb,shard_port,shard_region,shard_host=self.process_shard_vars(key)
+                           temp_host= shard_host.split('.',1)[0] 
+                           gsmcmd='''
+                            set gsm -gsm {0};
+                            connect {1}/{2};
+                            remove invitednode {3};
+                            exit;
+                           '''.format(dtrname,cadmin,cpasswd,temp_host)
+                           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                else:
+                   self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!")  
+
 
       def deploy_shard(self):
                 """
