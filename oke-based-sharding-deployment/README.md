@@ -128,7 +128,6 @@ Before executing the playbook, it is important to understand the ansible playboo
 * Create and configure VCN
 * Launch OKE cluster. OKE cluster contains 3 worker node
 * Open network ports for ssh and your services
-* 
 
 ### Execute Ansible Playbook
 Oracle Kubernetes cluster deployment using Ansible playbook provides an easy way to provision the Kubernetes cluster on OCI.
