@@ -6,6 +6,7 @@
 [SDB-Mid-Tier-Routing]: https://github.com/oracle/db-sharding/tree/master/Mid-Tier-Routing
 [SDB-Fast-Data-Ingest]: https://github.com/oracle/db-sharding/tree/master/sharding-fast-data-ingest
 [OKE-sharding]: https://github.com/oracle/db-sharding/tree/master/oke-based-sharding-deployment
+[DOCKER-sharding]: https://github.com/oracle/db-sharding/tree/master/docker-based-sharding-deployment
 [MTR-Intro]: https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing#introduction
 [SDB-prod-page]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 [SDB-prod-doc]: https://docs.oracle.com/en/database/oracle/oracle-database/19/shard/
@@ -22,9 +23,12 @@
 - [OKE based deployment of Oracle sharded database](#oke-based-deployment-of-oracle-sharded-database)
   * [Overview](#overview-2)
   * [Details](#details-2)
-- [Sharding Fast Data Ingest](#routing-implementations-for-use-in-oracle-sharding-client-applications)
+- [Docket based deployment of Oracle sharded database](#docker-based-deployment-of-oracle-sharded-database)
   * [Overview](#overview-3)
   * [Details](#details-3)
+- [Sharding Fast Data Ingest](#routing-implementations-for-use-in-oracle-sharding-client-applications)
+  * [Overview](#overview-4)
+  * [Details](#details-4)
 
 ## About
 
@@ -69,6 +73,16 @@ Oracle Kubernetes Engine (OKE) based deployment of sharded database.
 ### Details
 
 For more details, please refer to the [OKE sharding][OKE-sharding] documentation.
+
+## Docker based deployment of Oracle sharded database 
+
+### Overview 
+
+Docker based deployment of sharded database.
+
+### Details
+
+For more details, please refer to the [Docker sharding][DOCKER-sharding] documentation.
 
 ## Fast data ingest
 

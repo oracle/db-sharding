@@ -29,7 +29,7 @@ The Python SDK requires:
 * OpenSSL version 1.0.1 or later.
 * An Oracle Cloud Infrastructure account
 * A user created in that account, in a group with a policy that grants the desired permissions. For an example of how to set up a new user, group, compartment, and policy, see [Adding Users](https://docs.us-phoenix-1.oraclecloud.com/Content/GSG/Tasks/addingusers.htm) in the Getting Started Guide.
-* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute following steps to upload public key to OCI and make a copy of finger print which will be used later in the playbook.
+* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute following steps to upload public key to OCI and make a copy of finger print which will be used later in the playbook. 
 ** Create a .oci directory to store the credentials
 ```
  mkdir ~/.oci
@@ -194,7 +194,7 @@ Edit the file samples/oci-oke-setup-env.yaml and make changes based on your requ
 
 ## Task3 - Creating GSM and Oracle Database Images
 This steps is optional and you need to execute this when you do not have access to Oracle GSM software and database image.
-* To create and setup Oracle GSM and Database Image, please follow [Oracle Sharding on Docker](./oracle-gds-docker-image/README.md)
+* To create and setup Oracle GSM and Database Image, please follow [Oracle Sharding on Docker](https://github.com/oracle/db-sharding/tree/master/docker-based-sharding-deployment)
 
 ## Task4 - Oracle Sharding Deployment using Helm/Charts 
 
