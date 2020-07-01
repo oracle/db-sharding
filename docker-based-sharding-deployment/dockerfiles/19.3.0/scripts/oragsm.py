@@ -841,7 +841,7 @@ class OraGSM:
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
                  catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name=self.process_clog_vars(key)
-                 sqlpluslogin='''{0}/bin/sqlplus "{4}/HIDDEN_STRING@{1}:{2}/{3}"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_pdb,admuser)
+                 sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_pdb,admuser)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  msg='''Setting host Id null in catalog as auto vncr is disabled'''
                  self.ocommon.log_info_message(msg,self.file_name)
