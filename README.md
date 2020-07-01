@@ -23,7 +23,7 @@
 - [OKE based deployment of Oracle sharded database](#oke-based-deployment-of-oracle-sharded-database)
   * [Overview](#overview-2)
   * [Details](#details-2)
-- [Docket based deployment of Oracle sharded database](#docker-based-deployment-of-oracle-sharded-database)
+- [Docker based deployment of Oracle sharded database](#docker-based-deployment-of-oracle-sharded-database)
   * [Overview](#overview-3)
   * [Details](#details-3)
 - [Sharding Fast Data Ingest](#routing-implementations-for-use-in-oracle-sharding-client-applications)

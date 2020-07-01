@@ -8,18 +8,18 @@
 ---
 global:
   gsmimage:
-   repository: <<ENTER YOU GSM REPO>>
+   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/databse-gsm 
    tag: 19.3.0
    pullPolicy: IfNotPresent
   dbimage:
-   repository: <<ENTER DB REPO LINK>> 
+   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/database
    tag: 19.3.0-ee
    pullPolicy: IfNotPresent
   secret:
    oraclePwd: db-user-pass
    oraclePwdLoc: /mnt/secrets
   strategy: Recreate
-  getScrCmd: "curl -OL https://github.com/psaini79/oracle-sharding-si-k8s/raw/master/scripts/setupOshardEnv.sh"
+  getScrCmd: "curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=5 db-sharding-master/oke-based-sharding-deployment/oracle-gds-docker-image/dockerfiles/19.3.0/scripts"
   registrySecret: oshardsecret
   gsmports:
    containerGSMProtocol: TCP
@@ -59,14 +59,21 @@ gsm:
    storageClassName: oci
    DBMountLoc: /u01/app/oracle/gsmdata 
    stagingLoc: /opt/oracle/scripts/setup
-  env:
-   catalogParams: oshard-catalog-0.oshard-catalog:CATCDB:CAT1PDB
-   primaryShardParams: oshard1-0.oshard1:ORCL1CDB:ORCL1PDB;oshard2-0.oshard2:ORCL2CDB:ORCL2PDB;oshard3-0.oshard3:ORCL3CDB:ORCL3PDB
-   opType: gsm
-   customScript: setupOshardEnv.sh
   service:
    type: LoadBalancer
    port: 1521
+  env:
+   SHARD_DIRECTOR_PARAMS: "director_name=sharddirector1;director_region=region1;director_port=1521"
+   SHARD1_GROUP_PARAMS: "group_name=shardgroup1;deploy_as=primary;group_region=region1" 
+   CATALOG_PARAMS: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2"
+   SHARD1_PARAMS: "shard_host=oshard1-0.oshard1;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"
+   SHARD2_PARAMS: "shard_host=oshard2-0.oshard2;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"
+   SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" 
+   SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
+   SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OP_TYPE: gsm  
 
 oshard1:
   replicaCount: 1
@@ -84,11 +91,12 @@ oshard1:
    DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
-   dbSid: ORCL1CDB
-   dbPdb: ORCL1PDB 
-   dbMemory: 12G
-   opType: primaryshard
-
+   ORACLE_SID: ORCL1CDB
+   ORACLE_PDB: ORCL1PDB
+   OP_TYPE: primaryshard
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
 
 oshard2:
   replicaCount: 1
@@ -106,10 +114,12 @@ oshard2:
    DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
-   dbSid: ORCL2CDB
-   dbPdb: ORCL2PDB
-   dbMemory: 12G
-   opType: primaryshard
+   ORACLE_SID: ORCL2CDB
+   ORACLE_PDB: ORCL2PDB
+   OP_TYPE: primaryshard
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
 
 oshard3:
   replicaCount: 1
@@ -124,10 +134,12 @@ oshard3:
    DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
-   dbSid: ORCL3CDB
-   dbPdb: ORCL3PDB
-   dbMemory: 12G
-   opType: primaryshard
+   ORACLE_SID: ORCL3CDB
+   ORACLE_PDB: ORCL3PDB
+   OP_TYPE: primaryshard
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
 
 oshard-catalog:
   replicaCount: 1
@@ -145,7 +157,9 @@ oshard-catalog:
    DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
-   dbSid: CATCDB
-   dbPdb: CAT1PDB
-   dbMemory: 12G
-   opType: catalog
+   ORACLE_SID: CATCDB
+   ORACLE_PDB: CAT1PDB
+   OP_TYPE: catalog
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
