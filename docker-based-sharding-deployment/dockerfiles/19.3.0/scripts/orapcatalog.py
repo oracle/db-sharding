@@ -386,7 +386,7 @@ class OraPCatalog:
              alter user gsmcatuser account unlock;
              alter user gsmcatuser identified by HIDDEN_STRING;
              alter system set dg_broker_start=true scope=both;
-             alter system set remote_listener=\"(ADDRESS=(HOST={4})(PORT={5})(PROTOCOL=tcp))\" scope=both;
+             alter system set local_listener='{4}:{5}' scope=both;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,ohome)
 
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)

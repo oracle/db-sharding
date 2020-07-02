@@ -393,7 +393,7 @@ class OraPShard:
              alter system set dg_broker_start=true scope=both;
              create or replace directory DATA_PUMP_DIR as '{3}';
              grant read,write on directory DATA_PUMP_DIR to GSMADMIN_INTERNAL;
-             alter system set remote_listener=\"(ADDRESS=(HOST={4})(PORT={5})(PROTOCOL=tcp))\" scope=both;
+             alter system set local_listener='{4}:{5}' scope=both;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port) 
                   
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
