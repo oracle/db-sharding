@@ -1,5 +1,5 @@
 # Oracle Sharding 
-Oracle Sharding is a scalability and availability feature for custom-designed OLTP applications that enables distribution and replication of data across a pool of Oracle databases that do not share hardware or software. The pool of databases is presented to the application as a single logical database.
+Oracle Sharding is a scalability and availability feature for custom-designed OLTP applications that enables the distribution and replication of data across a pool of Oracle databases that do not share hardware or software. The pool of databases is presented to the application as a single logical database.
 
 ## Introduction
 This chart bootstraps a single catalog, 3 shards along with 2 shard directors deployment on a Kubernetes cluster using the Helm package manager. 
@@ -10,7 +10,7 @@ This chart bootstraps a single catalog, 3 shards along with 2 shard directors de
 * PV provisioner support in the underlying infrastructure. Since we have used OCI, we used the oci class for persistent volumes.
 * Oracle Database 19.3 image must be available to be pulled from your registry server.
 * Oracle GSM 19.3 image must be available to be pulled from your registry server.
-* Pods must have GitHub access to pull required scripts to setup the shard on Oracle Databases. Otherwise, you need to specify script staging location available on pods.
+* Pods must have GitHub access to pull required scripts to setup the shard on Oracle Databases. Otherwise, you need to specify the script staging location available on pods.
 
 ## Creating the Kubernetes Secret
 ### Docker Registry Secret
@@ -21,7 +21,7 @@ kubectl create secret docker-registry oshardsecret --docker-username=<USER_NAME>
 We have specified **oshardsecret** in the chart to pull the image. If you change the secret name, you need to make the changes in chart values.
 
 ### Password Management
-Specify the secret volume for resetting Oracle database users password during Oracle Sharding setup. It can be shared volume among all the pods
+Specify the secret volume for resetting Oracle database users' password during Oracle Sharding setup. It can be shared volume among all the pods
 
 ```
 mkdir /tmp/.secrets/
@@ -34,7 +34,7 @@ Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle
 openssl enc -aes-256-cbc -salt -in /tmp/.secrets/common_os_pwdfile -out /tmp/.secrets/common_os_pwdfile.enc -pass file:/tmp/.secrets/pwd.key
 rm -f /tmp/.secrets/common_os_pwdfile
 ```
-Create the kubernetes secret. In the chart, we are using db-user-pass secret so create the same or you need to override the value during chart creation.
+Create the kubernetes a secret. In the chart, we are using db-user-pass secret so create the same or you need to override the value during chart creation.
 
 ```
 kubectl create secret generic db-user-pass --from-file=/tmp/.secrets/common_os_pwdfile.enc --from-file=/tmp/.secrets/pwd.key
@@ -59,7 +59,7 @@ helm delete my-release
 ## Persistence
 The Oracle Database image stores the datafiles and configurations at the /opt/oracle/oradata/ORACLE_SID path of the container.
 
-By default persistence is enabled, and a PersistentVolumeClaim is created and mounted in that directory.
+By default, persistence is enabled, and a PersistentVolumeClaim is created and mounted in that directory.
 
 ## Configuration
 The following table lists the configurable parameters of the Oracle Sharding chart and their default values.
@@ -108,7 +108,7 @@ global:
 ### Shard Director configuration Parameters
 ```
 gsm:
-  replicaCount: 2
+  replicaCount: 1
   gsmHostName: gsmhost
   nodeselector: ad3
   oci:
@@ -120,15 +120,100 @@ gsm:
    accessModes: ReadWriteOnce
    storageClassName: oci
    DBMountLoc: /u01/app/oracle/gsmdata
-   stagingLoc: /opt/oracle/scripts/setup
-  env:
-   catalogParams: oshard-catalog-0.oshard-catalog:CATCDB:CAT1PDB
-   primaryShardParams: oshard1-0.oshard1:ORCL1CDB:ORCL1PDB;oshard2-0.oshard2:ORCL2CDB:ORCL2PDB;oshard3-0.oshard3:ORCL3CDB:ORCL3PDB
-   opType: gsm
-   customScript: setupOshardEnv.sh
+   stagingLoc: /opt/oracle/gsm/scripts/setup
   service:
    type: LoadBalancer
    port: 1521
+  env:
+   SHARD_DIRECTOR_PARAMS: "director_name=sharddirector1;director_region=region1;director_port=1521"
+   SHARD1_GROUP_PARAMS: "group_name=shardgroup1;deploy_as=primary;group_region=region1"
+   CATALOG_PARAMS: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2"
+   SHARD1_PARAMS: "shard_host=oshard1-0.oshard1;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"
+   SHARD2_PARAMS: "shard_host=oshard2-0.oshard2;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"
+   SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"
+   SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
+   SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
+   BASE_DIR: /opt/oracle/gsm/scripts/setup
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OP_TYPE: gsm
+```
+
+### Shard1 Configuration parameters
+
+```
+oshard1:
+  replicaCount: 1
+  app: oshard-db1
+  nodeselector: ad3
+  shardHostName: oshard1
+  oci:
+   region: phx
+   zone: PHX-AD-1
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   ORACLE_SID: ORCL1CDB
+   ORACLE_PDB: ORCL1PDB
+   OP_TYPE: primaryshard
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+```
+### Shard2 Configuration parameters
+
+```
+oshard2:
+  replicaCount: 1
+  app: oshard-db2
+  nodeselector: ad3
+  shardHostName: oshard2
+  oci:
+   region: phx
+   zone: PHX-AD-1
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   ORACLE_SID: ORCL2CDB
+   ORACLE_PDB: ORCL2PDB
+   OP_TYPE: primaryshard
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+```
+
+### Shard3 Configuration parameters
+
+```
+oshard3:
+  replicaCount: 1
+  app: oshard-db3
+  nodeselector: ad3
+  shardHostName: oshard3
+  pvc:
+   ociAD: "PHX-AD-1"
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: oci
+   DBMountLoc: /opt/oracle/oradata
+   stagingLoc: /opt/oracle/scripts/setup
+  env:
+   ORACLE_SID: ORCL3CDB
+   ORACLE_PDB: ORCL3PDB
+   OP_TYPE: primaryshard
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
 ```
 
 ### Catalog Configuration Parameters
@@ -150,79 +235,10 @@ oshard-catalog:
    DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
-   dbSid: CATCDB
-   dbPdb: CAT1PDB
-   dbMemory: 12G
-   opType: catalog
-```
-### Shard1 Configuration parameters
-
-```
-oshard1:
-  replicaCount: 1
-  app: oshard-db1
-  nodeselector: ad3
-  shardHostName: oshard1
-  oci:
-   region: phx
-   zone: PHX-AD-1
-  pvc:
-   ociAD: "PHX-AD-1"
-   storageSize: 50Gi
-   accessModes: ReadWriteOnce
-   storageClassName: oci
-   DBMountLoc: /opt/oracle/oradata
-   stagingLoc: /opt/oracle/scripts/setup
-  env:
-   dbSid: ORCL1CDB
-   dbPdb: ORCL1PDB
-   dbMemory: 12G
-   opType: primaryshard
-```
-
-### Shard2 Configuration parameters
-
-```
-oshard2:
-  replicaCount: 1
-  app: oshard-db2
-  nodeselector: ad3
-  shardHostName: oshard2
-  oci:
-   region: phx
-   zone: PHX-AD-1
-  pvc:
-   ociAD: "PHX-AD-1"
-   storageSize: 50Gi
-   accessModes: ReadWriteOnce
-   storageClassName: oci
-   DBMountLoc: /opt/oracle/oradata
-   stagingLoc: /opt/oracle/scripts/setup
-  env:
-   dbSid: ORCL2CDB
-   dbPdb: ORCL2PDB
-   dbMemory: 12G
-   opType: primaryshard
-```
-
-### Shard3 Configuration Parameters
-
-```
-oshard3:
-  replicaCount: 1
-  app: oshard-db3
-  nodeselector: ad3
-  shardHostName: oshard3
-  pvc:
-   ociAD: "PHX-AD-1"
-   storageSize: 50Gi
-   accessModes: ReadWriteOnce
-   storageClassName: oci
-   DBMountLoc: /opt/oracle/oradata
-   stagingLoc: /opt/oracle/scripts/setup
-  env:
-   dbSid: ORCL3CDB
-   dbPdb: ORCL3PDB
-   dbMemory: 12G
-   opType: primaryshard
+   ORACLE_SID: CATCDB
+   ORACLE_PDB: CAT1PDB
+   OP_TYPE: catalog
+   DB_MEMORY: 12G
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
 ```

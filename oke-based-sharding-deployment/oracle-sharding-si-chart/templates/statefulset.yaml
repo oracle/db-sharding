@@ -15,8 +15,6 @@ spec:
       app.kubernetes.io/name: {{ include "oracle-sharding-si-chart.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   serviceName: {{ .Values.gsm.gsmHostName }} 
-  strategy:
-    type: {{ .Values.global.strategy }}
   template:
     metadata:
       labels:
@@ -54,8 +52,8 @@ spec:
            - |
              set -ex
              {{ .Values.global.getScrCmd }}
-             cp -p setupOshardEnv.sh "{{ .Values.gsm.pvc.stagingLoc }}"
-             chmod 777 "{{ .Values.gsm.pvc.stagingLoc }}/setupOshardEnv.sh"
+             cp -r scripts/* {{ .Values.gsm.pvc.stagingLoc }}
+             chmod 777 {{ .Values.gsm.pvc.stagingLoc }}/*
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.gsm.pvc.stagingLoc }}"
@@ -73,16 +71,28 @@ spec:
            - containerPort: {{ .Values.global.gsmports.containerAgentPort }}
              name: {{ .Values.global.gsmports.containerAgentPortName }}
           env:
+           - name: SHARD_DIRECTOR_PARAMS
+             value: {{ .Values.gsm.env.SHARD_DIRECTOR_PARAMS }}
+           - name: SHARD1_GROUP_PARAMS
+             value: {{ .Values.gsm.env.SHARD1_GROUP_PARAMS }}
            - name: CATALOG_PARAMS
-             value: {{ .Values.gsm.env.catalogParams }}
-           - name: PRIMARY_SHARD_PARAMS
-             value: {{ .Values.gsm.env.primaryShardParams }}
+             value: {{ .Values.gsm.env.CATALOG_PARAMS }}
+           - name: SHARD1_PARAMS
+             value: {{ .Values.gsm.env.SHARD1_PARAMS }}
+           - name: SHARD2_PARAMS
+             value: {{ .Values.gsm.env.SHARD2_PARAMS }}
+           - name: SHARD3_PARAMS
+             value: {{ .Values.gsm.env.SHARD3_PARAMS }}
+           - name: SERVICE1_PARAMS
+             value: {{ .Values.gsm.env.SERVICE1_PARAMS }}
+           - name: SERVICE2_PARAMS
+             value: {{ .Values.gsm.env.SERVICE2_PARAMS }}
            - name: OP_TYPE
-             value: {{ .Values.gsm.env.opType }}
+             value: {{ .Values.gsm.env.OP_TYPE }}
+           - name: BASE_DIR
+             value: {{ .Values.gsm.env.BASE_DIR }}
            - name: KUBE_SVC
              value: {{ .Values.gsm.gsmHostName }}
-           - name: CUSTOM_SETUP_SCRIPT
-             value: {{ .Values.gsm.env.customScript }}
           volumeMounts:
            - name: {{ include "oracle-sharding-si-chart.fullname" . }}
              mountPath: {{ .Values.gsm.pvc.DBMountLoc }} 

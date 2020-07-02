@@ -16,8 +16,6 @@ spec:
       app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   serviceName: {{ .Values.shardHostName }}
-  strategy:
-    type:  {{ .Values.global.strategy }}
   template:
     metadata:
       labels:
@@ -56,8 +54,8 @@ spec:
            - |
              set -ex
              {{ .Values.global.getScrCmd }}
-             cp -p setupOshardEnv.sh "{{ .Values.pvc.stagingLoc }}"
-             chmod 777 "{{ .Values.pvc.stagingLoc }}/setupOshardEnv.sh"
+             cp -r scripts/* {{ .Values.pvc.stagingLoc }}
+             chmod 777 {{ .Values.pvc.stagingLoc }}/*
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.pvc.stagingLoc }}"
@@ -76,17 +74,17 @@ spec:
              name: {{ .Values.global.dbports.containerAgentPortName }}
           env:
            - name: ORACLE_SID
-             value: {{ .Values.env.dbSid }}
+             value: {{ .Values.env.ORACLE_SID }}
            - name: ORACLE_PDB
-             value: {{ .Values.env.dbPdb }}
+             value: {{ .Values.env.ORACLE_PDB }}
            - name: KUBE_SVC
              value: {{ .Values.shardHostName }}
            - name: ORACLE_HOSTNAME 
              value: "{{ .Values.shardHostName }}-0.{{ .Values.shardHostName }}"
            - name: DB_MEMORY
-             value: {{ .Values.env.dbMemory }}
+             value: {{ .Values.env.DB_MEMORY }}
            - name: OP_TYPE
-             value: {{ .Values.env.opType }}
+             value: {{ .Values.env.OP_TYPE }}
           volumeMounts:
            - name: {{ include "oracle-si-shards.fullname" . }}
              mountPath: {{ .Values.pvc.DBMountLoc }} 

@@ -6,6 +6,7 @@
 # Author: paramdeep.saini@oracle.com
 ############################
 
+
 import os
 import os.path
 import re
@@ -15,13 +16,13 @@ from oraenv import *
 from oracommon import *
 from oramachine import *
 
-class OraPCatalog:
+class OraPShard:
       """
-      This calss setup the Catalog after DB installation.
+      This calss setup the primary shard after DB installation.
       """
       def __init__(self,oralogger,orahandler,oraenv,oracommon):
         """
-        This constructor of OraCatalog class to setup the catalog on primary DB.
+        This constructor of OraPShard class to setup the shard on primary DB.
 
         Attributes:
            oralogger (object): object of OraLogger Class.
@@ -41,21 +42,22 @@ class OraPCatalog:
 
       def setup(self):
           """
-           This function setup the catalog on Primary DB.
+           This function setup the shard on Primary DB.
           """
-          self.setup_machine()
+          self.setup_machine() 
           self.db_checks()
-          self.reset_catalog_setup()
-          status = self.catalog_setup_check()
+          self.reset_shard_setup()
+          status = self.shard_setup_check()
           if status:
-             self.ocommon.log_info_message("catalog Setup is already completed on this database",self.file_name)
+             self.ocommon.log_info_message("Shard Setup is already completed on this database",self.file_name)
           else:
              self.reset_passwd()
-             self.setup_cdb_catalog()
-             self.setup_pdb_catalog()
-             self.update_catalog_setup()
+             self.setup_cdb_shard()
+             self.setup_pdb_shard ()
+             self.update_shard_setup()
              self.gsm_completion_message()
           self.run_custom_scripts()
+
       ###########  SETUP_MACHINE begins here ####################
       ## Function to machine setup
       def setup_machine(self):
@@ -63,7 +65,6 @@ class OraPCatalog:
            This function performs the compute before performing setup
           """
           self.omachine.setup()
-
       ###########  SETUP_MACHINE ENDS here ####################
 
       ###########  DB_CHECKS  Related Functions Begin Here  ####################
@@ -80,13 +81,13 @@ class OraPCatalog:
           self.dbport_check()
           self.dbr_dest_checks()
           self.dpump_dir_checks()
-
+ 
       def ohome_check(self):
           """
              This function performs the oracle home related checks
           """
           if self.ocommon.check_key("ORACLE_HOME",self.ora_env_dict):
-             self.ocommon.log_info_message("ORACLE_HOME variable is set. Check Passed!",self.file_name)
+             self.ocommon.log_info_message("ORACLE_HOME variable is set. Check Passed!",self.file_name)   
           else:
              self.ocommon.log_error_message("ORACLE_HOME variable is not set. Exiting!",self.file_name)
              self.ocommon.prog_exit()
@@ -107,7 +108,7 @@ class OraPCatalog:
            if self.ocommon.check_key("SECRET_VOLUME",self.ora_env_dict) and check_key("COMMON_OS_PWD_FILE",self.ora_env_dict) and check_key("PWD_KEY",self.ora_env_dict):
               msg='''SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
            else:
-              self.ora_env_dict=self.ocommon.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict)
+              self.ora_env_dict=self.ocommon.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict) 
               msg='''SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
 
            self.ocommon.log_warn_message(msg,self.file_name)
@@ -119,7 +120,7 @@ class OraPCatalog:
               msg='''COMMON_OS_PWD_FILE not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
 
            self.ocommon.log_warn_message(msg,self.file_name)
-
+ 
            if self.ocommon.check_key("PWD_KEY",self.ora_env_dict):
               msg='''PWD_KEY passed as an env variable and set to {0}'''.format(self.ora_env_dict["PWD_KEY"])
            else:
@@ -127,7 +128,7 @@ class OraPCatalog:
               msg='''PWD_KEY not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["PWD_KEY"])
 
            self.ocommon.log_warn_message(msg,self.file_name)
-
+              
            secret_volume = self.ora_env_dict["SECRET_VOLUME"]
            common_os_pwd_file = self.ora_env_dict["COMMON_OS_PWD_FILE"]
            pwd_key = self.ora_env_dict["PWD_KEY"]
@@ -139,7 +140,7 @@ class OraPCatalog:
               self.ocommon.log_info_message(msg,self.file_name)
               cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
               output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-              self.ocommon.check_os_err(output,error,retcode,True)
+              self.ocommon.check_os_err(output,error,retcode,True) 
               passwd_file_flag = True
 
            if not passwd_file_flag:
@@ -154,7 +155,7 @@ class OraPCatalog:
 
            if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict):
               msg="ORACLE_PWD is passed as an env variable. Check Passed!"
-              self.ocommon.log_info_message(msg,self.file_name)
+              self.ocommon.log_info_message(msg,self.file_name)              
            else:
               self.ora_env_dict=self.ocommon.add_key("ORACLE_PWD",password,self.ora_env_dict)
               msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
@@ -205,8 +206,8 @@ class OraPCatalog:
               else:
                  hostname='''{0}'''.format(socket.gethostname())
               msg='''ORACLE_HOSTNAME is not set, setting it to hostname {0} of the compute!'''.format(hostname)
-              self.ora_env_dict=self.ocommon.add_key("ORACLE_HOSTNAME",hostname,self.ora_env_dict)
-              self.ocommon.log_info_message(msg,self.file_name)
+              self.ora_env_dict=self.ocommon.add_key("ORACLE_HOSTNAME",hostname,self.ora_env_dict)                 
+              self.ocommon.log_info_message(msg,self.file_name) 
 
       def dbport_check(self):
            """
@@ -233,11 +234,11 @@ class OraPCatalog:
                msg='''DB_RECOVERY_FILE_DEST set to {0}'''.format(dest)
                self.ocommon.log_info_message(msg,self.file_name)
            msg='''Checking dir {0} on local machine. If not then create the dir {0} on local machine'''.format(self.ora_env_dict["DB_RECOVERY_FILE_DEST"])
-           self.ocommon.log_info_message(msg,self.file_name)
+           self.ocommon.log_info_message(msg,self.file_name) 
            self.ocommon.create_dir(self.ora_env_dict["DB_RECOVERY_FILE_DEST"],True,None,None)
-
+  
            # Checking the DB_RECOVERY_FILE_DEST_SIZE
-
+ 
            if self.ocommon.check_key("DB_RECOVERY_FILE_DEST_SIZE",self.ora_env_dict):
                msg='''DB_RECOVERY_FILE_DEST_SIZE {0} is passed as an env variable. Check Passed!'''.format(self.ora_env_dict["DB_RECOVERY_FILE_DEST_SIZE"])
                self.ocommon.log_info_message(msg,self.file_name)
@@ -277,15 +278,15 @@ class OraPCatalog:
            self.ocommon.log_info_message(msg,self.file_name)
            self.ocommon.create_dir(self.ora_env_dict["DATA_PUMP_DIR"],True,None,None)
 
-       ###########  DB_CHECKS  Related Functions Begin Here  ####################
+       ###########  DB_CHECKS  Related Functions Begin Here  #################### 
 
-
+            
        ########## RESET_PASSWORD function Begin here #############################
        ## Function to perform password reset
       def reset_passwd(self):
          """
            This function reset the password.
-         """
+         """ 
          password_script='''{0}/{1}'''.format(self.ora_env_dict["HOME"],"setPassword.sh")
          self.ocommon.log_info_message("Executing password reset", self.file_name)
          if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict) and self.ocommon.check_key("HOME",self.ora_env_dict) and os.path.isfile(password_script):
@@ -295,26 +296,26 @@ class OraPCatalog:
             self.ocommon.check_os_err(output,error,retcode,True)
             self.ocommon.unset_mask_str()
          else:
-            msg='''Error Occurred! Either HOME DIR {0} does not exist, ORACLE_PWD {1} is not set or PASSWORD SCRIPT {2} does not exist'''.format(self.ora_env_dict["HOME"],self.ora_env_dict["ORACLE_PWD"],password_script)
+            msg='''Error Occurred! Either HOME DIR {0} does not exist, ORACLE_PWD {1} is not set or PASSWORD SCRIPT {2} does not exist'''.format(self.ora_env_dict["HOME"],self.ora_env_dict["ORACLE_PWD"],password_script)  
             self.ocommon.log_error_message(msg,self.file_name)
             self.oracommon.prog_exit()
 
        ########## RESET_PASSWORD function ENDS here #############################
 
-       ########## SETUP_CDB_catalog FUNCTION BEGIN HERE ###############################
+       ########## SETUP_CDB_SHARD FUNCTION BEGIN HERE ###############################
 
-      def reset_catalog_setup(self):
+      def reset_shard_setup(self):
            """
-            This function drop teh catalog setup table and reste the env to default values.
+            This function drop teh shard setup table and reste the env to default values. 
            """
       #     systemStr='''{0}/bin/sqlplus {1}/{2}'''.format(self.ora_env_dict["ORACLE_HOME"],"system",self.ora_env_dict["ORACLE_PWD"])
            sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-           self.ocommon.log_info_message("Inside reset_catalog_setup",self.file_name)
-           catalog_reset_file='''{0}/.catalog/reset_catalog_completed'''.format(self.ora_env_dict["HOME"])
+           self.ocommon.log_info_message("Inside reset_shard_setup",self.file_name)
+           shard_reset_file='''{0}/.shard/reset_shard_completed'''.format(self.ora_env_dict["HOME"])
            if self.ocommon.check_key("RESET_ENV",self.ora_env_dict):
               if self.ora_env_dict["RESET_ENV"]:
-                 if not os.path.isfile(catalog_reset_file):
-                    msg='''Dropping catalogsetup table from CDB'''
+                 if not os.path.isfile(shard_reset_file):
+                    msg='''Dropping shardsetup table from CDB'''
                     self.ocommon.log_info_message(msg,self.file_name)
                     sqlcmd='''
                      drop table system.shardsetup;
@@ -323,13 +324,13 @@ class OraPCatalog:
                     self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
                     self.ocommon.check_sql_err(output,error,retcode,True)
                  else:
-                    msg='''Reset env already completed on this enviornment as {0} exist on this machine and not executing env reset'''.format(catalog_reset_file)
-                    self.ocommon.log_info_message(msg,self.file_name)
+                    msg='''Reset env already completed on this enviornment as {0} exist on this machine and not executing env reset'''.format(shard_reset_file)
+                    self.ocommon.log_info_message(msg,self.file_name)                    
 
 
-      def catalog_setup_check(self):
+      def shard_setup_check(self):
            """
-            This function check the catalog status.
+            This function check the shard status.
            """
            systemStr='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
 
@@ -341,15 +342,15 @@ class OraPCatalog:
             set feedback off
             set  term off
             SET NEWPAGE NONE
-            spool /tmp/catalog_setup.txt
-            select * from system.shardsetup WHERE ROWNUM = 1;
+            spool /tmp/shard_setup.txt
+            select * from system.shardsetup WHERE ROWNUM = 1; 
             spool off
             exit;
            '''
            output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.ocommon.check_sql_err(output,error,retcode,None)
-           fname='''/tmp/{0}'''.format("catalog_setup.txt")
+           fname='''/tmp/{0}'''.format("shard_setup.txt")
            fdata=self.ocommon.read_file(fname)
            ### Unsetting the encrypt value to None
          #  self.ocommon.unset_mask_str()
@@ -359,11 +360,11 @@ class OraPCatalog:
            else:
               return False
 
-      def setup_cdb_catalog(self):
+      def setup_cdb_shard(self):
            """
-            This function setup the catalog.
+            This function setup the shard.
            """
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])            
            # Assigning variable
            dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
            dbr_dest=self.ora_env_dict["DB_RECOVERY_FILE_DEST"]
@@ -371,37 +372,43 @@ class OraPCatalog:
            host_name=self.ora_env_dict["ORACLE_HOSTNAME"]
            dpump_dir = self.ora_env_dict["DATA_PUMP_DIR"]
            db_port=self.ora_env_dict["DB_PORT"]
-           ohome=self.ora_env_dict["ORACLE_HOME"]
-
+                 
            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-           msg='''Setting up catalog CDB'''
+           msg='''Setting up Shard CDB'''
            self.ocommon.log_info_message(msg,self.file_name)
            sqlcmd='''
              alter system set db_create_file_dest=\"{0}\" scope=both;
              alter system set db_recovery_file_dest_size={1} scope=both;
-             alter system set db_recovery_file_dest=\"{2}\" scope=both;
+             alter system set db_recovery_file_dest=\"{2}\" scope=both; 
              alter system set open_links=16 scope=spfile;
              alter system set open_links_per_instance=16 scope=spfile;
-             @{6}/rdbms/admin/setCatalogDBPrivs.sql;
-             alter user gsmcatuser account unlock;
-             alter user gsmcatuser identified by HIDDEN_STRING;
+             alter user gsmrootuser account unlock;
+             grant sysdg to gsmrootuser;
+             grant sysbackup to gsmrootuser;
+             alter user gsmrootuser identified by HIDDEN_STRING  container=all;
+             alter user GSMUSER account unlock;
+             alter user GSMUSER  identified by HIDDEN_STRING  container=all;
+             grant sysdg to GSMUSER;
+             grant sysbackup to GSMUSER;
              alter system set dg_broker_start=true scope=both;
-             alter system set remote_listener=\"(ADDRESS=(HOST={4})(PORT={5})(PROTOCOL=tcp))\" scope=both;
-           '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,ohome)
-
+             create or replace directory DATA_PUMP_DIR as '{3}';
+             grant read,write on directory DATA_PUMP_DIR to GSMADMIN_INTERNAL;
+             alter system set local_listener='{4}:{5}' scope=both;
+           '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port) 
+                  
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.ocommon.check_sql_err(output,error,retcode,True)
 
-           ### Unsetting the encrypt value to None
-           self.ocommon.unset_mask_str()
-
+           ### Unsetting the encrypt value to None 
+           self.ocommon.unset_mask_str()             
+                             
            self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
            self.ocommon.shutdown_db(self.ora_env_dict)
            self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
            self.ocommon.mount_db(self.ora_env_dict)
-
-           self.ocommon.log_info_message("Enabling archivelog at DB level",self.file_name)
+       
+           self.ocommon.log_info_message("Enabling archivelog at DB level",self.file_name)              
            sqlcmd='''
            alter database archivelog;
            alter database open;
@@ -427,36 +434,31 @@ class OraPCatalog:
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.ocommon.check_sql_err(output,error,retcode,None)
 
-      def setup_pdb_catalog(self):
+      def setup_pdb_shard(self):
            """
-            This function setup the catalog.
+            This function setup the shard.
            """
            sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
            # Assigning variable
-           self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
            if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
-              msg='''Setting up catalog PDB'''
+              msg='''Setting up Shard PDB'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
               alter session set container={0};
-              create user {1} identified by HIDDEN_STRING;
-              grant connect, create session, gsmadmin_role to {1};
-              grant inherit privileges on user SYS to GSMADMIN_INTERNAL;
-              execute dbms_xdb.sethttpport(8080);
-              exec DBMS_SCHEDULER.SET_AGENT_REGISTRATION_PASS('HIDDEN_STRING');
-              exit;
-              '''.format(self.ora_env_dict["ORACLE_PDB"],self.ora_env_dict["SHARD_ADMIN_USER"])
+              grant read,write on directory DATA_PUMP_DIR to GSMADMIN_INTERNAL;
+              grant sysdg to GSMUSER;
+              grant sysbackup to GSMUSER;
+              execute DBMS_GSM_FIX.validateShard;
+              '''.format(self.ora_env_dict["ORACLE_PDB"])
 
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
               self.ocommon.check_sql_err(output,error,retcode,True)
+              
 
-           ### Unsetting the encrypt value to None
-           self.ocommon.unset_mask_str()
-
-      def update_catalog_setup(self):
+      def update_shard_setup(self):
            """
-            This function update the catalog setup on this DB.
+            This function update the shard setup on this DB.
            """
        #    systemStr='''{0}/bin/sqlplus {1}/{2}'''.format(self.ora_env_dict["ORACLE_HOME"],"system","HIDDEN_STRING")
            systemStr='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
@@ -470,7 +472,7 @@ class OraPCatalog:
             set feedback off
             create table system.shardsetup (status varchar2(10));
             insert into system.shardsetup values('completed');
-            commit;
+            commit; 
             exit;
            '''
            output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
@@ -478,19 +480,39 @@ class OraPCatalog:
            self.ocommon.check_sql_err(output,error,retcode,True)
 
            ### Reset File
-           catalog_reset_dir='''{0}/.catalog'''.format(self.ora_env_dict["HOME"])
-           catalog_reset_file='''{0}/.catalog/reset_catalog_completed'''.format(self.ora_env_dict["HOME"])
+           shard_reset_dir='''{0}/.shard'''.format(self.ora_env_dict["HOME"]) 
+           shard_reset_file='''{0}/.shard/reset_shard_completed'''.format(self.ora_env_dict["HOME"])
 
            self.ocommon.log_info_message("Creating reset_file_fir if it does not exist",self.file_name)
-           if not os.path.isdir(catalog_reset_dir):
-              self.ocommon.create_dir(catalog_reset_dir,True,None,None)
+           if not os.path.isdir(shard_reset_dir):
+              self.ocommon.create_dir(shard_reset_dir,True,None,None)
 
-           if not os.path.isfile(catalog_reset_file):
-              self.ocommon.create_file(catalog_reset_file,True,None,None)
-
+           if not os.path.isfile(shard_reset_file):
+              self.ocommon.create_file(shard_reset_file,True,None,None)
+ 
 #          self.ocommon.unset_mask_str()
+        
+       ########## SETUP_CDB_SHARD FUNCTION ENDS HERE ###############################
+          ###################################### Run custom scripts ##################################################
+      def run_custom_scripts():
+          """
+           Custom script to be excuted on every restart of enviornment
+          """
+          self.ocommon.log_info_message("Inside run_custom_scripts()",self.file_name)
+          if self.ocommon.check_key("CUSTOM_SHARD_SCRIPT_DIR",self.ora_env_dict):
+             shard_dir=self.ora_env_dict["CUSTOM_SHARD_SCRIPT_DIR"]
 
-       ########## SETUP_CDB_catalog FUNCTION ENDS HERE ###############################
+          if self.ocommon.check_key("CUSTOM_SHARD_SCRIPT_FILE",self.ora_env_dict):
+             shard_file=self.ora_env_dict["CUSTOM_SHARD_SCRIPT_FILE"]
+
+          script_file = '''{0}/{1}'''.format(shard_dir,shard_file)
+
+          if os.path.isfile(script_file):
+             msg='''Custom shard script exist {0}'''.format(script_file)
+             self.ocommon.log_info_message(msg,self.file_name)
+             cmd='''sh {0}'''.format(script_file)
+             output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+             self.ocommon.check_os_err(output,error,retcode,True)
 
           ###################################### Run custom scripts ##################################################
       def run_custom_scripts(self):
@@ -518,7 +540,7 @@ class OraPCatalog:
           self.ocommon.log_info_message("Inside gsm_completion_message()",self.file_name)
           msg=[]
           msg.append('==============================================')
-          msg.append('     GSM Catalog Setup Completed              ')
+          msg.append('     GSM Sahrd Setup Completed                ')
           msg.append('==============================================')
 
           for text in msg:

@@ -29,24 +29,24 @@ The Python SDK requires:
 * OpenSSL version 1.0.1 or later.
 * An Oracle Cloud Infrastructure account
 * A user created in that account, in a group with a policy that grants the desired permissions. For an example of how to set up a new user, group, compartment, and policy see [Adding Users](https://docs.us-phoenix-1.oraclecloud.com/Content/GSG/Tasks/addingusers.htm) in the Getting Started Guide.
-* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute the following steps to upload the public key to OCI and make a copy of finger print which will be used later in the playbook.
-** Create a .oci directory to store the credentials
-```
- mkdir ~/.oci
-```
-** Generate the private key with one of the following commands
-```
-openssl genrsa -out ~/.oci/oci_api_key.pem 2048
-```
-** Ensure that only you can read the private key file
-```
-chmod go-rwx ~/.oci/oci_api_key.pem
-```
-** Generate the public key:
-```
-openssl rsa -pubout -in ~/.oci/oci_api_key.pem -out ~/.oci/oci_api_key_public.pem
-```
-** Your API requests will be signed with your private key, and Oracle will use the public key to verify the authenticity of the request. You must upload the public key to IAM. Copy the contents of the public key to the clipboard and you'll need to paste the value into the Console. Refer to How to Upload the Public Key section in [Oracle Cloud Infrastructure Documentation](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm).
+* A keypair used for signing API requests, with the public key uploaded to Oracle. Only the user calling the API should be in possession of the private key. You can execute the following steps to upload the public key to OCI and make a copy of finger print which will be used later in the playbook. 
+  * Create a .oci directory to store the credentials
+  ```
+  mkdir ~/.oci
+  ```
+  * Generate the private key with one of the following commands
+  ```
+  openssl genrsa -out ~/.oci/oci_api_key.pem 2048
+  ```
+  * Ensure that only you can read the private key file
+  ```
+  chmod go-rwx ~/.oci/oci_api_key.pem
+  ```
+  * Generate the public key:
+  ```
+  openssl rsa -pubout -in ~/.oci/oci_api_key.pem -out ~/.oci/oci_api_key_public.pem
+  ```
+  * Your API requests will be signed with your private key, and Oracle will use the public key to verify the authenticity of the request. You must upload the public key to IAM. Copy the contents of the public key to the clipboard and you'll need to paste the value into the Console. Refer to How to Upload the Public Key section in [Oracle Cloud Infrastructure Documentation](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm).
 
 **Note**: You can find all the pre-requisites details for OCI ansible machine on [oracle-cloud-infrastructure documentation] (https://oracle-cloud-infrastructure-python-sdk.readthedocs.io/en/latest/installation.html#downloading-and-installing-the-sdk).
 
@@ -93,9 +93,8 @@ fingerprint=<Fingerprint for the key pair being used. To get the value, [see Req
 key_file=<Full path and filename of the private key. This is the same private key you have created under Prerequisites section and uploaded the public key to OCI cloud.>
 tenancy=<OCID of your tenancy. To get the value, [see Required Keys and OCIDs] (https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm). E.g. ```ocid1.tenancy.oc1..aaaaaaaaba3pv6wuzr4h25vqstifsfdsq```>
 region=<An Oracle Cloud Infrastructure region. [See Regions and Availability Domains](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/regions.htm). E.g. ```us-ashburn-1```>
-
-**Notes**: You can refer the [SDK and CLI Configuration File documentation](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm) for the details.
 ```
+**Notes**: You can refer the [SDK and CLI Configuration File documentation](https://docs.cloud.oracle.com/iaas/Content/API/Concepts/sdkconfig.htm) for the details.
 
 ## Task2 - Oracle OKE deployment on OCI using ansible playbook
 To setup Oracle Sharding on OKE, you need to execute following steps: 
@@ -129,7 +128,6 @@ Before executing the playbook, it is important to understand the ansible playboo
 * Create and configure VCN
 * Launch OKE cluster. OKE cluster contains 3 worker node
 * Open network ports for ssh and your services
-* 
 
 ### Execute Ansible Playbook
 Oracle Kubernetes cluster deployment using Ansible playbook provides an easy way to provision the Kubernetes cluster on OCI.
@@ -194,7 +192,7 @@ Edit the file samples/oci-oke-setup-env.yaml and make changes based on your requ
 
 ## Task3 - Creating GSM and Oracle Database Images
 This steps is optional and you need to execute this when you do not have access to Oracle GSM software and database image.
-* To create and setup Oracle GSM and Database Image, please follow [Oracle Sharding on Docker](./oracle-gds-docker-image/README.md)
+* To create and setup Oracle GSM and Database Image, please follow [Oracle Sharding on Docker](https://github.com/oracle/db-sharding/tree/master/docker-based-sharding-deployment)
 
 ## Task4 - Oracle Sharding Deployment using Helm/Charts 
 
