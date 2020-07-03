@@ -4,6 +4,12 @@ Oracle Sharding is a scalability and availability feature for custom-designed OL
 Sample Docker build files to facilitate installation, configuration, and environment setup for DevOps users. For more information about Oracle Database please see the [Oracle Sharded Database Management Documentation](http://docs.oracle.com/en/database/).
 
 ## How to build and run
+Please review README of following sections in a given order. After reviewing the README of each section, you can skip the image/container creation if you do not meet the requirement.
+
+* Please review following points before you proceed to next sections:
+  * Install Docker engine
+    * Please refer to [Oracle Container Runtime for Docker Documentation](https://docs.oracle.com/cd/E52668_01/E87205/html/index.html) to install and configure docker-engine. You can use XFS file system with overlay2 file system.
+
 This project offers sample Dockerfiles for:
   * Oracle Database 19c Global Service Manager (GSM/GDS) (19.3) for Linux x86-64
 
