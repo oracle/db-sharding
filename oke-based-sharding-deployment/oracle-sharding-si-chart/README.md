@@ -147,6 +147,7 @@ oshard1:
   app: oshard-db1
   nodeselector: ad3
   shardHostName: oshard1
+  storageType: "bv"
   oci:
    region: phx
    zone: PHX-AD-1
@@ -164,6 +165,14 @@ oshard1:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
+  clone:
+   db: "no"
+   ocid:
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
 ```
 ### Shard2 Configuration parameters
 
@@ -173,6 +182,7 @@ oshard2:
   app: oshard-db2
   nodeselector: ad3
   shardHostName: oshard2
+  storageType: "bv"
   oci:
    region: phx
    zone: PHX-AD-1
@@ -190,6 +200,14 @@ oshard2:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
+  clone:
+   db: "no"
+   ocid:
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
 ```
 
 ### Shard3 Configuration parameters
@@ -200,6 +218,10 @@ oshard3:
   app: oshard-db3
   nodeselector: ad3
   shardHostName: oshard3
+  storageType: "bv"
+  oci:
+   region: phx
+   zone: PHX-AD-1
   pvc:
    ociAD: "PHX-AD-1"
    storageSize: 50Gi
@@ -214,6 +236,14 @@ oshard3:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
+  clone:
+   db: "no"
+   ocid:
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
 ```
 
 ### Catalog Configuration Parameters
@@ -224,6 +254,7 @@ oshard-catalog:
   app: oshard-cat
   nodeselector: ad3
   shardHostName: oshard-catalog
+  storageType: "bv"
   oci:
    region: phx
    zone: PHX-AD-1
@@ -241,4 +272,12 @@ oshard-catalog:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
+  clone:
+   db: "no"
+   ocid:
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
 ```
