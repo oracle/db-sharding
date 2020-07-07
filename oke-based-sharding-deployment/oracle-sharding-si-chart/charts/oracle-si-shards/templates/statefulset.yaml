@@ -15,12 +15,16 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
   serviceName: {{ .Values.shardHostName }}
   template:
     metadata:
       labels:
         app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+        failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
     spec:
       imagePullSecrets:
       - name: {{ .Values.global.registrySecret }}

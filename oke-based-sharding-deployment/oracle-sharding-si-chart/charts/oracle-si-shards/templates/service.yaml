@@ -28,6 +28,8 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
+    failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+    failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
 ---
 apiVersion: v1
 kind: Service
@@ -57,4 +59,6 @@ spec:
   selector:
     app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    statefulset.kubernetes.io/pod-name: "{{ .Values.shardHostName }}-0"   
+    statefulset.kubernetes.io/pod-name: "{{ .Values.shardHostName }}-0"
+    failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+    failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}  

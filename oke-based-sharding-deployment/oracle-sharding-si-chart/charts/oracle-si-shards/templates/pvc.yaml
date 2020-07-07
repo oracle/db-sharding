@@ -16,6 +16,10 @@ metadata:
 {{ include "oracle-si-shards.labels" . | indent 4 }}
 spec:
   storageClassName: "{{ .Values.pvc.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
   accessModes:
   - "{{ .Values.pvc.accessModes }}"
   resources:
@@ -27,7 +31,11 @@ kind: PersistentVolume
 metadata:
    name: {{ include "oracle-si-shards.fullname" . }}-pv
 spec:
-  storageClassName: "{{ .Values.nfs.storageClassName }}" 
+  storageClassName: "{{ .Values.nfs.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
   capacity:
     storage: {{ .Values.pvc.storageSize }} 
   accessModes:
@@ -47,6 +55,10 @@ metadata:
  name: {{ include "oracle-si-shards.fullname" . }}
 spec:
  storageClassName: "{{ .Values.nfs.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
  accessModes:
  - ReadWriteMany
  resources:
