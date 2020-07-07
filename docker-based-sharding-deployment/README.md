@@ -133,12 +133,13 @@ chown -R 54321:54321 /oradata/dbfiles/CATALOG
 ##### Create Container
 
 Before performing catalog container, review the following notes carefully:
+  
 **Notes**
  * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
  * Change /oradata/dbfiles/CATALOG based on your enviornment.
- * if you are planing to perform seed cloning to expedite the shard setup using existing cold DB backup, you need to pass setup command and replace following `--name catalog oracle/database:19.3.0-ee to --name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
-   * In this case, /oradata/dbfiles/CATALOG must contain the DB backup and it must not be zipped. E.g. /oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB. 
- 
+ * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
+ * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:19.3.0-ee` to `--name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+   * In this case, /oradata/dbfiles/CATALOG must contain the DB backup and it must not be in zipped format. E.g. /oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB. 
 ```
 docker run -d --hostname oshard-catalog-0 \
  --dns-search=example.com \
@@ -203,12 +204,14 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
 
 ##### Shard1 Container
 
-Before performing shard1 container, review the following notes carefully:  
+Before creating shard1 container, review the following notes carefully:  
+
 **Notes**
  * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
  * Change /oradata/dbfiles/ORCL1CDB based on your enviornment.
- * if you are planing to perform seed cloning to expedite the shard setup using existing cold DB backup, you need to pass setup command and replace following `--name catalog oracle/database:19.3.0-ee to --name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
-   * In this case, /oradata/dbfiles/ORCL1CDB must contain the DB backup and it must not be zipped. E.g. /oradata/dbfiles/ORCL1CDB/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.
+ * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
+ * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:19.3.0-ee` to `--name shard1 oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+   * In this case, `/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
 docker run -d --hostname oshard1-0 \
@@ -251,12 +254,14 @@ docker logs -f shard1
 ```
 
 ##### Shard2 Container
-Before performing shard1 container, review the following notes carefully:  
+Before creating shard1 container, review the following notes carefully:  
+
 **Notes**
  * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
  * Change /oradata/dbfiles/ORCL2CDB based on your enviornment.
- * if you are planing to perform seed cloning to expedite the shard setup using existing cold DB backup, you need to pass setup command and replace following `--name catalog oracle/database:19.3.0-ee to --name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
-   * In this case, /oradata/dbfiles/ORCL2CDB must contain the DB backup and it must not be zipped. E.g. /oradata/dbfiles/ORCL2CDB/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.  
+ * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
+ * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:19.3.0-ee` to `--name shard2 oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+   * In this case, `/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
 docker run -d --hostname oshard2-0 \
