@@ -131,6 +131,14 @@ chown -R 54321:54321 /oradata/dbfiles/CATALOG
  * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
 ##### Create Container
+
+Before performing catalog container, review the following notes carefully:
+**Notes**
+ * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
+ * Change /oradata/dbfiles/CATALOG based on your enviornment.
+ * if you are planing to perform seed cloning to expedite the shard setup using existing cold DB backup, you need to pass setup command and replace following `--name catalog oracle/database:19.3.0-ee to --name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+   * In this case, /oradata/dbfiles/CATALOG must contain the DB backup and it must not be zipped. E.g. /oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB. 
+ 
 ```
 docker run -d --hostname oshard-catalog-0 \
  --dns-search=example.com \
@@ -160,9 +168,11 @@ docker run -d --hostname oshard-catalog-0 \
     Optional Parameters:
       CUSTOM_SHARD_SCRIPT_DIR:  Specify the location of custom scripts that you want to run after setting up the catalog.
       CUSTOM_SHARD_SCRIPT_FILE: Specify the file name which must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after catalog setup.
+      CLONE_DB: Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata.
+      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB.
+      OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
 ```
 
-**Note**: Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env. Also, change the datafile volume location. In the above example, it is set to `/oradata/dbfiles/CATALOG`.
 
 To check the catalog container/services creation logs, please tail docker logs. It will take 20 minutes to create the catalog container service.
 
@@ -192,6 +202,14 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
  * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
 ##### Shard1 Container
+
+Before performing shard1 container, review the following notes carefully:  
+**Notes**
+ * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
+ * Change /oradata/dbfiles/ORCL1CDB based on your enviornment.
+ * if you are planing to perform seed cloning to expedite the shard setup using existing cold DB backup, you need to pass setup command and replace following `--name catalog oracle/database:19.3.0-ee to --name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+   * In this case, /oradata/dbfiles/ORCL1CDB must contain the DB backup and it must not be zipped. E.g. /oradata/dbfiles/ORCL1CDB/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.
+
 ```
 docker run -d --hostname oshard1-0 \
   --dns-search=example.com \
@@ -221,9 +239,10 @@ docker run -d --hostname oshard1-0 \
     Optional Parameters:
       CUSTOM_SHARD_SCRIPT_DIR:  Specify the location of custom scripts which you want to run after setting up shard setup.
       CUSTOM_SHARD_SCRIPT_FILE: Specify the file name that must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup.
+      CLONE_DB: Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata.
+      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB.
+      OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
 ```
-
-**Note:** Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env. Also, change the datafile volume location. In the above example, it is set to `/oradata/dbfiles/ORCL1CDB`.
 
 To check the shard1 container/services creation logs, please tail docker logs. It will take 20 minutes to create the shard1 container service.
 
@@ -232,6 +251,13 @@ docker logs -f shard1
 ```
 
 ##### Shard2 Container
+Before performing shard1 container, review the following notes carefully:  
+**Notes**
+ * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
+ * Change /oradata/dbfiles/ORCL2CDB based on your enviornment.
+ * if you are planing to perform seed cloning to expedite the shard setup using existing cold DB backup, you need to pass setup command and replace following `--name catalog oracle/database:19.3.0-ee to --name catalog oracle/database:19.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+   * In this case, /oradata/dbfiles/ORCL2CDB must contain the DB backup and it must not be zipped. E.g. /oradata/dbfiles/ORCL2CDB/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.  
+
 ```
 docker run -d --hostname oshard2-0 \
   --dns-search=example.com \
@@ -261,8 +287,10 @@ docker run -d --hostname oshard2-0 \
     Optional Parameters:
       CUSTOM_SHARD_SCRIPT_DIR:  Specify the location of custom scripts that you want to run after setting up the shard setup.
       CUSTOM_SHARD_SCRIPT_FILE: Specify the file name which must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup.
+      CLONE_DB: Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata.
+      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB.
+      OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
 ```
-**Note:** Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env. Also, change the datafile volume location. In the above example, it is set to `/oradata/dbfiles/ORCL2CDB`.
 
 **Note**: You can add more shards based on your requirement.
 
