@@ -251,7 +251,7 @@ export ORACLE_CHARACTERSET=${ORACLE_CHARACTERSET:-AL32UTF8}
 
 # Check whether database already exists
 if [ ! -z ${CLONE_DB} ]; then
-if [ ${CLONE_DB} == "yes" ]; then
+if [ ${CLONE_DB} == "true" ]; then
 echo "CLONE_DB is set to yes, cloning DB from seed"
 if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
    symLinkFiles;

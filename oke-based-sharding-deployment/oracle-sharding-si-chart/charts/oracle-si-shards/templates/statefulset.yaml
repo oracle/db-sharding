@@ -89,7 +89,7 @@ spec:
            - name: OP_TYPE
              value: {{ .Values.env.OP_TYPE }}
            - name: CLONE_DB
-             value: {{ .Values.clone.db  }}
+             value: "{{ .Values.clone.db  }}"
            - name: OLD_ORACLE_SID
              value: {{ .Values.env.OLD_ORACLE_SID  }}
           volumeMounts:
