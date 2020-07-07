@@ -98,7 +98,8 @@ oshard1:
    ORACLE_PDB: ORCL1PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   OLD_ORACLE_SID: GOLDCDB
+   OLD_ORACLE_PDB: GOLDPDB
   clone:
    db:
    ocid:  
@@ -129,7 +130,8 @@ oshard2:
    ORACLE_PDB: ORCL2PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   OLD_ORACLE_SID: GOLDCDB
+   OLD_ORACLE_PDB: GOLDPDB
   clone:
    db:
    ocid:  
@@ -160,7 +162,8 @@ oshard3:
    ORACLE_PDB: ORCL3PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   OLD_ORACLE_SID: GOLDCDB
+   OLD_ORACLE_PDB: GOLDPDB
   clone:
    db:
    ocid:  
@@ -191,7 +194,8 @@ oshard-catalog:
    ORACLE_PDB: CAT1PDB
    OP_TYPE: catalog
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   OLD_ORACLE_SID: GOLDCDB
+   OLD_ORACLE_PDB: GOLDPDB
   clone:
    db:
    ocid:  

@@ -92,6 +92,8 @@ spec:
              value: "{{ .Values.clone.db  }}"
            - name: OLD_ORACLE_SID
              value: {{ .Values.env.OLD_ORACLE_SID  }}
+           - name: OLD_ORACLE_PDB
+             value: {{ .Values.env.OLD_ORACLE_PDB  }}
           volumeMounts:
            - name: {{ include "oracle-si-shards.fullname" . }}
              mountPath: {{ .Values.pvc.DBMountLoc }} 

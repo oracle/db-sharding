@@ -240,7 +240,7 @@ else
 fi;
 
 if [ ! -z ${OLD_ORACLE_PDB} ]; then
-  export OLD_ORACLE_PDB=$O{LD_ORACLE_PDB^^}
+  export OLD_ORACLE_PDB=${OLD_ORACLE_PDB^^}
 else
   export OLD_ORACLE_PDB=SEEDPDB
 fi;
@@ -252,7 +252,7 @@ export ORACLE_CHARACTERSET=${ORACLE_CHARACTERSET:-AL32UTF8}
 # Check whether database already exists
 if [ ! -z ${CLONE_DB} ]; then
 if [ ${CLONE_DB} == "true" ]; then
-echo "CLONE_DB is set to yes, cloning DB from seed"
+echo "CLONE_DB is set to true, cloning DB from seed"
 if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
    symLinkFiles;
    
@@ -276,7 +276,7 @@ if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
        cloneDB;
    fi
 else
-     echo "Error: The  must only be up to 12 characters long."
+     echo "Error: The $ORACLE_BASE/oradata/$OLD_ORACLE_SID (ORACLE_BASE/oradata/OLD_ORACLE_SID) dir does not exist. Error exiting ."
      exit 1;
 fi
 fi
