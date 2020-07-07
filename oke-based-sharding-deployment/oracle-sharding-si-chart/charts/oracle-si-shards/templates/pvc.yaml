@@ -8,7 +8,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "oracle-si-shards.fullname" . }}
-{{- if contains "yes" .Values.clone.db }}
+{{- if .Values.clone.db }}
   annotations:
     volume.beta.kubernetes.io/oci-volume-source: "{{ .Values.clone.ocid }}"
 {{- end }} 

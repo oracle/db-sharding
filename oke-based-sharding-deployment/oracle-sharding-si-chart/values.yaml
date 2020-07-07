@@ -8,19 +8,20 @@
 ---
 global:
   gsmimage:
-   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/databse-gsm 
-   tag: 19.3.0
+   repository:
+   tag:
    pullPolicy: IfNotPresent
   dbimage:
-   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/database
-   tag: 19.3.0-ee
+   repository:
+   tag:
    pullPolicy: IfNotPresent
   secret:
    oraclePwd: db-user-pass
    oraclePwdLoc: /mnt/secrets
   strategy: Recreate
-  getScrCmd: "curl https://codeload.github.com/psaini79/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
+  getScrCmd: "curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
   registrySecret: oshardsecret
+  ocloneScrCMD: /opt/oracle/scripts/setup/runOraShardSetup.sh
   gsmports:
    containerGSMProtocol: TCP
    containerGSMPortName: oshardgsm-port
@@ -57,7 +58,7 @@ gsm:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: oci
-   DBMountLoc: /u01/app/oracle/gsmdata 
+   DBMountLoc: /opt/oracle/gsmdata
    stagingLoc: /opt/oracle/gsm/scripts/setup
   service:
    type: LoadBalancer
@@ -97,11 +98,10 @@ oshard1:
    ORACLE_PDB: ORCL1PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
-   PWD_KEY: pwd.key
+   OLD_ORACLE_SID: goldcdb
   clone:
-   db: "no"
-   ocid: 
+   db:
+   ocid:  
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid
@@ -129,11 +129,10 @@ oshard2:
    ORACLE_PDB: ORCL2PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
-   PWD_KEY: pwd.key
+   OLD_ORACLE_SID: goldcdb
   clone:
-   db: "no"
-   ocid: 
+   db:
+   ocid:  
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid
@@ -161,11 +160,10 @@ oshard3:
    ORACLE_PDB: ORCL3PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
-   PWD_KEY: pwd.key
+   OLD_ORACLE_SID: goldcdb
   clone:
-   db: "no"
-   ocid: 
+   db:
+   ocid:  
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid
@@ -193,11 +191,10 @@ oshard-catalog:
    ORACLE_PDB: CAT1PDB
    OP_TYPE: catalog
    DB_MEMORY: 12G
-   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
-   PWD_KEY: pwd.key
+   OLD_ORACLE_SID: goldcdb
   clone:
-   db: "no"
-   ocid: 
+   db:
+   ocid:  
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid

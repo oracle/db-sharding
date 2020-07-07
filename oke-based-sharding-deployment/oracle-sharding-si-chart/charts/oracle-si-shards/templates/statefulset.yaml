@@ -63,6 +63,9 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
           imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }}
+{{- if .Values.clone.db }}   
+          command: [ {{ .Values.global.ocloneScrCMD }} ]
+{{- end }}
           ports:
            - containerPort: {{ .Values.global.dbports.containerDBPort }}
              name: {{ .Values.global.dbports.containerDBPortName }}  
@@ -85,6 +88,10 @@ spec:
              value: {{ .Values.env.DB_MEMORY }}
            - name: OP_TYPE
              value: {{ .Values.env.OP_TYPE }}
+           - name: CLONE_DB
+             value: {{ .Values.clone.db  }}
+           - name: OLD_ORACLE_SID
+             value: {{ .Values.env.OLD_ORACLE_SID  }}
           volumeMounts:
            - name: {{ include "oracle-si-shards.fullname" . }}
              mountPath: {{ .Values.pvc.DBMountLoc }} 

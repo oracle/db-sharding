@@ -6,6 +6,282 @@
 # Author: paramdeep.saini@oracle.com
 ############################
 
+export CLONED_FILE="status_completed"
+
+########### Clone Files #####################
+function cloneDB {
+
+export NEW_ORACLE_SID=$ORACLE_SID
+export ORACLE_SID=$OLD_ORACLE_SID
+sqlplus / as sysdba << EOF
+   STARTUP mount;
+   exit;
+EOF
+
+echo 'Y' | nid target=/ dbname=$NEW_ORACLE_SID
+
+if [ $? -eq 0 ]; then
+ echo "DB name changed sucessfully"
+else
+ echo "DB name change process failed"
+ exit 1;
+fi
+
+echo "Changing DB name"
+export ORACLE_SID=$NEW_ORACLE_SID
+sqlplus / as sysdba << EOF
+   STARTUP nomount;
+   alter system set db_name=$ORACLE_SID scope=spfile;
+   shutdown immediate
+   exit;
+EOF
+
+echo "Changing OLD SID string to new string"
+sed -i "s/$OLD_ORACLE_SID/$ORACLE_SID/g" $ORACLE_HOME/network/admin/tnsnames.ora
+sed -i "s/$OLD_ORACLE_PDB/$ORACLE_PDB/g" $ORACLE_HOME/network/admin/tnsnames.ora
+
+echo "Starting Listener"
+
+$ORACLE_HOME/bin/lsnrctl start
+
+echo "Starting new cloned DB"
+
+sqlplus / as sysdba << EOF
+   STARTUP mount;
+   alter database open resetlogs;
+   exit;
+EOF
+
+echo "Renaming PDB"
+
+sqlplus / as sysdba << EOF
+   alter pluggable database $OLD_ORACLE_PDB open restricted;
+   alter session set container=$OLD_ORACLE_PDB;
+   alter pluggable database rename global_name to $ORACLE_PDB;
+   exit;
+EOF
+
+echo " CLosing and Opening PDB"
+
+sqlplus / as sysdba << EOF
+   alter pluggable database $ORACLE_PDB close immediate; 
+   alter pluggable database $ORACLE_PDB open;
+   alter system register;
+   exit;
+EOF
+
+
+echo "Touching $CLONED_FILE as setup is  completed"
+touch $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/$CLONED_FILE
+
+}
+
+
+############################################
+
+########### Symbolic link DB files ############
+function symLinkFiles {
+
+   if [ ! -L $ORACLE_HOME/dbs/spfile$OLD_ORACLE_SID.ora ]; then
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora $ORACLE_HOME/dbs/spfile$OLD_ORACLE_SID.ora
+   fi;
+
+   if [ ! -L $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora ]; then
+      if [ ! -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$ORACLE_SID.ora ]; then
+         cp $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$ORACLE_SID.ora
+      fi
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$ORACLE_SID.ora $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora
+   fi;
+
+   if [ ! -L $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID ]; then
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID
+   fi;
+
+   if [ ! -L $ORACLE_HOME/dbs/orapw$ORACLE_SID ]; then
+      if [ ! -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$ORACLE_SID ]; then
+         cp $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID  $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$ORACLE_SID
+      fi
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$ORACLE_SID $ORACLE_HOME/dbs/orapw$ORACLE_SID
+   fi;
+
+   if [ ! -L $ORACLE_HOME/network/admin/sqlnet.ora ]; then
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/sqlnet.ora $ORACLE_HOME/network/admin/sqlnet.ora
+   fi;
+
+   if [ ! -L $ORACLE_HOME/network/admin/listener.ora ]; then
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/listener.ora $ORACLE_HOME/network/admin/listener.ora
+   fi;
+
+   if [ ! -L $ORACLE_HOME/network/admin/tnsnames.ora ]; then
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/tnsnames.ora $ORACLE_HOME/network/admin/tnsnames.ora
+   fi;
+
+   if [ ! -d $ORACLE_BASE/oradata/$ORACLE_SID ]; then
+       mkdir -p $ORACLE_BASE/oradata/$ORACLE_SID
+   fi;
+
+   if [ ! -L $ORACLE_BASE/oradata/$ORACLE_SID/$ORACLE_PDB ]; then
+      ln -s $ORACLE_BASE/oradata/$OLD_ORACLE_SID/$OLD_ORACLE_PDB $ORACLE_BASE/oradata/$ORACLE_SID/$ORACLE_PDB 
+   fi;
+
+
+   # oracle user does not have permissions in /etc, hence cp and not ln 
+   sed -i "s/$OLD_ORACLE_SID/$ORACLE_SID/g" $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/oratab
+   cp $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/oratab /etc/oratab
+
+}
+
+########### SIGINT handler ############
+function _int() {
+   echo "Stopping container."
+   echo "SIGINT received, shutting down database!"
+   sqlplus / as sysdba <<EOF
+   shutdown immediate;
+   exit;
+EOF
+   lsnrctl stop
+}
+
+########### SIGTERM handler ############
+function _term() {
+   echo "Stopping container."
+   echo "SIGTERM received, shutting down database!"
+   sqlplus / as sysdba <<EOF
+   shutdown immediate;
+   exit;
+EOF
+   lsnrctl stop
+}
+
+########### SIGKILL handler ############
+function _kill() {
+   echo "SIGKILL received, shutting down database!"
+   sqlplus / as sysdba <<EOF
+   shutdown abort;
+   exit;
+EOF
+   lsnrctl stop
+}
+
+###################################
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+############# MAIN ################
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+###################################
+
+# Check whether container has enough memory
+# Github issue #219: Prevent integer overflow,
+# only check if memory digits are less than 11 (single GB range and below) 
+if [ `cat /sys/fs/cgroup/memory/memory.limit_in_bytes | wc -c` -lt 11 ]; then
+   if [ `cat /sys/fs/cgroup/memory/memory.limit_in_bytes` -lt 2147483648 ]; then
+      echo "Error: The container doesn't have enough memory allocated."
+      echo "A database container needs at least 2 GB of memory."
+      echo "You currently only have $((`cat /sys/fs/cgroup/memory/memory.limit_in_bytes`/1024/1024/1024)) GB allocated to the container."
+      exit 1;
+   fi;
+fi;
+
+
+# Check that hostname doesn't container any "_"
+# Github issue #711
+if hostname | grep -q "_"; then
+   echo "Error: The hostname must not container any '_'".
+   echo "Your current hostname is '$(hostname)'"
+fi;
+
+# Set SIGINT handler
+trap _int SIGINT
+
+# Set SIGTERM handler
+trap _term SIGTERM
+
+# Set SIGKILL handler
+trap _kill SIGKILL
+
+# Default for ORACLE SID
+if [ "$OLD_ORACLE_SID" == "" ]; then
+   export OLD_ORACLE_SID=SEEDCDB
+fi
+
+if [ ! -z ${ORACLE_SID} ]; then
+  # Make ORACLE_SID upper case
+  # Github issue # 984
+  export ORACLE_SID=${ORACLE_SID^^}
+
+  # Check whether SID is no longer than 12 bytes
+  # Github issue #246: Cannot start OracleDB image
+  if [ "${#ORACLE_SID}" -gt 12 ]; then
+     echo "Error: The ORACLE_SID must only be up to 12 characters long."
+     exit 1;
+  fi;
+
+  # Check whether SID is alphanumeric
+  # Github issue #246: Cannot start OracleDB image
+  if [[ "$ORACLE_SID" =~ [^a-zA-Z0-9] ]]; then
+     echo "Error: The ORACLE_SID must be alphanumeric."
+     exit 1;
+   fi;
+else
+     echo "Error: The ORACLE_SID must be defined."
+     exit 1;
+fi;
+
+
+if [ ! -z ${ORACLE_PDB} ]; then
+  export ORACLE_PDB=${ORACLE_PDB^^}
+
+  if [ "${#ORACLE_PDB}" -gt 12 ]; then
+     echo "Error: The ORACLE_PDB must only be up to 12 characters long."
+     exit 1;
+  fi;
+else
+     echo "Error: The ORACLE_PDB must be defined."
+     exit 1;
+fi;
+
+if [ ! -z ${OLD_ORACLE_PDB} ]; then
+  export OLD_ORACLE_PDB=$O{LD_ORACLE_PDB^^}
+else
+  export OLD_ORACLE_PDB=SEEDPDB
+fi;
+
+
+# Default for ORACLE CHARACTERSET
+export ORACLE_CHARACTERSET=${ORACLE_CHARACTERSET:-AL32UTF8}
+
+# Check whether database already exists
+if [ ! -z ${CLONE_DB} ]; then
+if [ ${CLONE_DB} == "yes" ]; then
+echo "CLONE_DB is set to yes, cloning DB from seed"
+if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
+   symLinkFiles;
+   
+   # Make sure audit file destination exists
+   if [ ! -d $ORACLE_BASE/admin/$OLD_ORACLE_SID/adump ]; then
+      mkdir -p $ORACLE_BASE/admin/$OLD_ORACLE_SID/adump
+   fi;
+
+   # Make sure audit file destination exists
+   if [ ! -d $ORACLE_BASE/admin/$ORACLE_SID/adump ]; then
+      mkdir -p $ORACLE_BASE/admin/$ORACLE_SID/adump
+   fi;
+  
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/$CLONED_FILE ];
+   then
+       # Start database
+       echo "Starting Database as cloned status file exist"
+       $ORACLE_BASE/$START_FILE;
+   else
+       echo "Performing Cloning as cloned status file does not exist"
+       cloneDB;
+   fi
+else
+     echo "Error: The  must only be up to 12 characters long."
+     exit 1;
+fi
+fi
+fi
+
 #This is the main file which calls other file to setup the sharding.
 if [ -z ${BASE_DIR} ]; then
     BASE_DIR=/opt/oracle/scripts/setup
@@ -21,3 +297,8 @@ fi
 
 cd $BASE_DIR
 $EXECUTOR $SCRIPT_NAME
+
+echo "The following output is now a tail of the alert.log:"
+tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
+childPID=$!
+wait $childPID
