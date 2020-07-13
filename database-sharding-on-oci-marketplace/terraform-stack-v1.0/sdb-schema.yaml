@@ -1,0 +1,510 @@
+  
+title: "Oracle Database Sharding"
+description: "Provisions and manages Oracle Sharded Database on Oracle Cloud Infrastructure"
+schemaVersion: 1.1.0
+version: "20190304"
+locale: "en"
+
+variableGroups:
+  - title: "Oracle Sharded Database General Configuration"
+    visible: ${orm_create_mode}
+    variables: 
+      - ${sharded_database_name}
+      - ${sharding_method}
+      - ${database_edition}
+      - ${storage_management_type}
+      - ${license_type}
+      - ${db_version}
+  - title: "Shard configuration"
+    variables:
+      - ${db_shape}
+      - ${num_of_shards}
+      - ${data_storage_size_in_gb}
+  - title: "Shard Catalog configuration"
+    visible: ${orm_create_mode}
+    variables:
+      - ${catalog_db_shape}
+      - ${num_of_shard_catalogs_str}
+      - ${catalog_data_storage_size_in_gb}
+  - title: "Replication configuration"
+    visible: ${orm_create_mode}
+    variables:  
+      - ${num_of_shard_groups}  
+  - title: "Shard Director configuration"
+    variables:
+      - ${compute_shape}
+      - ${num_of_gsm}
+  - title: "Network Settings"
+    visible: ${orm_create_mode}    
+    variables:
+    - ${create_new_network}
+    - ${display_name}
+    - ${vcn_compartment_id}
+    - ${vcn_id}
+    - ${subnet_compartment_id}
+    - ${subnet_id}
+    - ${vcn_dns_label}
+    - ${vcn_cidr_block}
+    - ${subnet_dns_label}
+    - ${subnet_cidr_block}
+  - title: "ssh configuration"
+    visible: ${orm_create_mode}
+    variables:
+      - ${ssh_public_key}
+  - title: "hidden vars"
+    visible: false
+    variables:
+      - ${compartment_ocid}
+      - ${tenancy_ocid}
+      - ${region}
+      - ${assign_public_ip}
+      - ${gsm_version}
+      - ${demo_setup}
+      - ${ssh_timeout}
+      - ${enable_http_proxy}
+      - ${enable_https_proxy}
+      - ${http_proxy_address}
+      - ${https_proxy_address}
+      - ${global_services}
+      - ${replication_protection_mode}
+      - ${protection_mode}
+      - ${transport_type}
+      - ${delete_standby_db_home_on_delete}
+      - ${pdb_name}
+      - ${gsm_zip_name}
+      - ${user_ocid}
+      - ${shard_groups}
+      - ${os_user}
+      - ${opc_user}
+      - ${shard_directors}
+      - ${oracle_base}
+      - ${ora_inventory_location}
+      - ${unix_group_name}
+      - ${shards}
+      - ${shard_catalogs}
+      - ${shard_catalog_standbys}
+      - ${sdb_admin_username}
+      - ${shard_groups}
+      - ${global_services}
+      - ${standby_shards}
+      - ${base_install_dir}
+      - ${tenancy_ocid}
+      - ${sdb_demo_binary_file_path}
+      - ${replication_type}
+      - ${replication_factor}
+      - ${gsm_name_prefix}
+      - ${catalog_name_prefix}
+      - ${standby_catalog_name_prefix}
+      - ${shard_name_prefix}
+      - ${standby_shard_name_prefix}
+      - ${shard_director_port}
+      - ${shardgroup_name_prefix}
+      - ${chunks}
+
+variables:
+  ssh_public_key:
+    type: oci:core:ssh:publickey
+    required: true
+    title: "SSH Public Key"
+    description: "The public SSH key for the key-pair that you want to use, if you wish to login to the instances over SSH"
+    additionalProps:
+      allowMultiple: true
+    pattern: "((^(ssh-rsa AAAAB3NzaC1yc2|ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNT|ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzOD|ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj|ssh-ed25519 AAAAC3NzaC1lZDI1NTE5|ssh-dss AAAAB3NzaC1kc3)[0-9A-Za-z+\/]+[=]{0,3})( [^,]*)?)(,((ssh-rsa AAAAB3NzaC1yc2|ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNT|ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzOD|ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj|ssh-ed25519 AAAAC3NzaC1lZDI1NTE5|ssh-dss AAAAB3NzaC1kc3)[0-9A-Za-z+\/]+[=]{0,3})( [^,]*)?)*$"
+
+  # string enum
+  sharding_method:
+    title: Sharding Method
+    description: Select a sharding method
+    type: enum
+    required: true
+    default: "system-managed"
+    enum:
+      - "system-managed"
+
+  # string enum
+  database_edition:
+    title: Database software edition
+    type: enum
+    required: true
+    default: "Enterprise Edition Extreme Performance"
+    enum:
+      - "Enterprise Edition Extreme Performance"
+
+  # string enum
+  storage_management_type:
+    title: Choose Storage Management software
+    type: enum
+    required: true
+    default: "Logical Volume Manager"
+    enum:
+      - "Logical Volume Manager"
+
+  # string enum
+  license_type:
+    title: Choose a license type
+    type: enum
+    required: true
+    default: "LICENSE_INCLUDED"
+    enum:
+      - "LICENSE_INCLUDED"
+      - "BRING_YOUR_OWN_LICENSE"
+      
+  # string enum
+  gsm_version:
+    type: enum
+    required: true
+    default: "19.3.0"
+    enum:
+    - "19.3.0"
+
+  # string enum
+  db_version:
+    title: "Database Version"
+    type: enum
+    required: true
+    default: "19.0.0"
+    enum:
+    - "19.0.0"
+
+  demo_setup:
+    title: "Setup sharding application demo"
+    description: "A demo inventory application with sample sharded data is setup on the sharded database if selected. The demo will only be setup if the sharding method selected above is system."
+    type: boolean
+    required: true
+    default: false
+    visible: false
+
+  # integer field
+  num_of_gsm:
+    title: Number of Shard Directors
+    type: number
+    required: true
+    description: Choose the number of shard directors. Shard directors will be uniformly distributed across all availability domains in the current region and across fault domains within each availability domain.
+    minimum: 1
+    maximum: 5
+    default: 1
+    multipleOf: 1
+
+  # The selected number of shard director compute resources must be available in the current compartment, for each availability domain in the current region.
+
+  # string field
+  shard_groups:
+    type: string
+    required: true
+    
+  # integer field
+  num_of_shards:
+    title: Number of primary shards
+    description: Choose the number of primary shard databases. The total number of Shard databases provisioned is determined by the value of the Replication Factor chosen. Shards will be uniformly distributed across all availability domains in the current region and across fault domains within each availability domain.
+    type: number
+    required: true
+    minimum: 1
+    maximum: 500
+    default: 2
+    multipleOf: 1
+
+  num_of_shard_catalogs_str:
+    title: Number of primary shard catalogs
+    description: "The number of primary shard catalog databases. The total number of Shard catalog databases provisioned is determined by the value of the Replication Factor chosen. Shard Catalogs will be uniformly distributed across all availability domains in the current region and across fault domains within each availability domain."
+    type: string
+    default: "1"
+    minLength: 1
+    maxLength: 1
+    required: true
+    visible: true
+  
+    # integer field
+  num_of_shard_catalogs:
+    title: Number of primary shard catalogs
+    description: The number of primary shard catalog databases. The total number of Shard catalog databases provisioned is determined by the value of the Replication Factor chosen. Shard Catalogs will be uniformly distributed across all availability domains in the current region and across fault domains within each availability domain.
+    type: integer
+    required: true
+    minimum: 1
+    maximum: 1
+    default: 1
+    visible: false
+    multipleOf: 1
+  
+
+ # The selected number of database (shard) resources must be available in the current compartment across availability domains in the current region
+ 
+  enable_http_proxy:
+    type: boolean
+    required: true
+    default: false
+    visible: false
+
+  enable_https_proxy:
+    type: boolean
+    required: true
+    default: false
+    visible: false
+
+  # data_storage_size_in_gb:
+  #   type: integer
+  #   required: true
+  #   description: Data storage size in GB per Shard
+  #   minimum: 256
+  #   default: 256
+  #   maximum: 40960
+  #   multipleOf: 2
+
+  data_storage_size_in_gb:
+    title: Shard database available storage size in GB
+    description: "The maximum available storage size is 40960 GB. Note : Total storage will be more than the available storage chosen. Please refer to oracle database cloud documentation for more details."
+    type: enum
+    enum:
+      - "256"
+      - "512"
+      - "1024"
+      - "2048"
+      - "4096"
+      - "6144"
+      - "8192"
+      - "10240"
+      - "12288"
+      - "14336"
+      - "16384"
+      - "18432"
+      - "20480"
+      - "22528"
+      - "24576"
+      - "26624"
+      - "28672"
+      - "30720"
+      - "32768"
+      - "34816"
+      - "36864"
+      - "38912"
+      - "40960"
+    default: "256"
+    required: true
+    visible: ${orm_create_mode}
+
+  catalog_data_storage_size_in_gb:
+    title: Shard Catalog database available storage size in GB
+    description: "The maximum available storage size is 40960 GB. Note : Total storage will be more than the available storage chosen. Please refer to oracle database cloud documentation for more details."
+    type: enum
+    enum:
+      - "256"
+      - "512"
+      - "1024"
+      - "2048"
+      - "4096"
+      - "6144"
+      - "8192"
+      - "10240"
+      - "12288"
+      - "14336"
+      - "16384"
+      - "18432"
+      - "20480"
+      - "22528"
+      - "24576"
+      - "26624"
+      - "28672"
+      - "30720"
+      - "32768"
+      - "34816"
+      - "36864"
+      - "38912"
+      - "40960"
+    default: "256"
+    required: true
+    visible: ${orm_create_mode}
+
+  sharded_database_name:
+    visible: ${orm_create_mode}
+    title: Sharded database name
+    description: "The name is used as the sharded database name as well as a prefix for all sharded database resource display names. The name specified must be unique within the subnet."
+    type: string
+    pattern: "^[a-zA-Z][a-zA-Z0-9]*$"
+    minLength: 1
+    maxLength: 3
+    required: true
+
+  # The name must begin with an alphabetic character and can contain a maximum of two alphanumeric characters. Special characters are not permitted.
+
+  compute_shape:
+    title: Shard Director Shape
+    description: "Select a compute shape"
+    type: enum
+    enum:
+      - "VM.Standard2.1"
+      - "VM.Standard2.2"
+      - "VM.Standard2.4"
+      - "VM.Standard2.8"
+      - "VM.Standard2.16"
+      - "VM.Standard2.24"
+    default: "VM.Standard2.1"
+    required: true
+    visible: ${orm_create_mode}
+  
+  # compute_shape:
+  #   title: Shard Director Shape
+  #   description: "Select a shape"
+  #   type: oci:core:instanceshape:name
+  #   dependsOn:
+  #     compartmentId: ${compartment_ocid}
+  #   default: "VM.Standard2.1"
+  #   required: true
+  #   visible: true
+
+  db_shape:
+    title: Shard shape
+    description: "Select a database shape"
+    type: enum
+    enum:
+      - "VM.Standard2.1"
+      - "VM.Standard2.2"
+      - "VM.Standard2.4"
+      - "VM.Standard2.8"
+      - "VM.Standard2.16"
+      - "VM.Standard2.24"
+    default: "VM.Standard2.1"
+    required: true
+    visible: ${orm_create_mode}
+
+  catalog_db_shape:
+    title: Shard Catalog shape
+    description: "Select a database shape."
+    type: enum
+    enum:
+      - "VM.Standard2.1"
+      - "VM.Standard2.2"
+      - "VM.Standard2.4"
+      - "VM.Standard2.8"
+      - "VM.Standard2.16"
+      - "VM.Standard2.24"
+    default: "VM.Standard2.1"
+    required: true
+    visible: ${orm_create_mode}
+
+  # integer field
+  num_of_shard_groups:
+    title: Replication factor
+    description: Choose a replicaton factor. The total number of shard databases provisioned will be equal to the number of primary shards selected above multiplied by the chosen Replication Factor. The total number of primary catalog databases that will be provisioned will be equal to the Replication Factor chosen.
+    type: number
+    required: true
+    minimum: 1
+    maximum: 2
+    default: 1
+    multipleOf: 1
+
+    #If the selected value is 1, then only a single replica set of primary shards will be created. If the selected value is 2, then both primary shards replica set and standby shards replica set will be created.
+
+  # Network Settings
+  create_new_network:
+    title: Create New Network
+    description: "Check this to create a new regional network (recommended if this is your first sharded database) or Uncheck to use an existing regional network from a previously created sharded database"
+    type: boolean
+    required: true
+    default: true
+
+  vcn_compartment_id:
+    title: VCN Network Compartment
+    description: "Compartment for new or existing Virtual Cloud Network (VCN)"
+    type: oci:identity:compartment:id
+    default: ${compartment_ocid}
+    required: true
+
+  subnet_compartment_id:
+    title: Subnet Network Compartment
+    description: "Compartment for new or existing Subnet"
+    type: oci:identity:compartment:id
+    default: ${compartment_ocid}
+    required: true
+
+  # Use Existing Network
+  vcn_id:
+    visible:
+      not:
+      - ${create_new_network}
+    title: VCN
+    description: "Existing VCN to use for sharded database if not creating a new network"
+    type: oci:core:vcn:id
+    dependsOn:
+      compartmentId: ${vcn_compartment_id}
+    required: true
+
+  subnet_id:
+    visible:
+      not:
+      - ${create_new_network}
+    title: Choose a Regional Subnet
+    description: "Existing Regional Subnet to use for sharded database if not creating a new network"
+    type: oci:core:subnet:id
+    dependsOn:
+      compartmentId: ${subnet_compartment_id}
+      vcnId: ${vcn_id}
+    required: true
+
+  # Create New Network
+  
+  # Unique Display Name for New Network Resources
+  display_name:
+    visible: ${create_new_network}
+    title: Network display name
+    description: "Display name used to identify all new OCI Networking resources"
+    type: string
+    default: "Oracle sharded database"
+    required: true
+
+  vcn_dns_label:
+    visible: ${create_new_network}
+    title: New VCN DNS Name
+    description: "DNS name for new VCN"
+    type: string
+    default: "vcn"
+    pattern: "^([a-z][a-z0-9]{1,14})$"
+    minLength: 1
+    maxLength: 15
+    required: true
+
+  vcn_cidr_block:
+    visible: ${create_new_network}
+    title: New VCN CIDR
+    description: "CIDR for new VCN. Not used if an existing network is used."
+    type: string
+    pattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$"
+    default: "10.2.0.0/16"
+    required: true
+
+  subnet_dns_label:
+    visible: ${create_new_network}
+    title: New Subnet DNS Name
+    description: "DNS name for new regional subnet. Leave blank to create a subnet with DNS disabled."
+    type: string
+    default: "subnet"
+    pattern: "^(|[a-z][a-z0-9]{1,14})$"
+    minLength: 0
+    maxLength: 15
+    required: false
+
+  subnet_cidr_block:
+    visible: ${create_new_network}
+    title: New Subnet CIDR
+    description: "CIDR for new regional subnet. Not used if an existing network is used."
+    type: string
+    pattern: "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(\\d|[1-2]\\d|3[0-2]))?$"
+    default: "10.2.1.0/24"
+    required: true
+
+
+    # - title: "password configuration"
+    # visible: ${orm_create_mode}
+    # variables:
+    #   - ${test_password}
+
+    # test_password:
+    #   title: Test password
+    #   description: "Test password"
+    #   type: password
+    #   required: true
+
+      # ssh_public_key:
+  #   title: SSH Public Key
+  #   description: "Public key for allowing SSH access to the sharded database hosts."
+  #   pattern: "ssh[-].*"
+  #   type: string
+  #   required: true    
