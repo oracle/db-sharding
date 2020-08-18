@@ -903,7 +903,7 @@ class OraGSM:
                            '''.format(dtrname,cadmin,cpasswd,temp_host)
                            output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                 else:
-                   self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!")  
+                   self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!",self.file_name)  
 
 
       def deploy_shard(self):
