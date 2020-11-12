@@ -122,13 +122,12 @@ Note, that the user must have `gsmadmin_role` in order to read
 Most of the examples are working with a single sharded table:
 
 ```
-    create tablespace set deflts datafile template autoextend on;
+    create tablespace set deflts in shardspace shardspaceora using template (datafile size 16m autoextend on);
 
     create sharded table log(
       cust_id varchar2(128),
       ip_addr varchar2(128),
-      hits integer,
-      primary key(cust_id, ip_addr))
+      hits integer)
       partition by consistent hash (cust_id) 
         tablespace set deflts;
 ```
