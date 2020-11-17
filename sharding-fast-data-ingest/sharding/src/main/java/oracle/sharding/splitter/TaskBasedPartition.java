@@ -94,6 +94,13 @@ public class TaskBasedPartition<ItemT> extends PartitionEngine<ItemT>
                     }
                 } while (localBatch != null);
 
+                if (worker instanceof AutoCloseable) {
+                    try {
+                        ((AutoCloseable) worker).close();
+                    } catch (Exception e) {
+                        /* ignore */;
+                    }
+                }
                 sinkList.offer(worker);
 
                 submitCheckQueue();
