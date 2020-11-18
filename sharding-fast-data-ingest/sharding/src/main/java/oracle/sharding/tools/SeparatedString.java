@@ -36,6 +36,9 @@ public class SeparatedString {
 
         tabpos[0] = -1;
         tabpos[j] = s.length();
+        
+        // deal with extra delimiter at the end of the line 
+        if (s.charAt(s.length()-1)==x) tabpos[j] -= 1; 
 
         return tabpos;
     }

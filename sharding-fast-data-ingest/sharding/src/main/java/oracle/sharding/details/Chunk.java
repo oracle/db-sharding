@@ -51,6 +51,14 @@ public final class Chunk implements Comparable<Chunk> {
         this.keySet = keySet;
     }
 
+    public Chunk(int chunkId, int chunkUniqueId, Shard shard, int groupId, SetOfKeys keySet) {
+    	this.chunkId = chunkId;
+        this.chunkUniqueId = chunkUniqueId;
+        this.shard = shard;
+        this.groupId = groupId;
+        this.keySet = keySet;
+    }
+
     public Chunk updateKey(SetOfKeys newKeySet) {
         return new Chunk(chunkUniqueId, shard, groupId, newKeySet);
     }

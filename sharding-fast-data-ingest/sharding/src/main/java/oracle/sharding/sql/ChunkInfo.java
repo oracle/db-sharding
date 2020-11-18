@@ -69,6 +69,6 @@ public class ChunkInfo implements Serializable {
 
     public Chunk createChunk(Shard shard, OracleShardingMetadata metadata) throws SQLException
     {
-        return new Chunk(uniqueId, shard, groupId, createKeySet(metadata));
+    	return new Chunk(chunkId, uniqueId, shard, groupId, createKeySet(metadata));
     }
 }
