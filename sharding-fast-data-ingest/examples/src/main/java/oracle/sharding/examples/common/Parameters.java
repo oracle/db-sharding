@@ -36,6 +36,7 @@ public class Parameters {
     public static String username = "test";
     public static String password = "123";
     public static String schemaName = "TEST";
+    public static String tableName = "LOG";
     public static String routingTableFile = null;
     public static long entriesToGenerate = 100000;
     public static int parallelThreads = 16;
@@ -74,6 +75,12 @@ public class Parameters {
     public void setSchemaName(String schemaName) {
         Parameters.schemaName = schemaName;
     }
+    
+    @Property("table")
+    public void setTableName(String tableName) {
+        Parameters.tableName = tableName;
+    }
+    
 
     @Property("route.cache")
     public void setRoutingTableFile(String routingTableFile) {

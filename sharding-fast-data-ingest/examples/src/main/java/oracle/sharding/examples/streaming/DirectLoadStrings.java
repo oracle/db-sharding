@@ -29,8 +29,7 @@ import java.util.stream.Stream;
  * in parallel using OCI Direct Path API.
  */
 public class DirectLoadStrings {
-    public String tableName = "LOG";
-    public String rootTableName = "LOG";
+    public String rootTableName = Parameters.tableName;
 
     public void run() throws Exception {
         /* Load the routing table from the catalog or file */
@@ -67,7 +66,7 @@ public class DirectLoadStrings {
         return new DirectPathLoadSinkCounted(new DirectPathLoadSink.Builder(
                 chunk.getShard().getConnectionString(),
                 Parameters.username, Parameters.password)
-                .setTarget(Parameters.schemaName, tableName, rootTableName + "_P" + chunk.getChunkId())
+                .setTarget(Parameters.schemaName, Parameters.tableName, rootTableName + "_P" + chunk.getChunkId())
                 .column("CUST_ID", 128)
                 .column("IP_ADDR", 128)
                 .column("HITS", 64)
