@@ -30,7 +30,7 @@ var getInvoiceDetails = {
 
 var shardConnectionParams = {
     user          : "app_schema",
-    password      : "app_schema",
+    password      : "",
     connectString : "host:port/service"
   };
 

@@ -57,7 +57,7 @@ monitor.pass=TEZiPP4MsLLL
 app.service.write=oltp_rw_srvc.cust_sdb.oradbcloud
 app.service.readonly=oltp_ro_srvc.cust_sdb.oradbcloud
 app.user=app_schema
-app.pass=app_schema
+app.pass=
 app.threads=7
 EOF
     destination = "${var.db_home_path}/${local.sdb_demo_dir}/demo.properties"

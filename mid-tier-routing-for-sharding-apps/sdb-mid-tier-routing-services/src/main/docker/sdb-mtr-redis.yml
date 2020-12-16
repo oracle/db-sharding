@@ -17,7 +17,7 @@ services:
     environment:
       - CATALOG_URL=jdbc:oracle:thin:@<host>:<port>:<service>
       - CATALOG_USERNAME=app_schema
-      - CATALOG_PASSWD=app_schema
+      - CATALOG_PASSWD=
       - CATALOG_SVC_NAME=<service_name>
       - SWIM_LANE_CACHE_HOST=<REDIS_IP>   
       - SWIM_LANE_CACHE_PORT=6379
