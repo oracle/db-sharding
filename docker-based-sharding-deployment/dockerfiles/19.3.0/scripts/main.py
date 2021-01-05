@@ -18,6 +18,12 @@ from oracommon import *
 
 def main(): 
 
+   # Checking Comand line Args
+   try:
+      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','help'])
+   except getopt.GetoptError:
+      pass
+  
    # Initializing oraenv instance 
    oenv=OraEnv()
    file_name  = os.path.basename(__file__)
@@ -34,6 +40,29 @@ def main():
    stdout_handler.nextHandler = file_handler
    file_handler.nextHandler = console_handler
    console_handler.nextHandler = PassHandler()
+
+   for opt, arg in opts:
+      if opt in ('--help'):
+         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype or --help'''
+         stdout_handler.handle(oralogger)
+      elif opt in ('--addshard'):
+           oenv.add_custom_variable("ADD_SHARD",arg)
+      elif opt in ('--validateshard'):
+          oenv.add_custom_variable("VALIDATE_SHARD",arg)
+      elif opt in ('--deleteshard'):
+          oenv.add_custom_variable("REMOVE_SHARD",arg)
+      elif opt in ('--checkliveness'):
+          oenv.add_custom_variable("CHECK_LIVENESS",arg)
+      elif opt in ('--resetlistener'):
+          oenv.add_custom_variable("RESET_LISTENER",arg)
+      elif opt in ('--restartdb'):
+          oenv.add_custom_variable("RESTART_DB",arg)
+      elif opt in ('--createdir'):
+          oenv.add_custom_variable("CREATE_DIR",arg)
+      elif opt in ('--optype'):
+          oenv.add_custom_variable("OP_TYPE",arg)
+      else:
+         pass
 
    ocommon = OraCommon(oralogger,stdout_handler,oenv)
    # Initializing orafactory instances   

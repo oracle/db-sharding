@@ -43,19 +43,24 @@ class OraPCatalog:
           """
            This function setup the catalog on Primary DB.
           """
-          self.setup_machine()
-          self.db_checks()
-          self.reset_catalog_setup()
-          status = self.catalog_setup_check()
-          if status:
-             self.ocommon.log_info_message("catalog Setup is already completed on this database",self.file_name)
+          if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+            status = self.shard_setup_check()
+            if not status:
+               self.ocommon.prog_exit("127")
           else:
-             self.reset_passwd()
-             self.setup_cdb_catalog()
-             self.setup_pdb_catalog()
-             self.update_catalog_setup()
-             self.gsm_completion_message()
-          self.run_custom_scripts()
+            self.setup_machine()
+            self.db_checks()
+            self.reset_catalog_setup()
+            status = self.catalog_setup_check()
+            if status:
+               self.ocommon.log_info_message("catalog Setup is already completed on this database",self.file_name)
+            else:
+               self.reset_passwd()
+               self.setup_cdb_catalog()
+               self.setup_pdb_catalog()
+               self.update_catalog_setup()
+               self.gsm_completion_message()
+               self.run_custom_scripts()
       ###########  SETUP_MACHINE begins here ####################
       ## Function to machine setup
       def setup_machine(self):
@@ -143,10 +148,9 @@ class OraPCatalog:
               passwd_file_flag = True
 
            if not passwd_file_flag:
-          #    cmd='''O$(openssl rand -base64 6 | tr -d "=+/")_1'''
-           #   output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-              password="Oracle_19c"
-            #  self.ocommon.check_os_err('******',error,retcode,True)
+              s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
+              passlen = 8
+              password  =  "".join(random.sample(s,passlen ))
            else:
               fname='''/tmp/{0}'''.format(common_os_pwd_file)
               fdata=self.ocommon.read_file(fname)

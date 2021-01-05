@@ -324,6 +324,9 @@ class OraCommon:
                  cmd='''mkdir -p {0}'''.format(dir)
                  output,error,retcode=self.execute_cmd(cmd,None,None)
                  self.check_os_err(output,error,retcode,True)
+             else:
+                 msg='''Dir {0} already exist'''.format(dir)
+                 self.log_info_message(msg,self.file_name)
 
           if remote and node:
              pass
@@ -372,6 +375,20 @@ class OraCommon:
                   startup mount;
            '''
            self.log_info_message("Running the sqlplus command to mount the database: " + sqlcmd,self.file_name)
+           output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+           self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+           self.check_sql_err(output,error,retcode,True)
+
+      def start_db(self,env_dict):
+           """
+           startup the database
+           """
+           self.log_info_message("Inside start_db()",self.file_name)
+           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
+           sqlcmd='''
+                  startup;
+           '''
+           self.log_info_message("Running the sqlplus command to start the database: " + sqlcmd,self.file_name)
            output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
            self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.check_sql_err(output,error,retcode,True)
@@ -446,3 +463,47 @@ class OraCommon:
            self.log_info_message("Inside remove_file()",self.file_name)
            if os.path.exists(fname):
               os.remove(fname)
+
+      def get_sid_desc(self,gdbname,ohome,sid,sflag):
+           """
+             get the SID_LISTENER_DESCRIPTION
+           """
+           self.log_info_message("Inside get_sid_desc()",self.file_name)
+           sid_desc = ""
+           if sflag == 'SID_DESC1':
+              sid_desc = '''    )
+                (SID_DESC =
+                (GLOBAL_DBNAME = {0})
+                (ORACLE_HOME = {1})
+                (SID_NAME = {2})
+                )
+              )
+              '''.format(gdbname,ohome,sid)
+           elif sflag == 'SID_DESC':
+               sid_desc = '''(SID_LIST =
+                 (SID_DESC =
+                 (GLOBAL_DBNAME = {0})
+                 (ORACLE_HOME = {1})
+                 (SID_NAME = {2})
+                )
+               )
+              '''.format(gdbname,ohome,sid)
+           else: 
+              pass
+
+           return sid_desc
+
+      def get_lisora(self,port):
+           """
+             return listener.ora listener settings
+           """
+           self.log_info_message("Inside get_lisora()",self.file_name)
+           listener='''LISTENER =
+             (DESCRIPTION_LIST =
+              (DESCRIPTION =
+              (ADDRESS = (PROTOCOL = TCP)(HOST = 0.0.0.0)(PORT = {0}))
+              (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC{0}))
+              )
+             )
+           '''.format(port)
+           return listener

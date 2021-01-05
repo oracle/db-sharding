@@ -15,6 +15,7 @@ from oralogger import *
 from oraenv import *
 from oracommon import *
 from oramachine import *
+import traceback
 
 class OraPShard:
       """
@@ -32,31 +33,66 @@ class OraPShard:
            ora_env_dict(dict): Dict of env variable populated based on env variable for the setup.
            file_name(string): Filename from where logging message is populated.
         """
-        self.ologger             = oralogger
-        self.ohandler            = orahandler
-        self.oenv                = oraenv.get_instance()
-        self.ocommon             = oracommon
-        self.ora_env_dict        = oraenv.get_env_vars()
-        self.file_name           = os.path.basename(__file__)
-        self.omachine            = OraMachine(self.ologger,self.ohandler,self.oenv,self.ocommon)
-
+        try:
+          self.ologger             = oralogger
+          self.ohandler            = orahandler
+          self.oenv                = oraenv.get_instance()
+          self.ocommon             = oracommon
+          self.ora_env_dict        = oraenv.get_env_vars()
+          self.file_name           = os.path.basename(__file__)
+          self.omachine            = OraMachine(self.ologger,self.ohandler,self.oenv,self.ocommon)
+        except BaseException as ex:
+          ex_type, ex_value, ex_traceback = sys.exc_info()
+          trace_back = traceback.extract_tb(ex_traceback)
+          stack_trace = list()
+          for trace in trace_back:
+              stack_trace.append("File : %s , Line : %d, Func.Name : %s, Message : %s" % (trace[0], trace[1], trace[2], trace[3]))
+          ocommon.log_info_message(ex_type.__name__,self.file_name)
+          ocommon.log_info_message(ex_value,self.file_name)
+          ocommon.log_info_message(stack_trace,self.file_name)
       def setup(self):
           """
            This function setup the shard on Primary DB.
           """
-          self.setup_machine() 
-          self.db_checks()
-          self.reset_shard_setup()
-          status = self.shard_setup_check()
-          if status:
-             self.ocommon.log_info_message("Shard Setup is already completed on this database",self.file_name)
-          else:
-             self.reset_passwd()
-             self.setup_cdb_shard()
-             self.setup_pdb_shard ()
-             self.update_shard_setup()
-             self.gsm_completion_message()
-          self.run_custom_scripts()
+          if self.ocommon.check_key("RESET_LISTENER",self.ora_env_dict):
+            status = self.shard_setup_check()
+            if not status:
+               self.ocommon.log_info_message("Primary shard is still not setup.Exiting...",self.file_name)
+               self.ocommon.prog_exit("127")
+            self.reset_listener()
+            self.restart_listener()
+          if self.ocommon.check_key("RESTART_DB",self.ora_env_dict):
+            status = self.shard_setup_check()
+            if not status:
+               self.ocommon.log_info_message("Primary shard is still not setup.Exiting...",self.file_name)
+               self.ocommon.prog_exit("127")
+            else:
+               self.ocommon.shutdown_db(self.ora_env_dict)
+               self.ocommon.start_db(self.ora_env_dict) 
+          elif self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+            status = self.shard_setup_check()
+            if not status:
+               self.ocommon.prog_exit("127")
+          elif self.ocommon.check_key("CREATE_DIR",self.ora_env_dict):
+            status = self.shard_setup_check()
+            if not status:
+               self.ocommon.prog_exit("127")
+            self.ocommon.create_dir(self.ora_env_dict["CREATE_DIR"],True,None,None) 
+          else: 
+            self.setup_machine() 
+            self.db_checks()
+            self.reset_shard_setup()
+            status = self.shard_setup_check()
+            if status:
+              self.ocommon.log_info_message("Shard Setup is already completed on this database",self.file_name)
+            else:
+              self.reset_passwd()
+              self.setup_cdb_shard()
+              self.setup_pdb_shard ()
+              self.update_shard_setup()
+              self.dbms_sched_job()
+              self.gsm_completion_message()
+              self.run_custom_scripts()
 
       ###########  SETUP_MACHINE begins here ####################
       ## Function to machine setup
@@ -144,10 +180,9 @@ class OraPShard:
               passwd_file_flag = True
 
            if not passwd_file_flag:
-          #    cmd='''O$(openssl rand -base64 6 | tr -d "=+/")_1'''
-           #   output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-              password="Oracle_19c"
-            #  self.ocommon.check_os_err('******',error,retcode,True)
+              s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
+              passlen = 8
+              password  =  "".join(random.sample(s,passlen ))
            else:
               fname='''/tmp/{0}'''.format(common_os_pwd_file)
               fdata=self.ocommon.read_file(fname)
@@ -348,7 +383,7 @@ class OraPShard:
             exit;
            '''
            output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
-           self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+           # self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.ocommon.check_sql_err(output,error,retcode,None)
            fname='''/tmp/{0}'''.format("shard_setup.txt")
            fdata=self.ocommon.read_file(fname)
@@ -545,3 +580,95 @@ class OraPShard:
 
           for text in msg:
               self.ocommon.log_info_message(text,self.file_name)
+      ################################  Reset and standby functions #################################################
+      
+      def reset_listener(self):
+          """
+           Funtion to reset the listener
+          """
+          self.ocommon.log_info_message("Inside reset_listener()",self.file_name)
+          start = 'SID_LIST_LISTENER'
+          end = '^\)$'
+          oracle_home=self.ora_env_dict["ORACLE_HOME"]
+          lisora='''{0}/network/admin/listener.ora'''.format(oracle_home)
+          buffer = "SID_LIST_LISTENER=" + '\n'
+          gdbname,sid=self.process_list_vars("RESET_LISTENER") 
+          start_flag = False
+          try:
+            with open(lisora) as f:
+              for line1 in f:
+                if start_flag == False:
+                   if (re.match(start, line1.strip())):
+                      start_flag = True
+                elif (re.match(end, line1.strip())):
+                   line2 = f.next()
+                   if (re.match(end, line2.strip())):
+                      break
+                   else:
+                      buffer += line1
+                      buffer += line2
+                else:
+                   if start_flag == True:
+                      buffer += line1
+          except:
+            pass
+
+          if start_flag == True:
+              buffer +=  self.ocommon.get_sid_desc(gdbname,oracle_home,sid,"SID_DESC1")
+              listener =  self.ocommon.get_lisora(1521)
+              listener += '\n' + buffer
+          else:
+              buffer += self.ocommon.get_sid_desc(gdbname,oracle_home,sid,"SID_DESC") 
+              listener =  self.ocommon.get_lisora(1521)
+              listener += '\n' + buffer
+
+          wr = open(lisora, 'w')
+          wr.write(listener)
+ 
+      def restart_listener(self):
+          """
+          restart listener
+          """
+          cmd='''
+           lsnrctl stop;lsnrctl start
+          '''
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,True)
+    
+      def process_list_vars(self,key):
+          """
+          This function process listener variables
+          """
+          gname=None
+          sid=None
+
+          self.ocommon.log_info_message("Inside process_list_vars()",self.file_name)
+          cvar_str=self.ora_env_dict[key]
+          cvar_dict=dict(item.split("=") for item in cvar_str.split(";"))
+          for ckey in cvar_dict.keys():
+              if ckey == 'gdb_name':
+                 gname = cvar_dict[ckey]
+              if ckey == 'sid_name':
+                 sid = cvar_dict[ckey]
+
+              ### Check values must be set
+          if  gname and sid:
+              return gname,sid
+          else:
+              msg1='''=gdb_name{0},sid_name={1}'''.format((gdb_name or "Missing Value"),(sid_name or "Missing Value"))
+              self.ocommon.prog_exit(127)
+
+      def dbms_sched_job(self):
+           """
+            This function drop teh shard setup table and reste the env to default values.
+           """
+      #     systemStr='''{0}/bin/sqlplus {1}/{2}'''.format(self.ora_env_dict["ORACLE_HOME"],"system",self.ora_env_dict["ORACLE_PWD"])
+           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           self.ocommon.log_info_message("Inside dbms_sched_job",self.file_name)
+           sqlcmd='''
+           begin
+            dbms_scheduler.create_job (job_name    => 'os_job',job_type    => 'executable',job_action  => '/bin/python',number_of_arguments => 1,auto_drop   => true);
+           '''
+           output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+           self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+           self.ocommon.check_sql_err(output,error,retcode,True)

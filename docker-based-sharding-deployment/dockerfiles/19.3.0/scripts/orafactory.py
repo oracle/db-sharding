@@ -15,6 +15,7 @@ from oraenv import *
 from oracommon import *
 from oramachine import *
 from orapshard import *
+from orasshard import *
 from orapcatalog import *
 from oragsm import *
 
@@ -82,7 +83,7 @@ class OraFactory:
            msg="Creating and calling instance to setup primary shard"
            opshard = OraPShard(self.ologger,self.ohandler,self.oenv,self.ocommon)
            self.ocommon.log_info_message(msg,self.file_name)
-           ofactory_obj.append(opshard)       
+           ofactory_obj.append(opshard)
         elif self.ora_env_dict["OP_TYPE"] == 'standbyshard':
            msg="Creating and calling instance to setup standby shard"
            osshard = OraSShard(self.ologger,self.ohandler,self.oenv,self.ocommon)

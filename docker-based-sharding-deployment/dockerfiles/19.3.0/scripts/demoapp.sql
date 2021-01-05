@@ -1,7 +1,7 @@
-                connect sys/Oracle_19c@oshard-catalog-0:1521/CATCDB as sysdba
+                connect sys/'&1'@oshard-catalog-0:1521/CATCDB as sysdba
                 alter session set container=CAT1PDB;
                 alter session enable shard ddl;
-                create user app_schema identified by app_schema;
+                create user app_schema identified by '&1';
                 grant connect, resource, alter session to app_schema;
                 grant execute on dbms_crypto to app_schema;
                 grant create table, create procedure, create tablespace, create materialized view to app_schema;
@@ -10,7 +10,7 @@
                 grant all privileges to app_schema; 
                 grant gsmadmin_role to app_schema; 
                 grant dba to app_schema;
-                conn app_schema/app_schema@oshard-catalog-0:1521/CAT1PDB
+                conn app_schema/'&1'@oshard-catalog-0:1521/CAT1PDB
                  alter session enable shard ddl;
                  REM
                  REM Create a Sharded table for

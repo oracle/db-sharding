@@ -66,7 +66,13 @@ class OraEnv:
  
       if "ORA_OINSTALL_GROUP_NAME" not in OraEnv.__env_var_dict:
          OraEnv.__env_var_dict["ORA_OINSTALL_GROUP_NAME"] = "oinstall"
- 
+
+   @staticmethod
+   def add_custom_variable(key,val):
+      """ Addcustom  more variable passed from main.py values in __env_var_dict"""
+      if key not in OraEnv.__env_var_dict:
+         OraEnv.__env_var_dict[key] = val
+
    @staticmethod
    def get_env_vars():
       """ Static access method to get the env vars. """

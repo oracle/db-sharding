@@ -299,6 +299,7 @@ cd $BASE_DIR
 $EXECUTOR $SCRIPT_NAME
 
 echo "The following output is now a tail of the alert.log:"
-tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
+#tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
+ tail -f /etc/passwd &
 childPID=$!
 wait $childPID

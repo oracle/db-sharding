@@ -10,6 +10,7 @@ import os
 import os.path
 import re
 import socket
+import random
 from oralogger import *
 from oraenv import *
 from oracommon import *
@@ -43,38 +44,98 @@ class OraGSM:
           """
            This function setup the Gsm on Primary DB.
           """
-          self.setup_machine()
-          self.gsm_checks()
-          self.reset_gsm_setup()
-          status = self.gsm_setup_check()
-          if status:
-             self.ocommon.log_info_message("Gsm Setup is already completed on this database",self.file_name)
-             self.ocommon.start_gsm(self.ora_env_dict)
-             self.ocommon.log_info_message("Started GSM",self.file_name)
-          else:
-             self.ocommon.log_info_message("No existing GDS found on this system. Setting up GDS on this machine.",self.file_name)
-             self.setup_gsm_calog()
-             self.setup_gsm_director()
-             self.start_gsm_director()
-             self.status_gsm_director()
-             self.setup_gsm_shardg()
-             self.setup_gsm_shard()
-             self.set_hostid_null()
-             self.stop_gsm_director()
-             time.sleep(30)
-             self.start_gsm_director()
-             self.add_invited_node()
-             self.remove_invited_node()
-             self.stop_gsm_director()
-             time.sleep(30)
-             self.start_gsm_director()
-             self.deploy_shard()
-             self.setup_gsm_service()
-             self.setup_sample_schema()
-             self.gsm_backup_file()
-             self.gsm_completion_message()
-          ### Running Custom Scripts
-          self.run_custom_scripts()   
+          if self.ocommon.check_key("ADD_SHARD",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else: 
+                self.add_gsm_shard()
+                self.set_hostid_null()
+                self.add_invited_node("ADD_SHARD")
+                self.remove_invited_node("ADD_SHARD")
+                self.deploy_shard()
+          elif self.ocommon.check_key("REMOVE_SHARD",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.remove_gsm_shard()
+          elif self.ocommon.check_key("VALIDATE_SHARD",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.validate_gsm_shard()
+          elif self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+          elif self.ocommon.check_key("CATALOG_SETUP",self.ora_env_dict):
+             status = self.catalog_setup_checks()
+             if status == False:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.setup_machine()
+                self.catalog_checks()
+                self.reset_gsm_setup()
+                status1 = self.gsm_setup_check()
+                if status1:
+                   self.ocommon.log_info_message("Gsm Setup is already completed on this database",self.file_name)
+                   self.ocommon.start_gsm(self.ora_env_dict)
+                   self.ocommon.log_info_message("Started GSM",self.file_name)
+                else:
+                   self.ocommon.log_info_message("No existing GDS found on this system. Setting up GDS on this machine.",self.file_name)
+                   self.setup_gsm_calog()
+                   self.setup_gsm_director()
+                   self.start_gsm_director()
+                   self.status_gsm_director()
+                   self.setup_gsm_shardg()
+                   self.setup_gsm_service()
+                   self.gsm_backup_file()
+                   self.gsm_completion_message()
+                   ### Running Custom Scripts
+                   self.run_custom_scripts()
+             else:
+                print("Reuturned True")
+          else: 
+             self.setup_machine()
+             self.gsm_checks()
+             self.reset_gsm_setup()
+             status = self.gsm_setup_check()
+             if status:
+                self.ocommon.log_info_message("Gsm Setup is already completed on this database",self.file_name)
+                self.ocommon.start_gsm(self.ora_env_dict)
+                self.ocommon.log_info_message("Started GSM",self.file_name)
+             else:
+                self.ocommon.log_info_message("No existing GDS found on this system. Setting up GDS on this machine.",self.file_name)
+                self.setup_gsm_calog()
+                self.setup_gsm_director()
+                self.start_gsm_director()
+                self.status_gsm_director()
+                self.setup_gsm_shardg()
+                self.setup_gsm_shard()
+                self.set_hostid_null()
+                self.stop_gsm_director()
+                time.sleep(30)
+                self.start_gsm_director()
+                self.add_invited_node("SHARD")
+                self.remove_invited_node("SHARD")
+                self.stop_gsm_director()
+                time.sleep(30)
+                self.start_gsm_director()
+                self.deploy_shard()
+                self.setup_gsm_service()
+                self.setup_sample_schema()
+                self.gsm_backup_file()
+                self.gsm_completion_message()
+                ### Running Custom Scripts
+                self.run_custom_scripts()   
 
       ###########  SETUP_MACHINE begins here ####################
       ## Function to machine setup
@@ -97,6 +158,19 @@ class OraGSM:
           self.director_params_checks()
 	  self.catalog_params_check()
           self.shard_params_check()
+          self.sgroup_params_check()
+
+
+      def catalog_checks(self):
+          """
+          This function perform db checks before starting the setup
+          """
+          self.ohome_check()
+          self.passwd_check()
+          self.shard_user_check()
+          self.gsm_hostname_check()
+          self.director_params_checks()
+          self.catalog_params_check()
           self.sgroup_params_check()
 
       def ohome_check(self):
@@ -161,10 +235,9 @@ class OraGSM:
                     passwd_file_flag = True
 
                  if not passwd_file_flag:
-                #    cmd='''O$(openssl rand -base64 6 | tr -d "=+/")_1'''
-                 #   output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-                    password="Oracle_19c"
-                  #  self.ocommon.check_os_err('******',error,retcode,True)
+                    s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
+                    passlen = 8
+                    password  =  "".join(random.sample(s,passlen ))
                  else:
                     fname='''/tmp/{0}'''.format(common_os_pwd_file)
                     fdata=self.ocommon.read_file(fname)
@@ -272,12 +345,25 @@ class OraGSM:
                         self.ocommon.log_info_message(msg,self.file_name)
                         status=True
 
-                 if not status:
-                     msg="SHARD[1-9]_GROUP_PARAMS such as SHARD1_PARAMS is not set, exiting!"
-                     self.ocommon.log_error_message(msg,self.file_name)
-                     self.ocommon.prog_exit()
+      def catalog_setup_checks(self):
+                 """
+                 This function checks if director and catalog is setup and connection is established.
+                 """
+                 status = False
+                 gsm_status = self.check_gsm_director()
+                 catalog_status = self.check_gsm_catalog()
 
+                 if gsm_status == 'completed':
+                    status = True
+                 else:
+                    status = False
 
+                 if catalog_status == 'completed':
+                    status = True
+                 else:
+                    status = False
+
+                 return status
              ###########  DB_CHECKS  Related Functions Begin Here  ####################
 
 
@@ -305,7 +391,7 @@ class OraGSM:
                   This function chck if GSM is already setup on this
                  """
                  status=True
-                 self.ocommon.log_info_message("Inside reset_gsm_setup",self.file_name)
+                 self.ocommon.log_info_message("Inside gsm_setup_check",self.file_name)
                  gsmdata_loc='/opt/oracle/gsmdata'
                  gsmfile_loc='''{0}/network/admin'''.format(self.ora_env_dict["ORACLE_HOME"])
 
@@ -421,14 +507,22 @@ class OraGSM:
           dtrname,dtrport,dtregion=self.process_director_vars()
           gsmcmd='''
             set gsm -gsm {0};
-            status gsm;
+            config;
             exit;
           '''.format(dtrname)
           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-          new_output=output[0].replace(" ","")
-          self.ocommon.log_info_message(new_output,self.file_name)
-          match=self.ocommon.check_substr_match(new_output,"ConnectedtoGDScatalogY")
+          matched_output=re.findall("(?:GSMs\n)(?:.+\n)+",output)
+          try:
+             match=self.ocommon.check_substr_match(matched_output[0],dtrname)
+          except:
+             match=False
           return(self.ocommon.check_status_value(match))
+
+        #  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+        #  new_output=output[0].replace(" ","")
+        #  self.ocommon.log_info_message(new_output,self.file_name)
+        #  match=self.ocommon.check_substr_match(new_output,"Catalogconnectionisestablished")
+        #  return(self.ocommon.check_status_value(match))
 
       def catalog_regex(self):
           """
@@ -501,7 +595,10 @@ class OraGSM:
           '''.format(dtrname)
           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
           matched_output=re.findall("(?:GSMs\n)(?:.+\n)+",output)
-          match=self.ocommon.check_substr_match(matched_output[0],dtrname)
+          try:
+             match=self.ocommon.check_substr_match(matched_output[0],dtrname)
+          except:
+             match=False
           return(self.ocommon.check_status_value(match))
 
       def setup_gsm_director(self):
@@ -695,7 +792,7 @@ class OraGSM:
         #########################################Shard Function Begins Here ##############################
       def setup_gsm_shard(self):
                 """
-                This function add the shard in the GSM
+                This function setup and add shard in the GSM
                 """
                 self.ocommon.log_info_message("Inside setup_gsm_shard()",self.file_name)
                 status=False
@@ -732,6 +829,85 @@ class OraGSM:
                    msg='''Waited 60 minute to complete shard db setup in GSM but setup did not complete or failed. Exiting...'''
                    self.ocommon.log_error_message(msg,self.file_name)
                    self.ocommon.prog_exit("127")     
+
+      def add_gsm_shard(self):
+                """
+                This function add the shard in the GSM
+                """
+                self.ocommon.log_info_message("Inside add_gsm_shard()",self.file_name)
+                status=False
+                reg_exp= self.add_shard_regex()
+                counter=1
+                end_counter=3
+                shard_name="none"
+                while counter < end_counter:
+                      for key in self.ora_env_dict.keys():
+                          if(reg_exp.match(key)):
+                             shard_db_status=None
+                             shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                             shard_name='''{0}_{1}'''.format(shard_db,shard_pdb)
+                             shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
+                             if shard_db_status == 'completed':
+                                self.configure_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group)
+                             else:
+                                msg='''Shard db status must return completed but returned value is {0}'''.format(status)
+                                self.ocommon.log_info_message(msg,self.file_name)
+                      
+                      status = self.check_shard_status(None)
+                      if status == 'completed':
+                         break
+                      else:
+                         msg='''Shard DB setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
+                         self.ocommon.log_info_message(msg,self.file_name)
+                         time.sleep(60)
+                         counter=counter+1
+                status = self.check_shard_status(shard_name)
+                if status == 'completed':
+                   msg='''Shard DB setup completed in GSM'''
+                   self.ocommon.log_info_message(msg,self.file_name)
+                else:
+                   msg='''Waited 3 minute to complete shard db setup in GSM but setup did not complete or failed. Exiting...'''
+                   self.ocommon.log_error_message(msg,self.file_name)
+                   self.ocommon.prog_exit("127")
+
+      def remove_gsm_shard(self):
+                """
+                This function remove the shard in the GSM
+                """
+                self.ocommon.log_info_message("Inside remove_gsm_shard()",self.file_name)
+                status=False
+                reg_exp= self.remove_shard_regex()
+                for key in self.ora_env_dict.keys():
+                    if(reg_exp.match(key)):
+                          shard_db_status=None
+                          shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+
+                          shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
+                          if shard_db_status == 'completed':
+                             self.delete_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group)
+                          else:
+                             msg='''Shard db status must return completed but returned value is {0}'''.format(status)
+                             self.ocommon.log_info_message(msg,self.file_name)
+
+      def validate_gsm_shard(self):
+                """
+                This function validate the shard in the GSM
+                """
+                self.ocommon.log_info_message("Inside validate_gsm_shard()",self.file_name)
+                status=False
+                reg_exp= self.validate_shard_regex()
+                for key in self.ora_env_dict.keys():
+                    if(reg_exp.match(key)):
+                          shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                          shard_name='''{0}_{1}'''.format(shard_db,shard_pdb)
+                          status = self.check_shard_status(shard_name)
+                          if status == 'completed':
+                             msg='''Shard DB setup completed in GSM'''
+                             self.ocommon.log_info_message(msg,self.file_name)
+                          else:
+                             msg='''Shard {0} info does not exist in GSM.'''.format(shard_name)
+                             self.ocommon.log_info_message(msg,self.file_name)
+                             self.ocommon.prog_exit("157")
 
       def process_shard_vars(self,key):
           """
@@ -810,6 +986,27 @@ class OraGSM:
           self.ocommon.log_info_message("Inside shard_regex()",self.file_name)
           return re.compile('SHARD[0-9]+_PARAMS') 
 
+      def add_shard_regex(self):
+          """
+            This function return the rgex to search the ADD_SHARD_PARAMS
+          """
+          self.ocommon.log_info_message("Inside add_shard_regex()",self.file_name)
+          return re.compile('ADD_SHARD')
+
+      def remove_shard_regex(self):
+          """
+            This function return the rgex to search the REMOVE_SHARD_PARAMS
+          """
+          self.ocommon.log_info_message("Inside remove_shard_regex()",self.file_name)
+          return re.compile('REMOVE_SHARD')
+
+      def validate_shard_regex(self):
+          """
+            This function return the rgex to search the VALIDATE_SHARD_PARAMS
+          """
+          self.ocommon.log_info_message("Inside remove_shard_regex()",self.file_name)
+          return re.compile('VALIDATE_SHARD')
+
       def configure_gsm_shard(self,shost,scdb,spdb,sdbport,sgroup):
                  """
                   This function configure the shard db.
@@ -826,6 +1023,27 @@ class OraGSM:
                   config vncr;
                   exit;
                   '''.format(dtrname,admuser,spasswd,shost,sdbport,scdb,spdb,sgroup)
+                 
+                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                 ### Unsetting the encrypt value to None
+                 self.ocommon.unset_mask_str()
+
+      def delete_gsm_shard(self,shost,scdb,spdb,sdbport,sgroup):
+                 """
+                  This function delete the shard db.
+                 """
+                 spasswd="HIDDEN_STRING"
+                 admuser= self.ora_env_dict["SHARD_ADMIN_USER"]
+                 dtrname,dtrport,dtregion=self.process_director_vars()
+                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                 shard_name='''{0}_{1}'''.format(scdb,spdb)
+                 gsmcmd='''
+                  set gsm -gsm {0};
+                  connect {1}/{2};
+                  remove shard -shard {8} -force;
+                  config vncr;
+                  exit;
+                  '''.format(dtrname,admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
 
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                  ### Unsetting the encrypt value to None
@@ -856,12 +1074,16 @@ class OraGSM:
                  self.ocommon.check_sql_err(output,error,retcode,None)
                  self.ocommon.unset_mask_str()
 
-      def add_invited_node(self):
+      def add_invited_node(self,op_str):
                 """
                 This function add the invited in the GSM configuration
                 """
                 self.ocommon.log_info_message("Inside add_invited_node()",self.file_name)
-                reg_exp= self.shard_regex()
+                if op_str == "SHARD":
+                   reg_exp = self.shard_regex()
+                else:
+                   reg_exp = self.add_shard_regex()
+
                 gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
                 cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
                 cpasswd="HIDDEN_STRING"
@@ -878,12 +1100,16 @@ class OraGSM:
                         '''.format(dtrname,cadmin,cpasswd,shard_host)
                         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
-      def remove_invited_node(self):
+      def remove_invited_node(self,op_str):
                 """
                 This function remove the invited in the GSM configuration
                 """
                 self.ocommon.log_info_message("Inside remove_invited_node()",self.file_name)
-                reg_exp= self.shard_regex()
+                if op_str == "SHARD":
+                   reg_exp = self.shard_regex()
+                else:
+                   reg_exp = self.add_shard_regex()
+
                 gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
                 cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
                 cpasswd="HIDDEN_STRING"
@@ -1115,6 +1341,9 @@ class OraGSM:
           """
             This function deploy the sample app
           """
+          s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
+          passlen = 8
+          passwd  =  "".join(random.sample(s,passlen )) 
           self.ocommon.log_info_message("Inside deploy_sample_schema()",self.file_name)
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
@@ -1137,7 +1366,7 @@ class OraGSM:
                  alter session enable shard ddl;
                  alter session set container={2};
                  alter session enable shard ddl;
-                 create user app_schema identified by app_schema;
+                 create user app_schema identified by {3};
                  grant connect, resource, alter session to app_schema;
                  grant execute on dbms_crypto to app_schema;
                  grant create table, create procedure, create tablespace, create materialized view to app_schema;
@@ -1148,7 +1377,7 @@ class OraGSM:
                  grant dba to app_schema;
                  CREATE TABLESPACE SET tbsset1 IN SHARDSPACE shd1;
                  CREATE TABLESPACE SET tbsset2 IN SHARDSPACE shd2;
-                 connect app_schema/app_schema@{0}:{1}/{2}
+                 connect app_schema/{3}@{0}:{1}/{2}
                  alter session enable shard ddl;
 
                  /* Customer shard table */
@@ -1214,7 +1443,7 @@ class OraGSM:
                  commit;
                  select table_name from user_tables;
                  spool off
-                '''.format(catalog_host,catalog_port,catalog_pdb)
+                '''.format(catalog_host,catalog_port,catalog_pdb,passwd)
                 output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogin,sqlcmd,None)
                 self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
                 self.ocommon.check_sql_err(output,error,retcode,None)

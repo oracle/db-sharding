@@ -400,7 +400,7 @@ local sqlScript="/tmp/sqlScript.sql"
 connectStr = "${SHARD_ADMIN_USER}/${ORACLE_PWD}"
 
 echo  "alter session enable shard ddl;" > ${sqlScript}
-echo  "create user app_schema identified by app_schema_password;" >> ${sqlScript}
+echo  "create user app_schema identified by ${ORACLE_PWD};" >> ${sqlScript}
 echo  "grant all privileges to app_schema;" >> ${sqlScript}
 echo  "grant gsmadmin_role to app_schema;" >> ${sqlScript}
 echo  "grant select_catalog_role to app_schema;" >> ${sqlScript}
