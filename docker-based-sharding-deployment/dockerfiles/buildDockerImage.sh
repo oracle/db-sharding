@@ -77,7 +77,7 @@ while getopts "hiv:o:" optname; do
 done
 
 # Oracle Database Image Name
-IMAGE_NAME="oracle/databse-gsm:$VERSION"
+IMAGE_NAME="oracle/database-gsm:$VERSION"
 
 # Go into version folder
 cd $VERSION
