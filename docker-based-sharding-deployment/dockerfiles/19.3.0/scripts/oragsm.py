@@ -196,7 +196,7 @@ class OraGSM:
                  This funnction perform password related checks
                  """
                  passwd_file_flag = False
-                 if self.ocommon.check_key("SECRET_VOLUME",self.ora_env_dict) and check_key("COMMON_OS_PWD_FILE",self.ora_env_dict) and check_key("PWD_KEY",self.ora_env_dict):
+                 if self.ocommon.check_key("SECRET_VOLUME",self.ora_env_dict) and self.ocommon.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict) and self.ocommon.check_key("PWD_KEY",self.ora_env_dict):
                     msg='''SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
                  else:
                     self.ora_env_dict=self.ocommon.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict)
