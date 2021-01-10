@@ -111,7 +111,7 @@ vi /opt/.secrets/common_os_pwdfile
 
 After seeding password and saving the `/opt/.secrets/common_os_pwdfile` file, execute following command:  
 ```
-openssl enc -aes-256-cbc -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
+openssl enc -aes-256-cbc -md sha256 -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
 rm -f /opt/.secrets/common_os_pwdfile
 ```
 

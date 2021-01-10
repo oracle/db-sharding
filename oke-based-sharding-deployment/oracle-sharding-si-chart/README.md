@@ -31,7 +31,7 @@ openssl rand -hex 64 -out /tmp/.secrets/pwd.key
 Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle and database. It will be a common password for all the database users. Execute following command:
 
 ```
-openssl enc -aes-256-cbc -salt -in /tmp/.secrets/common_os_pwdfile -out /tmp/.secrets/common_os_pwdfile.enc -pass file:/tmp/.secrets/pwd.key
+openssl enc -aes-256-cbc -md sha256 -salt -in /tmp/.secrets/common_os_pwdfile -out /tmp/.secrets/common_os_pwdfile.enc -pass file:/tmp/.secrets/pwd.key
 rm -f /tmp/.secrets/common_os_pwdfile
 ```
 Create the kubernetes a secret. In the chart, we are using db-user-pass secret so create the same or you need to override the value during chart creation.
