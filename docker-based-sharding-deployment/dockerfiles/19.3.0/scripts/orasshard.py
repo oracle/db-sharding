@@ -149,7 +149,7 @@ class OraSShard:
               self.ocommon.log_info_message(msg,self.file_name)
               msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
               self.ocommon.log_info_message(msg,self.file_name)
-              cmd='''openssl enc -md sha256  -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
+              cmd='''openssl enc -d -aes-256-cbc -salt -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
               output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
               self.ocommon.check_os_err(output,error,retcode,True)
               passwd_file_flag = True
