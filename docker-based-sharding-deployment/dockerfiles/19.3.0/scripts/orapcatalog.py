@@ -44,7 +44,7 @@ class OraPCatalog:
            This function setup the catalog on Primary DB.
           """
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
-            status = self.shard_setup_check()
+            status = self.catalog_setup_check()
             if not status:
                self.ocommon.prog_exit("127")
           else:
