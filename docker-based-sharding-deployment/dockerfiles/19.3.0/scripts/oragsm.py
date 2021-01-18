@@ -921,6 +921,8 @@ class OraGSM:
 
           self.ocommon.log_info_message("Inside process_shard_vars()",self.file_name)
           cvar_str=self.ora_env_dict[key]
+          testStr = cvar_str.replace('"', '')
+          cvar_str=testStr
           cvar_dict=dict(item.split("=") for item in cvar_str.split(";"))
           for ckey in cvar_dict.keys():
               if ckey == 'shard_db':
@@ -943,7 +945,7 @@ class OraGSM:
           else:
               msg1='''shard_db={0},shard_pdb={1}'''.format((shard_db or "Missing Value"),(shard_pdb or "Missing Value"))
               msg2='''shard_port={0},shard_host={1}'''.format((shard_port or "Missing Value"),(shard_host or "Missing Value"))
-              msg3='''shard_group={1}'''.format((shard_group or "Missing Value"))
+              msg3='''shard_group={0}'''.format((shard_group or "Missing Value"))
               msg='''Shard DB  params {0} is not set correctly. One or more value is missing {1} {2} {3}'''.format(key,msg1,msg2,msg3)
               self.ocommon.log_info_message(msg,self.file_name)
               self.ocommon.prog_exit("Error occurred")
