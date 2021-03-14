@@ -7,6 +7,7 @@
 ############################
 
 export CLONED_FILE="status_completed"
+export STANDBY_STATUS="status_completed"
 
 ########### Clone Files #####################
 function cloneDB {
@@ -82,52 +83,125 @@ touch $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/$CLONED_FILE
 ########### Symbolic link DB files ############
 function symLinkFiles {
 
-   if [ ! -L $ORACLE_HOME/dbs/spfile$OLD_ORACLE_SID.ora ]; then
+   # Make sure audit file destination exists
+   if [ ! -d $ORACLE_BASE/admin/$ORACLE_SID/adump ]; then
+      mkdir -p $ORACLE_BASE/admin/$ORACLE_SID/adump
+   fi;
+
+   if [ -L $ORACLE_HOME/dbs/spfile$OLD_ORACLE_SID.ora ]; then
+     unlink $ORACLE_HOME/dbs/spfile$OLD_ORACLE_SID.ora
+   fi;
+   if [ -L $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora ]; then
+     unlink $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora
+   fi;
+   if [ -L $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID ]; then
+      unlink $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID
+   fi;
+   if [ -L $ORACLE_HOME/dbs/orapw$ORACLE_SID ]; then
+     unlink $ORACLE_HOME/dbs/orapw$ORACLE_SID
+   fi;
+   if [ -L $ORACLE_HOME/network/admin/sqlnet.ora ]; then
+      unlink $ORACLE_HOME/network/admin/sqlnet.ora
+   fi;
+   if [ -L $ORACLE_HOME/network/admin/listener.ora ]; then
+     unlink $ORACLE_HOME/network/admin/listener.ora 
+   fi;
+   if [ -L $ORACLE_HOME/network/admin/tnsnames.ora ]; then
+      unlink $ORACLE_HOME/network/admin/tnsnames.ora
+   fi
+   if [ -L $ORACLE_HOME/dbs/dr1$ORACLE_SID ]; then
+     unlink $ORACLE_HOME/dbs/dr1$ORACLE_SID
+   fi;
+   if [ -L $ORACLE_HOME/dbs/dr2$ORACLE_SID ]; then
+      unlink $ORACLE_HOME/dbs/dr2$ORACLE_SID 
+   fi;
+ 
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora ]; then
       ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora $ORACLE_HOME/dbs/spfile$OLD_ORACLE_SID.ora
+      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora $ORACLE_BASE/dbs/spfile$OLD_ORACLE_SID.ora
    fi;
 
-   if [ ! -L $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora ]; then
-      if [ ! -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$ORACLE_SID.ora ]; then
-         cp $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$ORACLE_SID.ora
-      fi
-      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$ORACLE_SID.ora $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/spfile$ORACLE_SID.ora ]; then
+      ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/spfile$ORACLE_SID.ora $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora 
+      ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/spfile$ORACLE_SID.ora $ORACLE_BASE/dbs/spfile$ORACLE_SID.ora
+   else
+     if [ ! -z ${CLONE_DB} ]; then
+       if [ ${CLONE_DB} == "true" ]; then
+          ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora
+          ln -s  $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/spfile$OLD_ORACLE_SID.ora  $ORACLE_BASE/dbs/spfile$ORACLE_SID.ora
+       fi
+     fi
    fi;
 
-   if [ ! -L $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID ]; then
-      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID ]; then
+          ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID $ORACLE_HOME/dbs/orapw$OLD_ORACLE_SID
+          ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID $ORACLE_BASE/dbs/orapw$OLD_ORACLE_SID
    fi;
 
-   if [ ! -L $ORACLE_HOME/dbs/orapw$ORACLE_SID ]; then
-      if [ ! -f $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$ORACLE_SID ]; then
-         cp $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID  $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$ORACLE_SID
-      fi
-      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$ORACLE_SID $ORACLE_HOME/dbs/orapw$ORACLE_SID
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/orapw$ORACLE_SID ]; then
+       ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/orapw$ORACLE_SID $ORACLE_HOME/dbs/orapw$ORACLE_SID
+       ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/orapw$ORACLE_SID $ORACLE_BASE/dbs/orapw$ORACLE_SID
+   else
+     if [ ! -z ${CLONE_DB} ]; then
+       if [ ${CLONE_DB} == "true" ]; then
+         ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID $ORACLE_HOME/dbs/orapw$ORACLE_SID
+         ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/orapw$OLD_ORACLE_SID $ORACLE_BASE/dbs/orapw$ORACLE_SID
+       fi
+     fi
    fi;
 
-   if [ ! -L $ORACLE_HOME/network/admin/sqlnet.ora ]; then
-      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/sqlnet.ora $ORACLE_HOME/network/admin/sqlnet.ora
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/sqlnet.ora ]; then
+       ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/sqlnet.ora $ORACLE_HOME/network/admin/sqlnet.ora
+   else
+     if [ ! -z ${CLONE_DB} ]; then
+       if [ ${CLONE_DB} == "true" ]; then
+          ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/sqlnet.ora $ORACLE_HOME/network/admin/sqlnet.ora
+       fi
+     fi
    fi;
 
-   if [ ! -L $ORACLE_HOME/network/admin/listener.ora ]; then
-      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/listener.ora $ORACLE_HOME/network/admin/listener.ora
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/listener.ora ]; then
+       ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/listener.ora $ORACLE_HOME/network/admin/listener.ora
+   else
+     if [ ! -z ${CLONE_DB} ]; then
+       if [ ${CLONE_DB} == "true" ]; then
+         ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/listener.ora $ORACLE_HOME/network/admin/listener.ora
+       fi
+     fi
    fi;
 
-   if [ ! -L $ORACLE_HOME/network/admin/tnsnames.ora ]; then
-      ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/tnsnames.ora $ORACLE_HOME/network/admin/tnsnames.ora
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/listener.ora ]; then
+       ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/tnsnames.ora $ORACLE_HOME/network/admin/tnsnames.ora
+   else
+     if [ ! -z ${CLONE_DB} ]; then
+       if [ ${CLONE_DB} == "true" ]; then
+         ln -s $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/tnsnames.ora $ORACLE_HOME/network/admin/tnsnames.ora
+       fi
+     fi
+   fi;
+
+   if [ -f $ORACLE_HOME/dbs/dr1$ORACLE_SID ]; then
+          ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/dr1$ORACLE_SID $ORACLE_HOME/dbs/dr1$ORACLE_SID
+   fi;
+
+   if [ -f $ORACLE_HOME/dbs/dr2$ORACLE_SID ]; then
+          ln -s $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/dr2$ORACLE_SID $ORACLE_HOME/dbs/dr2$ORACLE_SID
    fi;
 
    if [ ! -d $ORACLE_BASE/oradata/$ORACLE_SID ]; then
        mkdir -p $ORACLE_BASE/oradata/$ORACLE_SID
    fi;
 
+ if [ ! -z ${CLONE_DB} ]; then
+  if [ ${CLONE_DB} == "true" ]; then
    if [ ! -L $ORACLE_BASE/oradata/$ORACLE_SID/$ORACLE_PDB ]; then
       ln -s $ORACLE_BASE/oradata/$OLD_ORACLE_SID/$OLD_ORACLE_PDB $ORACLE_BASE/oradata/$ORACLE_SID/$ORACLE_PDB 
    fi;
-
-
    # oracle user does not have permissions in /etc, hence cp and not ln 
    sed -i "s/$OLD_ORACLE_SID/$ORACLE_SID/g" $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/oratab
    cp $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/oratab /etc/oratab
+ fi
+fi
 
 }
 
@@ -282,6 +356,16 @@ fi
 fi
 fi
 
+if [ ${OP_TYPE} == "standbyshard" ]; then
+   symLinkFiles;
+   if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/$STANDBY_STATUS ];
+   then
+       # Start database
+       echo "Starting Database as standby setup status file exist"
+       $ORACLE_BASE/$START_FILE;
+   fi
+fi   
+
 #This is the main file which calls other file to setup the sharding.
 if [ -z ${BASE_DIR} ]; then
     BASE_DIR=/opt/oracle/scripts/setup
@@ -299,7 +383,7 @@ cd $BASE_DIR
 $EXECUTOR $SCRIPT_NAME
 
 echo "The following output is now a tail of the alert.log:"
-tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
-# tail -f /etc/passwd &
+#tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
+ tail -f /etc/passwd &
 childPID=$!
 wait $childPID

@@ -8,6 +8,7 @@
 
 
 import os
+import sys
 import os.path
 import re
 import socket
@@ -73,6 +74,8 @@ class OraPShard:
             status = self.shard_setup_check()
             if not status:
                self.ocommon.prog_exit("127")
+            self.ocommon.log_info_message("Shard liveness check completed sucessfully!",self.file_name)
+            sys.exit(0)
           elif self.ocommon.check_key("CREATE_DIR",self.ora_env_dict):
             status = self.shard_setup_check()
             if not status:
@@ -90,7 +93,11 @@ class OraPShard:
               self.setup_cdb_shard()
               self.setup_pdb_shard ()
               self.update_shard_setup()
-              self.dbms_sched_job()
+              self.set_primary_listener()
+              self.restart_listener()
+              self.register_services()
+              self.list_services()
+              self.backup_files() 
               self.gsm_completion_message()
               self.run_custom_scripts()
 
@@ -113,6 +120,7 @@ class OraPShard:
           self.passwd_check()
           self.set_user()
           self.sid_check()
+          self.dbuinque_name_check()
           self.hostname_check()
           self.dbport_check()
           self.dbr_dest_checks()
@@ -174,7 +182,7 @@ class OraPShard:
               self.ocommon.log_info_message(msg,self.file_name)
               msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
               self.ocommon.log_info_message(msg,self.file_name)
-              cmd='''openssl enc -d -aes-256-cbc -md sha256 -salt -in  \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
+              cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
               output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
               self.ocommon.check_os_err(output,error,retcode,True) 
               passwd_file_flag = True
@@ -227,6 +235,19 @@ class OraPShard:
                msg="ORACLE_SID is not set, existing!"
                self.ocommon.log_error_message(msg,self.file_name)
                self.ocommon.prog_exit()
+
+      def dbuinque_name_check(self):
+           """
+           This funnction check and set the db unique name for standby
+           """
+           if self.ocommon.check_key("DB_UNIQUE_NAME",self.ora_env_dict):
+               msg='''DB_UNIQUE_NAME {0} is passed as an env variable. Check Passed!'''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
+               self.ocommon.log_info_message(msg,self.file_name)
+           else:
+               msg="DB_UNIQUE_NAME is not set. Setting DB_UNIQUE_NAME to Oracle_SID"
+               self.ocommon.log_info_message(msg,self.file_name)
+               dbsid=self.ora_env_dict["ORACLE_SID"]
+               self.ora_env_dict=self.ocommon.add_key("DB_UNIQUE_NAME",dbsid,self.ora_env_dict)
 
       def hostname_check(self):
            """
@@ -407,6 +428,8 @@ class OraPShard:
            host_name=self.ora_env_dict["ORACLE_HOSTNAME"]
            dpump_dir = self.ora_env_dict["DATA_PUMP_DIR"]
            db_port=self.ora_env_dict["DB_PORT"]
+           obase=self.ora_env_dict["ORACLE_BASE"]
+           dbuname=self.ora_env_dict["DB_UNIQUE_NAME"] 
                  
            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
            msg='''Setting up Shard CDB'''
@@ -416,6 +439,8 @@ class OraPShard:
              alter system set db_recovery_file_dest_size={1} scope=both;
              alter system set db_recovery_file_dest=\"{2}\" scope=both; 
              alter system set open_links=16 scope=spfile;
+             alter system set dg_broker_config_file1=\"{6}/oradata/{7}/{8}/dr2{8}.dat\" scope=spfile; 
+             alter system set dg_broker_config_file2=\"{6}/oradata/{7}/{8}/dr1{8}.dat\" scope=spfile;
              alter system set open_links_per_instance=16 scope=spfile;
              alter user gsmrootuser account unlock;
              grant sysdg to gsmrootuser;
@@ -429,7 +454,7 @@ class OraPShard:
              create or replace directory DATA_PUMP_DIR as '{3}';
              grant read,write on directory DATA_PUMP_DIR to GSMADMIN_INTERNAL;
              alter system set local_listener='{4}:{5}' scope=both;
-           '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port) 
+           '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname) 
                   
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
@@ -479,11 +504,16 @@ class OraPShard:
               msg='''Setting up Shard PDB'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
+              alter pluggable database {0} close immediate;
+              alter pluggable database {0} open services=All;
+              ALTER PLUGGABLE DATABASE {0} SAVE STATE;
+              alter system register;
               alter session set container={0};
               grant read,write on directory DATA_PUMP_DIR to GSMADMIN_INTERNAL;
               grant sysdg to GSMUSER;
               grant sysbackup to GSMUSER;
               execute DBMS_GSM_FIX.validateShard;
+              alter system register;
               '''.format(self.ora_env_dict["ORACLE_PDB"])
 
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
@@ -582,7 +612,16 @@ class OraPShard:
               self.ocommon.log_info_message(text,self.file_name)
       ################################  Reset and standby functions #################################################
       
-      def reset_listener(self):
+      def set_primary_listener(self):
+          """
+           Function to set the primary listener
+          """
+          global_dbname=self.ocommon.get_global_dbdomain(self.ora_env_dict["ORACLE_HOSTNAME"],self.ora_env_dict["DB_UNIQUE_NAME"] + "_DGMRL")
+          self.set_db_listener(global_dbname,self.ora_env_dict["DB_UNIQUE_NAME"])
+          global_dbname=self.ocommon.get_global_dbdomain(self.ora_env_dict["ORACLE_HOSTNAME"],self.ora_env_dict["DB_UNIQUE_NAME"])
+          self.set_db_listener(global_dbname,self.ora_env_dict["DB_UNIQUE_NAME"])
+
+      def set_db_listener(self,gdbname,sid):
           """
            Funtion to reset the listener
           """
@@ -592,7 +631,6 @@ class OraPShard:
           oracle_home=self.ora_env_dict["ORACLE_HOME"]
           lisora='''{0}/network/admin/listener.ora'''.format(oracle_home)
           buffer = "SID_LIST_LISTENER=" + '\n'
-          gdbname,sid=self.process_list_vars("RESET_LISTENER") 
           start_flag = False
           try:
             with open(lisora) as f:
@@ -618,57 +656,83 @@ class OraPShard:
               listener =  self.ocommon.get_lisora(1521)
               listener += '\n' + buffer
           else:
-              buffer += self.ocommon.get_sid_desc(gdbname,oracle_home,sid,"SID_DESC") 
+              buffer += self.ocommon.get_sid_desc(gdbname,oracle_home,sid,"SID_DESC")
               listener =  self.ocommon.get_lisora(1521)
               listener += '\n' + buffer
 
           wr = open(lisora, 'w')
           wr.write(listener)
- 
+
       def restart_listener(self):
           """
           restart listener
           """
-          cmd='''
-           lsnrctl stop;lsnrctl start
-          '''
+          self.ocommon.log_info_message("Stopping Listener",self.file_name)
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl stop'''.format(ohome)
           output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-          self.ocommon.check_os_err(output,error,retcode,True)
-    
-      def process_list_vars(self,key):
-          """
-          This function process listener variables
-          """
-          gname=None
-          sid=None
+          self.ocommon.check_os_err(output,error,retcode,None)
 
-          self.ocommon.log_info_message("Inside process_list_vars()",self.file_name)
-          cvar_str=self.ora_env_dict[key]
-          cvar_dict=dict(item.split("=") for item in cvar_str.split(";"))
-          for ckey in cvar_dict.keys():
-              if ckey == 'gdb_name':
-                 gname = cvar_dict[ckey]
-              if ckey == 'sid_name':
-                 sid = cvar_dict[ckey]
-
-              ### Check values must be set
-          if  gname and sid:
-              return gname,sid
-          else:
-              msg1='''=gdb_name{0},sid_name={1}'''.format((gdb_name or "Missing Value"),(sid_name or "Missing Value"))
-              self.ocommon.prog_exit(127)
-
-      def dbms_sched_job(self):
+          self.ocommon.log_info_message("Starting Listener",self.file_name) 
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl start'''.format(ohome)
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,None)
+   
+      def register_services(self):
            """
-            This function drop teh shard setup table and reste the env to default values.
+            This function setup the catalog.
            """
-      #     systemStr='''{0}/bin/sqlplus {1}/{2}'''.format(self.ora_env_dict["ORACLE_HOME"],"system",self.ora_env_dict["ORACLE_PWD"])
            sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-           self.ocommon.log_info_message("Inside dbms_sched_job",self.file_name)
-           sqlcmd='''
-           begin
-            dbms_scheduler.create_job (job_name    => 'os_job',job_type    => 'executable',job_action  => '/bin/python',number_of_arguments => 1,auto_drop   => true);
-           '''
-           output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-           self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-           self.ocommon.check_sql_err(output,error,retcode,True)
+           # Assigning variable
+           self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+           if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
+              msg='''Setting up catalog PDB'''
+              self.ocommon.log_info_message(msg,self.file_name)
+              sqlcmd='''
+              alter system register;
+              alter session set container={0};
+              alter system register;
+              exit;
+              '''.format(self.ora_env_dict["ORACLE_PDB"],self.ora_env_dict["SHARD_ADMIN_USER"])
+
+              output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.ocommon.check_sql_err(output,error,retcode,True)
+
+           ### Unsetting the encrypt value to None
+           self.ocommon.unset_mask_str()
+
+      def list_services(self):
+          """
+          restart listener
+          """
+          self.ocommon.log_info_message("Listing Services",self.file_name)
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl services'''.format(ohome)
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,None)
+ 
+      def backup_files(self):
+          """
+           This function backup the files such as spfile, password file and other required files to a under oradata/dbconfig
+          """
+          self.ocommon.log_info_message("Inside backup_files_on_standby()",self.file_name)
+          obase=self.ora_env_dict["ORACLE_BASE"]
+          dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
+          dbsid=self.ora_env_dict["ORACLE_SID"]
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd_names='''
+               mkdir -p {0}/oradata/{1}/{2}
+               cp {3}/dbs/spfile{2}.ora {0}/oradata/{1}/{2}/
+               cp {3}/dbs/orapw{2}   {0}/oradata/{1}/{2}/
+               cp {3}/network/admin/sqlnet.ora {0}/oradata/{1}/{2}/
+               cp {3}/network/admin/listener.ora {0}/oradata/{1}/{2}/
+               cp {3}/network/admin/tnsnames.ora {0}/oradata/{1}/{2}/
+               touch {0}/oradata/{1}/{2}/status_completed
+          '''.format(obase,"dbconfig",dbuname,ohome)
+          cmd_list = [y for y in (x.strip() for x in cmd_names.splitlines()) if y]
+          for cmd in cmd_list:
+             msg='''Executing cmd {0}'''.format(cmd)
+             self.ocommon.log_info_message(msg,self.file_name)
+             output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
