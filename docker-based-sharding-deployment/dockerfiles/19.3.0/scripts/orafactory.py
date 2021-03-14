@@ -96,7 +96,7 @@ class OraFactory:
            ofactory_obj.append(opcat)
         elif self.ora_env_dict["OP_TYPE"] == 'standbycatalog':
            msg="Creating and calling instance to setup Catalog DB"
-           oscat = OraSCatalog(self.ologger,self.ohandler,self.oenv,self.ocommon)
+           oscat = OraSShard(self.ologger,self.ohandler,self.oenv,self.ocommon)
            self.ocommon.log_info_message(msg,self.file_name)
            ofactory_obj.append(oscat)
         elif self.ora_env_dict["OP_TYPE"] == 'gsm':

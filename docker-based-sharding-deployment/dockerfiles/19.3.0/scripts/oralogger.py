@@ -49,6 +49,9 @@ class OraLogger(object):
       self.stdoutfile_ = "/proc/1/fd/1"
    #   self.stdoutfile_ = "/tmp/test.log"
 
+   def getStdOutValue(self):
+      return self.stdout_
+
 class Handler(object):
    """
    This is a class which sets the handler for next logger.
@@ -154,6 +157,7 @@ class StdHandler(Handler):
           Attribute:
           request: Object of OraLogger
           """
+          request.stdout_ =  request.getStdOutValue()
           if request.stdout_ == LoggingType.STDOUT:
             st = logging.FileHandler(request.stdoutfile_)
             request.root.addHandler(st)

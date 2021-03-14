@@ -8,3 +8,9 @@ echo $(date -u) " : " $@ >> $LOGFILE
 cmd=$@
 
 $cmd
+
+if [ $? -eq 0 ]; then
+  exit 0
+else
+  exit 127
+fi

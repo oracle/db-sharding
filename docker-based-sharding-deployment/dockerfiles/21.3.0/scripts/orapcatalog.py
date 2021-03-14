@@ -7,6 +7,7 @@
 ############################
 
 import os
+import sys
 import os.path
 import re
 import socket
@@ -47,6 +48,8 @@ class OraPCatalog:
             status = self.catalog_setup_check()
             if not status:
                self.ocommon.prog_exit("127")
+            self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
+            sys.exit(0)
           else:
             self.setup_machine()
             self.db_checks()
@@ -60,6 +63,8 @@ class OraPCatalog:
                self.setup_pdb_catalog()
                self.set_primary_listener()
                self.restart_listener()
+               self.register_services()
+               self.list_services()
                self.backup_files()
                self.update_catalog_setup()
                self.gsm_completion_message()
@@ -464,12 +469,17 @@ class OraPCatalog:
               msg='''Setting up catalog PDB'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
+              alter pluggable database {0} close immediate;
+              alter pluggable database {0} open services=All;
+              ALTER PLUGGABLE DATABASE {0} SAVE STATE;
+              alter system register;
               alter session set container={0};
               create user {1} identified by HIDDEN_STRING;
               grant connect, create session, gsmadmin_role to {1};
               grant inherit privileges on user SYS to GSMADMIN_INTERNAL;
               execute dbms_xdb.sethttpport(8080);
               exec DBMS_SCHEDULER.SET_AGENT_REGISTRATION_PASS('HIDDEN_STRING');
+              alter system register;
               exit;
               '''.format(self.ora_env_dict["ORACLE_PDB"],self.ora_env_dict["SHARD_ADMIN_USER"])
 
@@ -600,6 +610,41 @@ class OraPCatalog:
           self.ocommon.log_info_message("Starting Listener",self.file_name)   
           ohome=self.ora_env_dict["ORACLE_HOME"]
           cmd='''{0}/bin/lsnrctl start'''.format(ohome)
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,None)
+
+
+      def register_services(self):
+           """
+            This function setup the catalog.
+           """
+           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           # Assigning variable
+           self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+           if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
+              msg='''Setting up catalog PDB'''
+              self.ocommon.log_info_message(msg,self.file_name)
+              sqlcmd='''
+              alter system register;
+              alter session set container={0};
+              alter system register;
+              exit;
+              '''.format(self.ora_env_dict["ORACLE_PDB"],self.ora_env_dict["SHARD_ADMIN_USER"])
+
+              output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.ocommon.check_sql_err(output,error,retcode,True)
+
+           ### Unsetting the encrypt value to None
+           self.ocommon.unset_mask_str()
+
+      def list_services(self):
+          """
+          restart listener
+          """
+          self.ocommon.log_info_message("Listing Services",self.file_name)
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl services'''.format(ohome)
           output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
           self.ocommon.check_os_err(output,error,retcode,None)
 

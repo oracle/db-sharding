@@ -20,7 +20,7 @@ def main():
 
    # Checking Comand line Args
    try:
-      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','help'])
+      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','help'])
    except getopt.GetoptError:
       pass
   
@@ -29,7 +29,7 @@ def main():
    file_name  = os.path.basename(__file__)
    funcname = sys._getframe(1).f_code.co_name
 
-   log_file_name = oenv.logfile_name()
+   log_file_name = oenv.logfile_name("NONE")
 
    # Initialiing logger instance
    oralogger  = OraLogger(log_file_name)
@@ -41,34 +41,88 @@ def main():
    file_handler.nextHandler = console_handler
    console_handler.nextHandler = PassHandler()
 
+   ocommon = OraCommon(oralogger,stdout_handler,oenv)
+
    for opt, arg in opts:
       if opt in ('--help'):
-         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, or --help'''
+         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard' or --help'''
          stdout_handler.handle(oralogger)
       elif opt in ('--addshard'):
+           file_name = oenv.logfile_name("ADD_SHARD")   
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("ADD_SHARD",arg)
       elif opt in ('--validateshard'):
-          oenv.add_custom_variable("VALIDATE_SHARD",arg)
+           file_name = oenv.logfile_name("VALIDATE_SHARD")  
+           oralogger.filename_ =  file_name    
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("VALIDATE_SHARD",arg)
       elif opt in ('--deleteshard'):
-          oenv.add_custom_variable("REMOVE_SHARD",arg)
+           file_name = oenv.logfile_name("REMOVE_SHARD")  
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("REMOVE_SHARD",arg)
       elif opt in ('--checkliveness'):
-          oenv.add_custom_variable("CHECK_LIVENESS",arg)
+           oralogger.stdout_ = None
+           file_name = oenv.logfile_name("CHECK_LIVENESS")  
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CHECK_LIVENESS",arg)
       elif opt in ('--resetlistener'):
-          oenv.add_custom_variable("RESET_LISTENER",arg)
+           file_name = oenv.logfile_name("RESET_LISTENER")  
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("RESET_LISTENER",arg)
       elif opt in ('--restartdb'):
-          oenv.add_custom_variable("RESTART_DB",arg)
+           file_name = oenv.logfile_name("RESTART_DB")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("RESTART_DB",arg)
       elif opt in ('--createdir'):
-          oenv.add_custom_variable("CREATE_DIR",arg)
+           file_name = oenv.logfile_name("CREATE_DIR")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CREATE_DIR",arg)
       elif opt in ('--optype'):
           oenv.add_custom_variable("OP_TYPE",arg)
       elif opt in ('--addshardgroup'):
-          oenv.add_custom_variable("ADD_SGROUP_PARAMS",arg)
+           file_name = oenv.logfile_name("ADD_SGROUP_PARAMS")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("ADD_SGROUP_PARAMS",arg)
       elif opt in ('--deployshard'):
-          oenv.add_custom_variable("DEPLOY_SHARD",arg)
+           file_name = oenv.logfile_name("DEPLOY_SHARD")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("DEPLOY_SHARD",arg)
+      elif opt in ('--cancelchunks'):
+           file_name = oenv.logfile_name("CANCEL_CHUNKS")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CANCEL_CHUNKS",arg)
+      elif opt in ('--movechunks'):
+           file_name = oenv.logfile_name("MOVE_CHUNKS")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("MOVE_CHUNKS",arg)
+      elif opt in ('--checkchunks'):
+           file_name = oenv.logfile_name("CHECK_CHUNKS")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CHECK_CHUNKS",arg)
+      elif opt in ('--checkonlineshard'):
+           file_name = oenv.logfile_name("CHECK_ONLINE_SHARD")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CHECK_ONLINE_SHARD",arg)
+      elif opt in ('--checkgsmshard'):
+           file_name = oenv.logfile_name("CHECK_GSM_SHARD")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CHECK_GSM_SHARD",arg)
       else:
          pass
 
-   ocommon = OraCommon(oralogger,stdout_handler,oenv)
    # Initializing orafactory instances   
    oralogger.msg_ = '''{:^17}-{:^17} : Calling OraFactory to start the setup'''.format(file_name,funcname)
    stdout_handler.handle(oralogger)

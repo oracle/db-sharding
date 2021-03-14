@@ -24,6 +24,7 @@ class OraEnv:
    __ora_oinstall_group_name                   = 'oinstall'
    encrypt_str__                               = None
    original_str__                              = None
+   logdir__                                    = "/tmp/sharding"
    
    def __init__(self):
       """ Virtually private constructor. """
@@ -33,6 +34,10 @@ class OraEnv:
          OraEnv.__instance = self
          OraEnv.read_variable()
          OraEnv.add_variable()
+         try:  
+          os.mkdir(OraEnv.logdir__)  
+         except OSError as error:
+          pass
 
    @staticmethod 
    def get_instance():
@@ -84,9 +89,40 @@ class OraEnv:
       OraEnv.__env_var_dict = env_dict
 
    @staticmethod
-   def logfile_name():
+   def logfile_name(file_type):
       """ Static access method to return the logfile name. """
-      if "LOGFILE_NAME"  not in OraEnv.__env_var_dict:
-          OraEnv.__env_var_dict["LOG_FILE_NAME"] = "/tmp/oracle_shrding_setup.log"
+      if file_type == "NONE":
+         if "LOGFILE_NAME"  not in OraEnv.__env_var_dict:
+             OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/oracle_sharding_setup.log"
+      elif file_type == "ADD_SHARD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_addition.log"
+      elif file_type == "VALIDATE_SHARD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_validation.log"
+      elif file_type == "REMOVE_SHARD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_remove.log"
+      elif file_type == "CHECK_LIVENESS":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_checkliveness.log"
+      elif file_type == "RESET_LISTENER":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/reset_listener.log"
+      elif file_type == "RESTART_DB":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/restart_db.log"
+      elif file_type == "CREATE_DIR":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/create_dir.log"
+      elif file_type == "ADD_SGROUP_PARAMS":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/add_sgroup.log"
+      elif file_type == "DEPLOY_SHARD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/deploy_shard.log"
+      elif file_type == "CANCEL_CHUNKS":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/cancel_chunk.log"
+      elif file_type == "MOVE_CHUNKS":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/move_chunks.log"
+      elif file_type == "CHECK_CHUNKS":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_chunks.log"
+      elif file_type == "CHECK_ONLINE_SHARD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_online_shard.log"
+      elif file_type == "CHECK_GSM_SHARD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_gsm_shard.log"
+      else:
+        pass
 
-      return OraEnv.__env_var_dict["LOG_FILE_NAME"]          
+      return OraEnv.__env_var_dict["LOG_FILE_NAME"]

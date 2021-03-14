@@ -7,6 +7,7 @@
 ############################
 
 import os
+import sys
 import os.path
 import re
 import socket
@@ -50,11 +51,12 @@ class OraGSM:
              if not status:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
                 self.ocommon.prog_exit("127")
-             else: 
+             else:
                 self.add_gsm_shard()
                 self.set_hostid_null()
                 self.add_invited_node("ADD_SHARD")
                 self.remove_invited_node("ADD_SHARD")
+                sys.exit(0)
           if self.ocommon.check_key("DEPLOY_SHARD",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -63,6 +65,7 @@ class OraGSM:
                 self.ocommon.prog_exit("127")
              else:
                 self.deploy_shard()
+                sys.exit(0)
           elif self.ocommon.check_key("ADD_SGROUP_PARAMS",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -71,6 +74,7 @@ class OraGSM:
                 self.ocommon.prog_exit("127")
              else:
                 self.self.setup_gsm_shardg("ADD_SGROUP_PARAMS")
+                sys.exit(0)
           elif self.ocommon.check_key("REMOVE_SHARD",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -79,6 +83,52 @@ class OraGSM:
                 self.ocommon.prog_exit("127")
              else:
                 self.remove_gsm_shard()
+                sys.exit(0)
+          elif self.ocommon.check_key("MOVE_CHUNKS",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.move_shard_chunks()
+                sys.exit(0)
+          elif self.ocommon.check_key("CANCEL_CHUNKS",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.cancel_move_chunks()
+                sys.exit(0)
+          elif self.ocommon.check_key("CHECK_CHUNKS",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.check_shard_chunks()
+                sys.exit(0)
+          elif self.ocommon.check_key("CHECK_ONLINE_SHARD",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.verify_online_shard()
+                sys.exit(0)
+          elif self.ocommon.check_key("CHECK_GSM_SHARD",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.verify_gsm_shard()
+                sys.exit(0)
           elif self.ocommon.check_key("VALIDATE_SHARD",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -87,11 +137,22 @@ class OraGSM:
                 self.ocommon.prog_exit("127")
              else:
                 self.validate_gsm_shard()
+                sys.exit(0)
+          elif self.ocommon.check_key("VALIDATE_GSM",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                sys.exit(0)
           elif self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
              status = self.catalog_setup_checks()
              if not status:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
                 self.ocommon.prog_exit("127")
+             self.ocommon.log_info_message("GSM liveness check completed sucessfully!",self.file_name)
+             sys.exit(0)
           elif self.ocommon.check_key("CATALOG_SETUP",self.ora_env_dict):
              # If user pass env avariable CATALOG_SETUP true then it will just create gsm director and add catalog but will not add any shard
              # It will also add service
@@ -1132,6 +1193,278 @@ class OraGSM:
                              msg='''Shard db status must return completed but returned value is {0}'''.format(status)
                              self.ocommon.log_info_message(msg,self.file_name)
 
+      def move_shard_chunks(self):
+                """
+                This function move the shard chunks
+                """
+                self.ocommon.log_info_message("Inside move_shard_chunks()",self.file_name)
+                status=False
+                reg_exp= self.move_chunks_regex()
+                for key in self.ora_env_dict.keys():
+                    if(reg_exp.match(key)):
+                          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                          cpasswd="HIDDEN_STRING"
+                          gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+                          move_chunks_status=None
+                          shard_db,shard_pdb=self.process_chunks_vars(key) 
+                          shard_name = '''{0}_{1}'''.format(shard_db,shard_pdb)
+                          shard_num = self.count_online_shards()
+                          online_shard = self.check_online_shard(shard_name)      
+                          if shard_num > 1 and online_shard == 0 :
+                             self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                             gsmcmd='''
+                              connect {1}/{2};
+                              MOVE CHUNK -CHUNK ALL -SOURCE {0}
+                              config shard;
+                              exit;
+                             '''.format(shard_name,cadmin,cpasswd)
+                             output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                             ### Unsetting the encrypt value to None
+                             self.ocommon.unset_mask_str()
+
+      def move_chunks_regex(self):
+          """
+            This function return the rgex to search the SHARD PARAMS
+          """
+          self.ocommon.log_info_message("Inside move_chnuks_regex()",self.file_name)
+          return re.compile('MOVE_CHUNKS')
+
+      def check_shard_chunks(self):
+                """
+                This function check the shard chunks
+                """
+                self.ocommon.log_info_message("Inside check_shard_chunks()",self.file_name)
+                status=False
+                reg_exp= self.check_chunks_regex()
+                for key in self.ora_env_dict.keys():
+                    if(reg_exp.match(key)):
+                          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                          cpasswd="HIDDEN_STRING"
+                          gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+                          move_chunks_status=None
+                          shard_db,shard_pdb=self.process_chunks_vars(key)
+                          shard_name = '''{0}_{1}'''.format(shard_db,shard_pdb)
+                          online_shard = self.check_online_shard(shard_name)
+                          if online_shard == 0 :
+                             self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                             gsmcmd='''
+                              connect {1}/{2};
+                              config chunks -shard {0} 
+                              config shard;
+                              exit;
+                             '''.format(shard_name,cadmin,cpasswd)
+                             output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                             ### Unsetting the encrypt value to None
+                             self.ocommon.unset_mask_str()
+
+
+      def check_chunks_regex(self):
+          """
+            This function return the rgex to search the chunks
+          """
+          self.ocommon.log_info_message("Inside check_chunks_regex()",self.file_name)
+          return re.compile('CHECK_CHUNKS')
+
+      def cancel_move_chunks(self):
+                """
+                This function cancel the shard Chunks
+                """
+                self.ocommon.log_info_message("Inside check_shard_chunks()",self.file_name)
+                status=False
+                reg_exp= self.cancel_chunks_regex()
+                for key in self.ora_env_dict.keys():
+                    if(reg_exp.match(key)):
+                          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                          cpasswd="HIDDEN_STRING"
+                          gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+                          move_chunks_status=None
+                          shard_db,shard_pdb=self.process_chunks_vars(key)
+                          shard_name = '''{0}_{1}'''.format(shard_db,shard_pdb)
+                          online_shard = self.check_online_shard(shard_name)
+                          if online_shard == 1:
+                             self.ocommon.log_info_message("Shard is not online. Performing chunk cancellation in GSM to set the shard chunk status.",self.file_name)
+                             self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                             gsmcmd='''
+                              connect {1}/{2};
+                              ALTER MOVE -cancel -SHARD {0}
+                              config shard;
+                              exit;
+                             '''.format(shard_name,cadmin,cpasswd)
+                             output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                             ### Unsetting the encrypt value to None
+                             self.ocommon.unset_mask_str()
+                          else: 
+                             self.ocommon.log_info_message("Shard "  + shard_name  + "  is online. Unable to perform chunk cancellation.",self.file_name)
+
+      def cancel_chunks_regex(self):
+          """
+            This function return the cancel chunk movement
+          """
+          self.ocommon.log_info_message("Inside cancel_chunks_regex()",self.file_name)
+          return re.compile('CANCEL_CHUNKS')
+
+      def verify_online_shard(self):
+          """
+           This function verify online shard
+          """
+          self.ocommon.log_info_message("Inside verify_online_shard()",self.file_name)
+          status=False
+          reg_exp= self.online_shard_regex()
+          for key in self.ora_env_dict.keys():
+              if(reg_exp.match(key)):
+                  shard_db,shard_pdb=self.process_chunks_vars(key)
+                  shard_name = '''{0}_{1}'''.format(shard_db,shard_pdb)
+                  online_shard = self.check_online_shard(shard_name)
+                  if online_shard == 0:
+                     msg='''Shard {0} is online.'''.format(shard_name)
+                     self.ocommon.log_info_message(msg,self.file_name)
+                  else:
+                     msg='''Shard {0} is not online.'''.format(shard_name)
+                     self.ocommon.log_info_message(msg,self.file_name)
+                     self.ocommon.prog_exit("157")
+
+
+      def online_shard_regex(self):
+          """
+            This function return the rgex to search the ONLINE Shards
+          """
+          self.ocommon.log_info_message("Inside online_shard_regex()",self.file_name)
+          return re.compile('CHECK_ONLINE_SHARD')
+
+      def check_online_shard(self,shard_name):
+               """
+               This function check the online shard
+               """
+               self.ocommon.log_info_message("Inside check_online_shard()",self.file_name)
+               name_flag = False
+               availability_flag = False
+               state_flag = False
+               status_flag = False
+
+               gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+               cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+               cpasswd="HIDDEN_STRING"
+               gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+               self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+               gsmcmd='''
+                 connect {1}/{2};
+                 config shard -shard {0};
+                 exit;
+               '''.format(shard_name,cadmin,cpasswd)
+               output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+               ### Unsetting the encrypt value to None
+               self.ocommon.unset_mask_str()
+               lines = output.split("\n")
+               for line in lines:
+                  list1 = line.split(":")
+                  if list1[0].strip() == 'Name' and list1[1].strip().lower() == shard_name.lower():
+                     name_flag = True
+                  if list1[0].strip().lower() == 'Availability'.lower() and list1[1].strip().lower() == 'ONLINE'.lower():
+                     availability_flag = True
+                  if list1[0].strip().lower() == 'STATUS'.lower() and list1[1].strip().lower() == 'OK'.lower():
+                     status_flag = True
+                  if list1[0].strip().lower() == 'STATE'.lower() and list1[1].strip().lower() == 'DEPLOYED'.lower():
+                     state_flag = True
+
+                  del list1[:]
+
+               if name_flag and availability_flag and state_flag and status_flag:
+                  return 0
+               else:
+                  return 1
+
+      def verify_gsm_shard(self):
+          """
+           This function verify GSM shard
+          """
+          self.ocommon.log_info_message("Inside verify_gsm_shard()",self.file_name)
+          status=False
+          reg_exp= self.check_shard_regex()
+          for key in self.ora_env_dict.keys():
+              if(reg_exp.match(key)):
+                  shard_db,shard_pdb=self.process_chunks_vars(key)
+                  shard_name = '''{0}_{1}'''.format(shard_db,shard_pdb)
+                  gsm_shard = self.check_gsm_shard(shard_name)
+                  if gsm_shard == 0:
+                     msg='''Shard {0} is present in GSM.'''.format(shard_name)
+                     self.ocommon.log_info_message(msg,self.file_name)
+                  else:
+                     msg='''Shard {0} is not present in GSM.'''.format(shard_name)
+                     self.ocommon.log_info_message(msg,self.file_name)
+                     self.ocommon.prog_exit("157")
+
+      def check_shard_regex(self):
+          """
+            This function return the rgex to search the Shards in GSM
+          """
+          self.ocommon.log_info_message("Inside online_shard_regex()",self.file_name)
+          return re.compile('CHECK_GSM_SHARD')
+
+      def check_gsm_shard(self,shard_name):
+               """
+               This function check the shard in gsm
+               """
+               self.ocommon.log_info_message("Inside check_gsm_shard()",self.file_name)
+               name_flag = False
+
+               gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+               cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+               cpasswd="HIDDEN_STRING"
+               gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+               self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+               gsmcmd='''
+                 connect {1}/{2};
+                 config shard -shard {0};
+                 exit;
+               '''.format(shard_name,cadmin,cpasswd)
+               output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+               ### Unsetting the encrypt value to None
+               self.ocommon.unset_mask_str()
+               lines = output.split("\n")
+               for line in lines:
+                  list1 = line.split(":")
+                  if list1[0].strip() == 'Name' and list1[1].strip().lower() == shard_name.lower():
+                     name_flag = True
+
+                  del list1[:]
+
+               if name_flag:
+                  return 0
+               else:
+                  return 1
+
+      def count_online_shards(self):
+          """
+            This function return the returns the count of online shard
+          """   
+          self.ocommon.log_info_message("Inside count_online_shards()",self.file_name)
+          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+          cpasswd="HIDDEN_STRING"
+          gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+          self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+          gsmcmd='''
+            connect {0}/{1};
+            config shard;
+          exit;
+          '''.format(cadmin,cpasswd)
+          output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+          ### Unsetting the encrypt value to None
+          self.ocommon.unset_mask_str()
+
+          online_shard = 0
+          lines = output.split("\n")
+          for line in lines:
+              if re.search('ok', line, re.IGNORECASE):
+                 if re.search('deployed', line, re.IGNORECASE):
+                    if re.search('online', line, re.IGNORECASE):
+                       online_shard = online_shard + 1          
+
+          return online_shard
+
       def validate_gsm_shard(self):
                 """
                 This function validate the shard in the GSM
@@ -1195,6 +1528,36 @@ class OraGSM:
               msg3='''shard_group={0}'''.format((shard_group or "Missing Value"))
               msg='''Shard DB  params {0} is not set correctly. One or more value is missing {1} {2} {3}'''.format(key,msg1,msg2,msg3)
               self.ocommon.log_info_message(msg,self.file_name)
+              self.ocommon.prog_exit("Error occurred")
+
+      def process_chunks_vars(self,key):
+          """
+           This function process the chunks vars
+          """
+          shard_db=None
+          shard_pdb=None
+          self.ocommon.log_info_message("Inside process_chunks_vars()",self.file_name)
+        #  self.ocommon.log_info_message(key,self.file_name)
+          cvar_str=self.ora_env_dict[key]
+          cvar_str=cvar_str.replace('"', '')
+        #  self.ocommon.log_info_message(cvar_str,self.file_name)
+          cvar_dict=dict(item.split("=") for item in cvar_str.split(";"))
+          for ckey in cvar_dict.keys():
+             # self.ocommon.log_info_message("key : " + ckey,self.file_name)
+             # self.ocommon.log_info_message("Value: " + cvar_dict[ckey],self.file_name)
+              if ckey == 'shard_db':
+                 shard_db = cvar_dict[ckey]
+              if ckey == 'shard_pdb':
+                 shard_pdb = cvar_dict[ckey]
+              # #  self.ocommon.log_info_message("shard_host: " + shard_host, self.file_name)
+              ## Set the values if not set in above block
+
+              ### Check values must be set
+          if shard_pdb and shard_db:
+              return shard_db,shard_pdb
+          else:
+              msg1='''shard_db={0},shard_pdb={1}'''.format((shard_db or "Missing Value"),(shard_pdb or "Missing Value"))
+              self.ocommon.log_info_message(msg1,self.file_name)
               self.ocommon.prog_exit("Error occurred")
 
       def check_shard_status(self,shard_name):
@@ -1314,7 +1677,6 @@ class OraGSM:
                  dtrname=self.get_director_name(group_region)
                  gsmcmd='''
                   connect {1}/{2};
-                  MOVE CHUNK -CHUNK ALL -SOURCE {8};
                   remove shard -shard {8};
                   config vncr;
                   exit;

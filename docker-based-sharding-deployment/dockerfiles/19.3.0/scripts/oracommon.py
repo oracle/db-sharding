@@ -393,6 +393,20 @@ class OraCommon:
            self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.check_sql_err(output,error,retcode,True)
 
+      def nomount_db(self,env_dict):
+           """
+           No mount  the database
+           """
+           self.log_info_message("Inside start_db()",self.file_name)
+           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
+           sqlcmd='''
+                 startup nomount;
+           '''
+           self.log_info_message("Running the sqlplus command to start the database: " + sqlcmd,self.file_name)
+           output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+           self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+           self.check_sql_err(output,error,retcode,True)
+
       def stop_gsm(self,env_dict):
            """
            Stop the GSM
@@ -507,3 +521,22 @@ class OraCommon:
              )
            '''.format(port)
            return listener
+
+      def get_domain(self,ohost):
+           """
+           get the domain name from hostname
+           """
+           return ohost.partition('.')[2]
+   
+
+      def get_global_dbdomain(self,ohost,gdbname):
+           """
+           get the global dbname 
+           """
+           domain = self.get_domain(ohost) 
+           if domain:
+             global_dbname = gdbname + domain
+           else:
+             global_dbname = gdbname 
+              
+           return gdbname

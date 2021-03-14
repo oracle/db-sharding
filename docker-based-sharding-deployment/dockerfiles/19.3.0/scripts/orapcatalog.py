@@ -7,6 +7,7 @@
 ############################
 
 import os
+import sys
 import os.path
 import re
 import socket
@@ -47,6 +48,8 @@ class OraPCatalog:
             status = self.catalog_setup_check()
             if not status:
                self.ocommon.prog_exit("127")
+            self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
+            sys.exit(0)
           else:
             self.setup_machine()
             self.db_checks()
@@ -58,6 +61,11 @@ class OraPCatalog:
                self.reset_passwd()
                self.setup_cdb_catalog()
                self.setup_pdb_catalog()
+               self.set_primary_listener()
+               self.restart_listener()
+               self.register_services()
+               self.list_services()
+               self.backup_files()
                self.update_catalog_setup()
                self.gsm_completion_message()
                self.run_custom_scripts()
@@ -81,6 +89,7 @@ class OraPCatalog:
           self.passwd_check()
           self.set_user()
           self.sid_check()
+          self.dbuinque_name_check() 
           self.hostname_check()
           self.dbport_check()
           self.dbr_dest_checks()
@@ -142,7 +151,7 @@ class OraPCatalog:
               self.ocommon.log_info_message(msg,self.file_name)
               msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
               self.ocommon.log_info_message(msg,self.file_name)
-              cmd='''openssl enc -d -aes-256-cbc -md sha256 -salt -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
+              cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
               output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
               self.ocommon.check_os_err(output,error,retcode,True)
               passwd_file_flag = True
@@ -195,6 +204,20 @@ class OraPCatalog:
                msg="ORACLE_SID is not set, existing!"
                self.ocommon.log_error_message(msg,self.file_name)
                self.ocommon.prog_exit()
+
+      def dbuinque_name_check(self):
+           """
+           This funnction check and set the db unique name for standby
+           """
+           if self.ocommon.check_key("DB_UNIQUE_NAME",self.ora_env_dict):
+               msg='''DB_UNIQUE_NAME {0} is passed as an env variable. Check Passed!'''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
+               self.ocommon.log_info_message(msg,self.file_name)
+           else:
+               msg="DB_UNIQUE_NAME is not set. Setting DB_UNIQUE_NAME to Oracle_SID"
+               self.ocommon.log_info_message(msg,self.file_name)
+               dbsid=self.ora_env_dict["ORACLE_SID"]
+               self.ora_env_dict=self.ocommon.add_key("DB_UNIQUE_NAME",dbsid,self.ora_env_dict)
+
 
       def hostname_check(self):
            """
@@ -376,6 +399,8 @@ class OraPCatalog:
            dpump_dir = self.ora_env_dict["DATA_PUMP_DIR"]
            db_port=self.ora_env_dict["DB_PORT"]
            ohome=self.ora_env_dict["ORACLE_HOME"]
+           obase=self.ora_env_dict["ORACLE_BASE"]
+           dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
 
            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
            msg='''Setting up catalog CDB'''
@@ -386,12 +411,14 @@ class OraPCatalog:
              alter system set db_recovery_file_dest=\"{2}\" scope=both;
              alter system set open_links=16 scope=spfile;
              alter system set open_links_per_instance=16 scope=spfile;
+             alter system set dg_broker_config_file1=\"{6}/oradata/{7}/{8}/dr2{8}.dat\" scope=spfile;
+             alter system set dg_broker_config_file2=\"{6}/oradata/{7}/{8}/dr1{8}.dat\" scope=spfile;
              @{6}/rdbms/admin/setCatalogDBPrivs.sql;
              alter user gsmcatuser account unlock;
              alter user gsmcatuser identified by HIDDEN_STRING;
              alter system set dg_broker_start=true scope=both;
              alter system set local_listener='{4}:{5}' scope=both;
-           '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,ohome)
+           '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname)
 
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
@@ -442,12 +469,17 @@ class OraPCatalog:
               msg='''Setting up catalog PDB'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
+              alter pluggable database {0} close immediate;
+              alter pluggable database {0} open services=All;
+              ALTER PLUGGABLE DATABASE {0} SAVE STATE;
+              alter system register;
               alter session set container={0};
               create user {1} identified by HIDDEN_STRING;
               grant connect, create session, gsmadmin_role to {1};
               grant inherit privileges on user SYS to GSMADMIN_INTERNAL;
               execute dbms_xdb.sethttpport(8080);
               exec DBMS_SCHEDULER.SET_AGENT_REGISTRATION_PASS('HIDDEN_STRING');
+              alter system register;
               exit;
               '''.format(self.ora_env_dict["ORACLE_PDB"],self.ora_env_dict["SHARD_ADMIN_USER"])
 
@@ -513,6 +545,114 @@ class OraPCatalog:
                    cmd='''sh {0}'''.format(script_file)
                    output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
                    self.ocommon.check_os_err(output,error,retcode,True)
+
+      def set_primary_listener(self):
+          """
+           Function to set the primary listener
+          """
+          global_dbname=self.ocommon.get_global_dbdomain(self.ora_env_dict["ORACLE_HOSTNAME"],self.ora_env_dict["DB_UNIQUE_NAME"] + "_DGMRL")
+          self.set_db_listener(global_dbname,self.ora_env_dict["DB_UNIQUE_NAME"])
+          global_dbname=self.ocommon.get_global_dbdomain(self.ora_env_dict["ORACLE_HOSTNAME"],self.ora_env_dict["DB_UNIQUE_NAME"])
+          self.set_db_listener(global_dbname,self.ora_env_dict["DB_UNIQUE_NAME"])
+
+      def set_db_listener(self,gdbname,sid):
+          """
+           Funtion to reset the listener
+          """
+          self.ocommon.log_info_message("Inside reset_listener()",self.file_name)
+          start = 'SID_LIST_LISTENER'
+          end = '^\)$'
+          oracle_home=self.ora_env_dict["ORACLE_HOME"]
+          lisora='''{0}/network/admin/listener.ora'''.format(oracle_home)
+          buffer = "SID_LIST_LISTENER=" + '\n'
+          start_flag = False
+          try:
+            with open(lisora) as f:
+              for line1 in f:
+                if start_flag == False:
+                   if (re.match(start, line1.strip())):
+                      start_flag = True
+                elif (re.match(end, line1.strip())):
+                   line2 = f.next()
+                   if (re.match(end, line2.strip())):
+                      break
+                   else:
+                      buffer += line1
+                      buffer += line2
+                else:
+                   if start_flag == True:
+                      buffer += line1
+          except:
+            pass
+
+          if start_flag == True:
+              buffer +=  self.ocommon.get_sid_desc(gdbname,oracle_home,sid,"SID_DESC1")
+              listener =  self.ocommon.get_lisora(1521)
+              listener += '\n' + buffer
+          else:
+              buffer += self.ocommon.get_sid_desc(gdbname,oracle_home,sid,"SID_DESC")
+              listener =  self.ocommon.get_lisora(1521)
+              listener += '\n' + buffer
+
+          wr = open(lisora, 'w')
+          wr.write(listener)
+
+      def restart_listener(self):
+          """
+          restart listener
+          """
+          self.ocommon.log_info_message("Stopping Listener",self.file_name)
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl stop'''.format(ohome)
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,None)
+
+          self.ocommon.log_info_message("Starting Listener",self.file_name)   
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl start'''.format(ohome)
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,None)
+
+
+      def register_services(self):
+           """
+            This function setup the catalog.
+           """
+           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           # Assigning variable
+           self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+           if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
+              msg='''Setting up catalog PDB'''
+              self.ocommon.log_info_message(msg,self.file_name)
+              sqlcmd='''
+              alter system register;
+              alter session set container={0};
+              alter system register;
+              exit;
+              '''.format(self.ora_env_dict["ORACLE_PDB"],self.ora_env_dict["SHARD_ADMIN_USER"])
+
+              output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.ocommon.check_sql_err(output,error,retcode,True)
+
+           ### Unsetting the encrypt value to None
+           self.ocommon.unset_mask_str()
+
+      def list_services(self):
+          """
+          restart listener
+          """
+          self.ocommon.log_info_message("Listing Services",self.file_name)
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          cmd='''{0}/bin/lsnrctl services'''.format(ohome)
+          output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
+          self.ocommon.check_os_err(output,error,retcode,None)
+
+
+      def backup_files(self):
+          """
+           This function backup the files such as spfile, password file and other required files to a under oradata/dbconfig
+          """
 
       ############################### GSM Completion Message #######################################################
       def gsm_completion_message(self):
