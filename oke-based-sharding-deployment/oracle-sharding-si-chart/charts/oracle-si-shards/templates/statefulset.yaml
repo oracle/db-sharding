@@ -29,7 +29,6 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.global.registrySecret }}
       securityContext:
-          runAsNonRoot: true
           runAsUser: 54321
           fsGroup: 54321
       volumes:
@@ -98,6 +97,8 @@ spec:
              value: {{ .Values.env.OLD_ORACLE_SID  }}
            - name: OLD_ORACLE_PDB
              value: {{ .Values.env.OLD_ORACLE_PDB  }}
+           - name: SECRET_VOLUME
+             value: {{ .Values.env.SECRET_VOLUME  }}
           volumeMounts:
            - name: {{ include "oracle-si-shards.fullname" . }}
              mountPath: {{ .Values.pvc.DBMountLoc }} 

@@ -325,7 +325,7 @@ export ORACLE_CHARACTERSET=${ORACLE_CHARACTERSET:-AL32UTF8}
 
 # Check whether database already exists
 if [ ! -z ${CLONE_DB} ]; then
-if [ ${CLONE_DB} == "true" ]; then
+if [ ${CLONE_DB^^} == "TRUE" ]; then
 echo "CLONE_DB is set to true, cloning DB from seed"
 if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
    symLinkFiles;
@@ -356,7 +356,7 @@ fi
 fi
 fi
 
-if [ ${OP_TYPE} == "standbyshard" ]; then
+if [ ${OP_TYPE,,} == "standbyshard" ]; then
    symLinkFiles;
    if [ -f $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID/$STANDBY_STATUS ];
    then
@@ -383,7 +383,7 @@ cd $BASE_DIR
 $EXECUTOR $SCRIPT_NAME
 
 echo "The following output is now a tail of the alert.log:"
-#tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
- tail -f /etc/passwd &
+tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
+# tail -f /etc/passwd &
 childPID=$!
 wait $childPID

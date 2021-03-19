@@ -24,7 +24,6 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.global.registrySecret }}
       securityContext:
-          runAsNonRoot: true
           runAsUser: 54321
           fsGroup: 54321
       volumes:
@@ -93,6 +92,10 @@ spec:
              value: {{ .Values.gsm.env.BASE_DIR }}
            - name: KUBE_SVC
              value: {{ .Values.gsm.gsmHostName }}
+           - name: SECRET_VOLUME
+             value: {{ .Values.gsm.SECRET_VOLUME }}
+           - name: MASTER_GSM
+             value: {{ .Values.gsm.MASTER_GSM }}
           volumeMounts:
            - name: {{ include "oracle-sharding-si-chart.fullname" . }}
              mountPath: {{ .Values.gsm.pvc.DBMountLoc }} 
