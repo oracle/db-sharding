@@ -339,6 +339,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    -v /opt/containers/shard_host_file:/etc/hosts \
    --volume /opt/.secrets:/run/secrets \
    -e OP_TYPE=gsm \
+   -e MASTER_GSM="TRUE" \
    --privileged=false \
    --name gsm1 oracle/databse-gsm:19.3.0
    
@@ -385,6 +386,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
       PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For GSM it has to be set to gsm.
       DOMAIN:                   Domain of the container.
+      MASTER_GSM:               Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.
 
     Optional Parameters:
       SAMPLE_SCHEMA:            Specify a value to "DEPLOY" if you want to deploy sample app schema in catalog DB during GSM setup.

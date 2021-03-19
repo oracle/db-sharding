@@ -94,6 +94,8 @@ spec:
              value: {{ .Values.gsm.gsmHostName }}
            - name: SECRET_VOLUME
              value: {{ .Values.gsm.SECRET_VOLUME }}
+           - name: MASTER_GSM
+             value: {{ .Values.gsm.MASTER_GSM }}
           volumeMounts:
            - name: {{ include "oracle-sharding-si-chart.fullname" . }}
              mountPath: {{ .Values.gsm.pvc.DBMountLoc }} 
