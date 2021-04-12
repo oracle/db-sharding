@@ -8,25 +8,24 @@
 ---
 global:
   gsmimage:
-   repository:
-   tag:
-   pullPolicy: IfNotPresent
+   repository: < GSM Image Repository >
+   tag: < Database Image Version. Default set to 19.3.0 >
+   pullPolicy: < Image pull policy. Default set to IfNotPresent >
   dbimage:
-   repository:
-   tag:
-   pullPolicy: IfNotPresent
+   repository: < DB Image Repository >
+   tag: < Database Image Version. Default set to 19.3.0-ee >
+   pullPolicy: < Image pull policy. Default set to IfNotPresent >
   secret:
-   oraclePwd: db-user-pass
-   oraclePwdLoc: /mnt/secrets
-  strategy: Recreate
-  getScrCmd: "curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
-  registrySecret: oshardsecret
-  ocloneScrCMD: /opt/oracle/scripts/setup/runOraShardSetup.sh
+   oraclePwd: < Kubernetes secret created for db password >
+   oraclePwdLoc: < Secret mounting location >
+  strategy: < Pod creation Strategy >
+  getScrCmd: << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" >>
+  registrySecret: < Registry Secret >
   gsmports:
-   containerGSMProtocol: TCP
-   containerGSMPortName: oshardgsm-port
-   containerGSMPort: 1521
-   containerONSrPortName:  gsm-onsrport
+   containerGSMProtocol: < GSM Protocol. Default set to TCP >
+   containerGSMPortName: < GSM PORT Name>
+   containerGSMPort: < Default value of GSM Port is 1521 >
+   containerONSrPortName:  < GSM ONS PORT>
    containerONSrPort: 6234
    containerONSlPortName:  gsm-onslport
    containerONSlPort: 6123
@@ -58,24 +57,26 @@ gsm:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: oci
-   DBMountLoc: /opt/oracle/gsmdata
+   DBMountLoc: /u01/app/oracle/gsmdata
    stagingLoc: /opt/oracle/gsm/scripts/setup
   service:
    type: LoadBalancer
    port: 1521
   env:
    SHARD_DIRECTOR_PARAMS: "director_name=sharddirector1;director_region=region1;director_port=1521"
-   SHARD1_GROUP_PARAMS: "group_name=shardgroup1;deploy_as=primary;group_region=region1" 
+   SHARD1_GROUP_PARAMS: "group_name=shardgroup1;deploy_as=primary;group_region=region1"
    CATALOG_PARAMS: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2"
    SHARD1_PARAMS: "shard_host=oshard1-0.oshard1;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"
    SHARD2_PARAMS: "shard_host=oshard2-0.oshard2;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"
-   SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" 
+   SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"
    SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
    SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
    BASE_DIR: /opt/oracle/gsm/scripts/setup
-   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
-   PWD_KEY: pwd.key
-   OP_TYPE: gsm  
+   COMMON_OS_PWD_FILE: << Mandatory parameter and default value set to common_os_pwdfile.enc >>
+   PWD_KEY: << Mandatory parameter and default value set to pwd.key >>
+   OP_TYPE: << Mandatory parameter and value must be set to "gsm". >> 
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
+   MASTER_GSM: << Mandatory parameter and value must be set to "CONFIGURE". >>
 
 oshard1:
   replicaCount: 1
@@ -98,10 +99,14 @@ oshard1:
    ORACLE_PDB: ORCL1PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >> 
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >> 
   clone:
-   db:
-   ocid:  
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >>
+   ocid:
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid
@@ -129,10 +134,14 @@ oshard2:
    ORACLE_PDB: ORCL2PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db:
-   ocid:  
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >> 
+   ocid:
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid
@@ -160,10 +169,14 @@ oshard3:
    ORACLE_PDB: ORCL3PDB
    OP_TYPE: primaryshard
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db:
-   ocid:  
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >> 
+   ocid:
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid
@@ -191,10 +204,14 @@ oshard-catalog:
    ORACLE_PDB: CAT1PDB
    OP_TYPE: catalog
    DB_MEMORY: 12G
-   OLD_ORACLE_SID: goldcdb
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db:
-   ocid:  
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >>
+   ocid:
   nfs:
    storageClassName: oci-fss
    mountOptions: nosuid

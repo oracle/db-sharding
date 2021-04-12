@@ -31,7 +31,7 @@ openssl rand -hex 64 -out /tmp/.secrets/pwd.key
 Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle and database. It will be a common password for all the database users. Execute following command:
 
 ```
-openssl enc -aes-256-cbc -md md5 -salt -in /tmp/.secrets/common_os_pwdfile -out /tmp/.secrets/common_os_pwdfile.enc -pass file:/tmp/.secrets/pwd.key
+openssl enc -aes-256-cbc -md sha256 -salt -in /tmp/.secrets/common_os_pwdfile -out /tmp/.secrets/common_os_pwdfile.enc -pass file:/tmp/.secrets/pwd.key
 rm -f /tmp/.secrets/common_os_pwdfile
 ```
 Create the kubernetes a secret. In the chart, we are using db-user-pass secret so create the same or you need to override the value during chart creation.
@@ -43,6 +43,8 @@ Check the secret details:
 ```
 kubectl get secret
 ```
+## Modify Configuration
+Before you install chart, you need to review "Configuration" section and make changes in values.yaml based on your enviornment. You can also refer values.yaml.sample file to see the parameter details.
 
 ## Installing the Chart
 install the chart with the release name my-release:
@@ -79,7 +81,7 @@ global:
    oraclePwd: < Kubernetes secret created for db password >
    oraclePwdLoc: < Secret mounting location >
   strategy: < Pod creation Strategy >
-  getScrCmd: < Init container scripts >
+  getScrCmd: << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" >>
   registrySecret: < Registry Secret >
   gsmports:
    containerGSMProtocol: < GSM Protocol. Default set to TCP >
@@ -134,10 +136,11 @@ gsm:
    SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
    SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
    BASE_DIR: /opt/oracle/gsm/scripts/setup
-   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
-   PWD_KEY: pwd.key
-   OP_TYPE: gsm
-   SECRET_VOLUME: /mnt/secrets
+   COMMON_OS_PWD_FILE: << Mandatory parameter and default value set to common_os_pwdfile.enc >>
+   PWD_KEY: << Mandatory parameter and default value set to pwd.key >>
+   OP_TYPE: << Mandatory parameter and value must be set to "gsm". >> 
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
+   MASTER_GSM: << Mandatory parameter and value must be set to "CONFIGURE". >>
 ```
 
 ### Shard1 Configuration parameters
@@ -166,9 +169,11 @@ oshard1:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   SECRET_VOLUME: /mnt/secrets
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >> 
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >> 
   clone:
-   db: "no"
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >>
    ocid:
   nfs:
    storageClassName: oci-fss
@@ -202,9 +207,11 @@ oshard2:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   SECRET_VOLUME: /mnt/secrets
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db: "no"
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >> 
    ocid:
   nfs:
    storageClassName: oci-fss
@@ -239,9 +246,11 @@ oshard3:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   SECRET_VOLUME: /mnt/secrets
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db: "no"
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >> 
    ocid:
   nfs:
    storageClassName: oci-fss
@@ -276,9 +285,11 @@ oshard-catalog:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   SECRET_VOLUME: /mnt/secrets
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db: "no"
+   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >>
    ocid:
   nfs:
    storageClassName: oci-fss

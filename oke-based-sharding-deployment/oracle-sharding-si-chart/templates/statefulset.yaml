@@ -24,6 +24,7 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.global.registrySecret }}
       securityContext:
+          runAsNonRoot: true
           runAsUser: 54321
           fsGroup: 54321
       volumes:
@@ -43,6 +44,10 @@ spec:
           oraclegsm: {{ .Values.gsm.nodeselector }}
       initContainers:
         - name: "clone-{{ .Chart.Name }}"
+          securityContext:
+              runAsUser: 0
+              runAsNonRoot: false
+              privileged: true
           image: "{{ .Values.global.gsmimage.repository }}:{{ .Values.global.gsmimage.tag }}"
           imagePullPolicy: {{ .Values.global.gsmimage.pullPolicy }}
           command:
@@ -53,9 +58,13 @@ spec:
              {{ .Values.global.getScrCmd }}
              cp -r scripts/* {{ .Values.gsm.pvc.stagingLoc }}
              chmod 777 {{ .Values.gsm.pvc.stagingLoc }}/*
+             chown 54321:54321 {{ .Values.gsm.pvc.DBMountLoc }}
+             chmod 750 {{ .Values.gsm.pvc.DBMountLoc }}
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.gsm.pvc.stagingLoc }}"
+           - name: {{ include "oracle-sharding-si-chart.fullname" . }}
+             mountPath: {{ .Values.gsm.pvc.DBMountLoc }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.gsmimage.repository }}:{{ .Values.global.gsmimage.tag }}"
@@ -93,9 +102,9 @@ spec:
            - name: KUBE_SVC
              value: {{ .Values.gsm.gsmHostName }}
            - name: SECRET_VOLUME
-             value: {{ .Values.gsm.SECRET_VOLUME }}
+             value: "{{ .Values.gsm.env.SECRET_VOLUME }}"
            - name: MASTER_GSM
-             value: {{ .Values.gsm.MASTER_GSM }}
+             value: "{{ .Values.gsm.env.MASTER_GSM }}"
           volumeMounts:
            - name: {{ include "oracle-sharding-si-chart.fullname" . }}
              mountPath: {{ .Values.gsm.pvc.DBMountLoc }} 

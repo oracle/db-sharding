@@ -49,6 +49,10 @@ spec:
           oracleshard: {{ .Values.nodeselector }}
       initContainers:
         - name: "clone-{{ .Chart.Name }}"
+          securityContext:
+              runAsUser: 0
+              runAsNonRoot: false
+              privileged: true
           image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
           imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }} 
           command:
@@ -59,9 +63,13 @@ spec:
              {{ .Values.global.getScrCmd }}
              cp -r scripts/* {{ .Values.pvc.stagingLoc }}
              chmod 777 {{ .Values.pvc.stagingLoc }}/*
+             chown 54321:54321 {{ .Values.pvc.DBMountLoc }}
+             chmod 750 {{ .Values.pvc.DBMountLoc }}
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.pvc.stagingLoc }}"
+           - name: {{ include "oracle-si-shards.fullname" . }}
+             mountPath: {{ .Values.pvc.DBMountLoc }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
@@ -98,7 +106,7 @@ spec:
            - name: OLD_ORACLE_PDB
              value: {{ .Values.env.OLD_ORACLE_PDB  }}
            - name: SECRET_VOLUME
-             value: {{ .Values.env.SECRET_VOLUME  }}
+             value: "{{ .Values.env.SECRET_VOLUME }}"
           volumeMounts:
            - name: {{ include "oracle-si-shards.fullname" . }}
              mountPath: {{ .Values.pvc.DBMountLoc }} 
