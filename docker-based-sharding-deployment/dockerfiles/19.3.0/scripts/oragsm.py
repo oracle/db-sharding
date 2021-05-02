@@ -196,7 +196,7 @@ class OraGSM:
              status = self.gsm_setup_check()
              if status:
                 self.ocommon.log_info_message("Gsm Setup is already completed on this database",self.file_name)
-                self.start_gsm_director(self.ora_env_dict)
+                self.start_gsm_director()
                 self.ocommon.log_info_message("Started GSM",self.file_name)
              else:
                 # if the status = self.gsm_setup_check() return False then shard addition, catalog addition and service creation
