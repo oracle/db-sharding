@@ -70,42 +70,42 @@ The following table lists the configurable parameters of the Oracle Sharding cha
 ```
 global:
   gsmimage:
-   repository: < GSM Image Repository >
-   tag: < Database Image Version. Default set to 19.3.0 >
-   pullPolicy: < Image pull policy. Default set to IfNotPresent >
+   repository:                                     ## < GSM Image Repository >
+   tag:                                            ## << Database Image Version. E.g. 19.3.0 >>
+   pullPolicy:                                     ## << Image pull policy. E.g. IfNotPresent >>
   dbimage:
-   repository: < DB Image Repository >
-   tag: < Database Image Version. Default set to 19.3.0-ee >
-   pullPolicy: < Image pull policy. Default set to IfNotPresent >
+   repository:                                     ## << DB Image Repository >>
+   tag:                                            ## << Database Image Version. E.g. 19.3.0-ee >>
+   pullPolicy:                                     ## << Image pull policy. E.g. IfNotPresent >>
   secret:
-   oraclePwd: < Kubernetes secret created for db password >
-   oraclePwdLoc: < Secret mounting location >
-  strategy: < Pod creation Strategy >
-  getScrCmd: << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" >>
-  registrySecret: < Registry Secret >
+   oraclePwd:                                      ## << Kubernetes secret created for db password. E.g. db-user-pass >>
+   oraclePwdLoc:                                   ## << Secret mounting location inside the pod. E.g. /mnt/secrets >>
+  strategy:                                        ## << Pod creation Strategy. E.g. Recreate >>
+  getScrCmd:                                       ## << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" >>
+  registrySecret:                                  ## << Registry Secret. E.g. oshardsecret >>
   gsmports:
-   containerGSMProtocol: < GSM Protocol. Default set to TCP >
-   containerGSMPortName: < GSM PORT Name>
-   containerGSMPort: < Default value of GSM Port is 1521 >
-   containerONSrPortName:  < GSM ONS PORT>
-   containerONSrPort: 6234
-   containerONSlPortName:  gsm-onslport
-   containerONSlPort: 6123
-   containerAgentPortName:  gsm-agentport
-   containerAgentPort: 8080
+   containerGSMProtocol:                           ## << GSM Protocol. E.g. TCP >>
+   containerGSMPortName:                           ## << GSM PORT Name. E.g. oshardgsm-port>>
+   containerGSMPort:                               ## << Set the value to 1521 or to some other port based on your enviornment>>
+   containerONSrPortName:                          ## << GSM ONS Remote Port. E.g. gsm-onsrport>>
+   containerONSrPort:                              ## << Set the value 6234 or some other port based on your enviornment>>
+   containerONSlPortName:                          ## << GSM INS local Port. E.g. gsm-onslport >>
+   containerONSlPort:                              ## << Set the value to 6123 or some other port based on your enviornment>>
+   containerAgentPortName:                         ## << Set the agent Port Name. E.g. gsm-agentport >>
+   containerAgentPort:                             ## << Set the value 8080 or to some other port based on your enviornment>>
   dbports:
-   containerDBProtocol: TCP
-   containerDBPortName: db1-port
-   containerDBPort: 1521
-   containerONSrPortName:  db1-onsrport
-   containerONSrPort: 6234
-   containerONSlPortName:  db1-onslport
-   containerONSlPort: 6123
-   containerAgentPortName:  db1-agentport
-   containerAgentPort: 8080
+   containerDBProtocol:                            ## << DB Protocol. E.g. TCP >>
+   containerDBPortName:                            ## << DB Port Name. E.g. db1-port >>
+   containerDBPort:                                ## << Set the value to 1521 or some other value based on your enviornment >>
+   containerONSrPortName:                          ## << DB Ons Remote Port Name. E.g. db1-onsrport >>
+   containerONSrPort:                              ## << Set the value of DB ONS Remote Port. E.g. 6234 >>
+   containerONSlPortName:                          ## << DB Ons local Port Name. E.g. db1-onslport >>
+   containerONSlPort:                              ## << Set the value of DB ONS local Port. E.g. 6123 >>
+   containerAgentPortName:                         ## << Set the value of Agent Port Name. E.g. db1-agentport>>
+   containerAgentPort:                             ## << Set the value of Agent Port Valure. E.g. 8080>>
   service:
-   type: LoadBalancer
-   port: 1521
+   type: LoadBalancer                              ## << Set the service type. E.g. LoadBalancer >>
+   port:                                           ## << Set the K8s service port for DB. E.g. 1521 >>
 ```
 ### Shard Director configuration Parameters
 ```
@@ -169,11 +169,11 @@ oshard1:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >> 
+   OLD_ORACLE_SID: << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are using DB clone feature, you need to set the old pdb name to be cloned. >>
    SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >> 
   clone:
-   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >>
+   db: << Optional parameter and default value is set to "false" in values.yaml. Set to "true", if you are using db clone feature. >>
    ocid:
   nfs:
    storageClassName: oci-fss
@@ -207,11 +207,11 @@ oshard2:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_SID: << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are using DB clone feature, you need to set the old pdb name to be cloned. >>
    SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >> 
+   db: << Optional parameter and default value is set to "false" in values.yaml. Set to "true", if you are using db clone feature. >>
    ocid:
   nfs:
    storageClassName: oci-fss
@@ -246,11 +246,11 @@ oshard3:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_SID: << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are using DB clone feature, you need to set the old pdb name to be cloned. >>
    SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >> 
+   db: << Optional parameter and default value is set to "false" in values.yaml. Set to "true", if you are using db clone feature. >>
    ocid:
   nfs:
    storageClassName: oci-fss
@@ -285,11 +285,11 @@ oshard-catalog:
    DB_MEMORY: 12G
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old pdb name to be cloned. >>
-   OLD_ORACLE_PDB: << If you are DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_SID: << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
+   OLD_ORACLE_PDB: << If you are using DB clone feature, you need to set the old pdb name to be cloned. >>
    SECRET_VOLUME: << Mandatory parameter for secret volume inside the pod. Default value set to  "/mnt/secrets". >>
   clone:
-   db: << Optional parameter and default value is set to "no" in values.yaml. Set to "yes", if you are using db clone feature. >>
+   db: << Optional parameter and default value is set to "false" in values.yaml. Set to "true", if you are using db clone feature. >>
    ocid:
   nfs:
    storageClassName: oci-fss
