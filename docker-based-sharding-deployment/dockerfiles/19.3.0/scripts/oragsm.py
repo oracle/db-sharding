@@ -811,7 +811,7 @@ class OraGSM:
                  reg_exp= self.catalog_regex()
                  for key in self.ora_env_dict.keys():
                      if(reg_exp.match(key)):
-                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name=self.process_clog_vars(key)
+                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmcmd='''
                   add gsm -gsm {0}  -listener {1} -pwd {2} -catalog {3}:{4}/{5}  -region {6};
@@ -1702,7 +1702,7 @@ class OraGSM:
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
-                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name=self.process_clog_vars(key)
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
                  sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_pdb,admuser)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  msg='''Setting host Id null in catalog as auto vncr is disabled'''
@@ -2048,7 +2048,7 @@ class OraGSM:
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
-                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name=self.process_clog_vars(key)
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
           sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_db)
           if self.ocommon.check_key("SAMPLE_SCHEMA",self.ora_env_dict):
              if self.ora_env_dict["SAMPLE_SCHEMA"] == 'DEPLOY':
