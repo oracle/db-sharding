@@ -60,12 +60,12 @@ spec:
              chown -R 54321:54321 {{ .Values.gsm.pvc.stagingLoc }}
              chmod 755 {{ .Values.gsm.pvc.stagingLoc }}/*
              chown 54321:54321 /opt/oracle/gsmdata
-             chmod 750 {{ .Values.gsm.pvc.DBMountLoc }}
+             chmod 750 /opt/oracle/gsmdata
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.gsm.pvc.stagingLoc }}"
            - name: {{ include "oracle-sharding-si-chart.fullname" . }}
-             mountPath: {{ .Values.gsm.pvc.DBMountLoc }}
+             mountPath: /opt/oracle/gsmdata
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.gsmimage.repository }}:{{ .Values.global.gsmimage.tag }}"

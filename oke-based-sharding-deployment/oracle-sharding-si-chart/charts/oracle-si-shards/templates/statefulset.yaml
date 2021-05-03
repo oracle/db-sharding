@@ -65,7 +65,7 @@ spec:
              chown -R 54321:54321 "{{ .Values.pvc.stagingLoc }}"
              chmod 755 {{ .Values.pvc.stagingLoc }}/*
              chown 54321:54321 /opt/oracle/oradata
-             chmod 750 {{ .Values.pvc.DBMountLoc }}
+             chmod 750 /opt/oracle/oradata
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.pvc.stagingLoc }}"
