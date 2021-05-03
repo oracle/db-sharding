@@ -107,7 +107,7 @@ spec:
              value: "{{ .Values.gsm.env.MASTER_GSM }}"
           volumeMounts:
            - name: {{ include "oracle-sharding-si-chart.fullname" . }}
-             mountPath: {{ .Values.gsm.pvc.DBMountLoc }} 
+             mountPath: /opt/oracle/gsmdata
            - name: dshm
              mountPath: /dev/shm
            - name: "staging-{{ .Chart.Name }}"

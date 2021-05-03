@@ -107,9 +107,17 @@ spec:
              value: {{ .Values.env.OLD_ORACLE_PDB  }}
            - name: SECRET_VOLUME
              value: "{{ .Values.env.SECRET_VOLUME }}"
+{{- if .Values.env.SGA_SIZE }}
+           - name: INIT_SGA_SIZE
+             value: "{{ .Values.env.SGA_SIZE }}"
+{{- end }}
+{{- if .Values.env.PGA_SIZE }}
+           - name: INIT_PGA_SIZE
+             value: "{{ .Values.env.PGA_SIZE}}"
+{{- end }}
           volumeMounts:
            - name: {{ include "oracle-si-shards.fullname" . }}
-             mountPath: {{ .Values.pvc.DBMountLoc }} 
+             mountPath: /opt/oracle/oradata
            - name: "staging-{{ .Chart.Name }}"
              mountPath: {{ .Values.pvc.stagingLoc }}
            - name: "oraclepwd-{{ .Values.shardHostName }}"
