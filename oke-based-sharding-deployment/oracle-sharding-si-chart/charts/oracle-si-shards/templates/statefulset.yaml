@@ -62,14 +62,15 @@ spec:
              set -ex
              {{ .Values.global.getScrCmd }}
              cp -r scripts/* {{ .Values.pvc.stagingLoc }}
-             chmod 777 {{ .Values.pvc.stagingLoc }}/*
-             chown 54321:54321 {{ .Values.pvc.DBMountLoc }}
+             chown -R 54321:54321 "{{ .Values.pvc.stagingLoc }}"
+             chmod 755 {{ .Values.pvc.stagingLoc }}/*
+             chown 54321:54321 /opt/oracle/oradata
              chmod 750 {{ .Values.pvc.DBMountLoc }}
           volumeMounts:
            - name:  "staging-{{ .Chart.Name }}"
              mountPath: "{{ .Values.pvc.stagingLoc }}"
            - name: {{ include "oracle-si-shards.fullname" . }}
-             mountPath: {{ .Values.pvc.DBMountLoc }}
+             mountPath: /opt/oracle/oradata
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
@@ -95,8 +96,6 @@ spec:
              value: {{ .Values.shardHostName }}
            - name: ORACLE_HOSTNAME 
              value: "{{ .Values.shardHostName }}-0.{{ .Values.shardHostName }}"
-           - name: DB_MEMORY
-             value: {{ .Values.env.DB_MEMORY }}
            - name: OP_TYPE
              value: {{ .Values.env.OP_TYPE }}
            - name: CLONE_DB
