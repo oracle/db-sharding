@@ -31,7 +31,7 @@ You need to label the nodes so that shard deployment happens on the specified wo
   ```
 * Label the nodes for shard and catalog deplpyment
   ```
-  kubectl label node <node name> oraclegsm=oshard
+  kubectl label node <node name> oracleshard=oshard
   ```
 ### Docker Registry Secret
 If you need to seed the password during image pull for Oracle Database and GSM, you need to create the secret so that kubernetes can pull the images without user involvement.
@@ -132,12 +132,11 @@ global:
 gsm:
   replicaCount:                             ## << Count of Replica Pods for Shard Director/GSM . We are keeping it 1 as are going to have 1 pod for shard director >>
   gsmHostName:                              ## << Name of GSM host. Example: gsmhost  >>
-  nodeselector:                             ## << Value based on which a node will be selected to deploy Kubernetes Pod for GSM. Example: ad3 >>
+  nodeselector:                             ## << select the values you used in "Label the Nodes" for "oraclegsm". Example: "ogsm" >>
   oci:
-   region:                                  ## << Region name in OCI Cloud. Example: phx >>
-   zone:                                    ## << Availability domain in that region in OCI Cloud. Example: PHX-AD-1 >>
+   region:                                  ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/region". Example: "primary_region" >>
+   zone:                                    ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/zone" . Example: "primary_zone" >>
   pvc:                                      ## << Persistent Volume Claim  >>
-   ociAD:                                   ## << PVC Availability Domain in OCI. Example: "PHX-AD-1"  >>
    storageSize:                             ## << Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Access Mode of the PVC Storage. Example: ReadWriteOnce  >> 
    storageClassName:                        ## << Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
@@ -168,14 +167,13 @@ gsm:
 oshard1:
   replicaCount:                             ## << Count of Replica Pods for Shard1. We are keeping it 1 as are going to have 1 pod for shard 1 >>
   app:                                      ## << Application name for shard 1. Example: oshard-db1 >>
-  nodeselector:                             ## << Value based on which a node will be selected to deploy Kubernetes Pod for shard1. Example: "oshard" >>
+  nodeselector:                             ## << select the values you used in "Label the Nodes" for "oracleshard". Example: "oshard" >>
   shardHostName:                            ## << Host name for the shard 1 pod. Example: oshard1 >>
   storageType:                              ## << Type of the storage. E.g. "bv" for block volume >>
   oci:
-   region:                                  ## << Region name in OCI Cloud. In this guide, we labelled the node to "primary_region". If you are deploying on Oracle OCI Kubernetes service then you set the value of  >>
-   zone:                                    ## << Availability domain in that region in OCI Cloud. Example: "primary_zone" >>
+   region:                                  ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/region". Example: "primary_region" >>
+   zone:                                    ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/zone" . Example: "primary_zone" >>
   pvc:                                      ## << Persistent Volume Claim  >>
-   ociAD:                                   ## << Shard 1 PVC Availability Domain in OCI. Example: "PHX-AD-1" >>
    storageSize:                             ## << Shard 1 Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Shard 1 Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Shard 1 Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci. >> 
@@ -206,14 +204,13 @@ oshard1:
 oshard2:
   replicaCount:                             ## << Count of Replica Pods for Shard2. We are keeping it 1 as are going to have 1 pod for shard 2>>
   app:                                      ## << Application name for shard 2. Example: oshard-db2 >>
-  nodeselector:                             ## << Value based on which a node will be selected to deploy Kubernetes Pod for shard2. Example: "oshard" >>
+  nodeselector:                             ## << select the values you used in "Label the Nodes" for "oracleshard". Example: "oshard" >>
   shardHostName:                            ## << Host name for the shard 2 pod. Example: oshard2 >>
   storageType:                              ## << Type of the storage. E.g. "bv" for block volume >>
   oci:
-   region:                                  ## << Region name in OCI Cloud. Example: phx >>
-   zone:                                    ## << Availability domain in that region in OCI Cloud. Example: "primary_region" >>
+   region:                                  ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/region". Example: "primary_region" >>
+   zone:                                    ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/zone" . Example: "primary_zone" >>
   pvc:                                      ## << Persistent Volume Claim  >>
-   ociAD:                                   ## << Shard 2 PVC Availability Domain in OCI. Example: "primary_zone" >>
    storageSize:                             ## << Shard 2 Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Shard 2 Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Shard 2 Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
@@ -245,14 +242,13 @@ oshard2:
 oshard3:
   replicaCount:                             ## << Count of Replica Pods for Shard3. We are keeping it 1 as are going to have 1 pod for shard 2>>
   app:                                      ## << Application name for shard 3. Example: oshard-db3 >>
-  nodeselector:                             ## << Value based on which a node will be selected to deploy Kubernetes Pod for shard3. Example: "oshard ">>
+  nodeselector:                             ## << select the values you used in "Label the Nodes" for "oracleshard". Example: "oshard ">>
   shardHostName:                            ## << Host name for the shard 3 pod. Example: oshard3 >>
   storageType:                              ## << Type of the storage. E.g. "bv" for block volume >>
   oci:
-   region:                                  ## << Region name in OCI Cloud. Example: phx >>
-   zone:                                    ## << Availability domain in that region in OCI Cloud. Example: PHX-AD-1 >>
+   region:                                  ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/region". Example: "primary_region" >>
+   zone:                                    ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/zone" . Example: "primary_zone" >>
   pvc:                                      ## << Persistent Volume Claim  >>
-   ociAD:                                   ## << Shard 3 PVC Availability Domain in OCI. Example: "PHX-AD-1" >>
    storageSize:                             ## << Shard 3 Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Shard 3 Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Shard 3 Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
@@ -284,14 +280,13 @@ oshard3:
 oshard-catalog:
   replicaCount:                             ## << Count of Replica Pods for Shard3. We are keeping it 1 as are going to have 1 pod for catalog>>
   app:                                      ## << Application name for shard 3. Example: oshard-cat >>
-  nodeselector:                             ## << Value based on which a node will be selected to deploy Kubernetes Pod for shard3. Example: "oshard" >>
+  nodeselector:                             ## << select the values you used in "Label the Nodes" for "oracleshard". Example: "oshard" or  >>
   shardHostName:                            ## << Host name for the shard 3 pod. Example: oshard-catalog >>
   storageType:                              ## << Type of the storage. E.g. "bv" for block volume >>
   oci:
-   region:                                  ## << Region name in OCI Cloud. Example: phx >>
-   zone:                                    ## << Availability domain in that region in OCI Cloud. Example: "primary_region" >>
+   region:                                  ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/region". Example: "primary_region" >>
+   zone:                                    ## << select the values you used in "Label the Nodes" for "failure-domain.beta.kubernetes.io/zone" . Example: "primary_zone" >>
   pvc:                                      ## << Persistent Volume Claim  >>
-   ociAD:                                   ## << Catalog PVC Availability Domain in OCI. Example: "primary_zone"" >>
    storageSize:                             ## << Catalog Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Catalog Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Catalog Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
