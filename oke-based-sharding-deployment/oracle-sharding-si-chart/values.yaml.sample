@@ -6,20 +6,21 @@
 # MAINTAINER <paramdeep.saini@oracle.com>
 #
 ---
+---
 global:
   gsmimage:
-   repository: phx.ocir.io/intsanjaysingh/db-repo/oracle/database-gsm
-   tag: 19.3.0
+   repository: dbintg-racgsm-release.dockerhub-phx.oci.mycorp.com/oracle/database-gsm
+   tag: RDBMS_19c.0.0.0.0_LINUX.X64_210416
    pullPolicy: IfNotPresent
   dbimage:
-   repository: oracle/database
-   tag: 19.3.0-ee
+   repository: racpack-docker-images.dockerhub-phx.oci.mycorp.com/oracle/database-si
+   tag: 19c-ee
    pullPolicy: IfNotPresent
   secret:
    oraclePwd: db-user-pass
    oraclePwdLoc: /mnt/secrets
   strategy: Recreate
-  getScrCmd: "curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
+  getScrCmd: "export https_proxy=https://1.2.3.4:443; export http_proxy=http://1.2.3.4:80;curl https://codeload.github.com/oracle/db-sharding/tar.gz/master  |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
   registrySecret: oshardsecret
   ocloneScrCMD: /opt/oracle/scripts/setup/runOraShardSetup.sh
   gsmports:
@@ -54,11 +55,9 @@ gsm:
    region:  mkube
    zone: mkube
   pvc:
-   ociAD: mkube
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: standard
-   DBMountLoc: /opt/oracle/gsmdata
    stagingLoc: /opt/oracle/gsm/scripts/setup
   service:
    type: LoadBalancer
@@ -66,7 +65,7 @@ gsm:
   env:
    SHARD_DIRECTOR_PARAMS: "director_name=sharddirector1;director_region=region1;director_port=1521"
    SHARD1_GROUP_PARAMS: "group_name=shardgroup1;deploy_as=primary;group_region=region1" 
-   CATALOG_PARAMS: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2"
+   CATALOG_PARAMS: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=24"
    SHARD1_PARAMS: "shard_host=oshard1-0.oshard1;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"
    SHARD2_PARAMS: "shard_host=oshard2-0.oshard2;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"
    SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" 
@@ -89,17 +88,14 @@ oshard1:
    region:  mkube
    zone: mkube
   pvc:
-   ociAD: "mkube"
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: standard
-   DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
    ORACLE_SID: ORCL1CDB
    ORACLE_PDB: ORCL1PDB
    OP_TYPE: primaryshard
-   DB_MEMORY: 3G
    OLD_ORACLE_SID: goldcdb
    SECRET_VOLUME: "/mnt/secrets"
   clone:
@@ -121,17 +117,14 @@ oshard2:
    region: mkube
    zone: mkube
   pvc:
-   ociAD: "mkube"
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName:  standard
-   DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
    ORACLE_SID: ORCL2CDB
    ORACLE_PDB: ORCL2PDB
    OP_TYPE: primaryshard
-   DB_MEMORY: 3G
    OLD_ORACLE_SID: goldcdb
    SECRET_VOLUME: "/mnt/secrets"
   clone:
@@ -153,17 +146,14 @@ oshard3:
    region:  mkube
    zone: mkube
   pvc:
-   ociAD: "mkube"
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName:  standard
-   DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
    ORACLE_SID: ORCL3CDB
    ORACLE_PDB: ORCL3PDB
    OP_TYPE: primaryshard
-   DB_MEMORY: 3G
    OLD_ORACLE_SID: goldcdb
    SECRET_VOLUME: "/mnt/secrets"
   clone:
@@ -185,17 +175,14 @@ oshard-catalog:
    region: mkube
    zone: mkube
   pvc:
-   ociAD: "mkube"
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: standard
-   DBMountLoc: /opt/oracle/oradata
    stagingLoc: /opt/oracle/scripts/setup
   env:
    ORACLE_SID: CATCDB
    ORACLE_PDB: CAT1PDB
    OP_TYPE: catalog
-   DB_MEMORY: 3G
    OLD_ORACLE_SID: goldcdb
    OLD_ORACLE_PDB: goldpdb
    SECRET_VOLUME: "/mnt/secrets"
