@@ -182,8 +182,8 @@ oshard1:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for shard 1. Example: ORCL1CDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for shard 1. Example: ORCL1PDB >> 
    OP_TYPE:                                 ## << Mandatory variable for operation type for shard 1, set to primaryshard >> 
-   SGA_SIZE:                                ## << Optional variable for SGA SIZE for shard 1. Example: 12G>> 
-   PGA_SIZE:                                ## << Optional variable for PGA SIZE for shard 1. Example: 12G >>
+   SGA_SIZE:                                ## << Optional variable for SGA SIZE for Catalog. Example: 6144. The values are in MB. Do not add "MB" after numeric value" >> 
+   PGA_SIZE:                                ## << Optional variable for PGA SIZE for Catalog. Example: 2048. The values are in MB. Do not add "MB" after numeric value" >>
    COMMON_OS_PWD_FILE:                      ## << Encrypted OS Password file. Example: common_os_pwdfile.enc >>
    PWD_KEY:                                 ## << File with the password key. Example: pwd.key >>
    OLD_ORACLE_SID:                          ## << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
@@ -219,8 +219,8 @@ oshard2:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for shard 2. Example: ORCL2CDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for shard 2. Example: ORCL1PDB >> 
    OP_TYPE:                                 ## << Mandatory variable for operation type for shard 2, set to primaryshard >> 
-   SGA_SIZE:                                ## << Optional variable for SGA SIZE for shard 2. Example: 12G>> 
-   PGA_SIZE:                                ## << Optional  variable for PGA SIZE for shard 2. Example: 12G >>
+   SGA_SIZE:                                ## << Optional variable for SGA SIZE for Catalog. Example: 6144. The values are in MB. Do not add "MB" after numeric value" >> 
+   PGA_SIZE:                                ## << Optional variable for PGA SIZE for Catalog. Example: 2048. The values are in MB. Do not add "MB" after numeric value" >>
    COMMON_OS_PWD_FILE:                      ## << Encrupted OS Password file. Example: common_os_pwdfile.enc >>
    PWD_KEY:                                 ## << File with the password key. Example: pwd.key >>
    OLD_ORACLE_SID:                          ## << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
@@ -257,8 +257,8 @@ oshard3:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for shard 3. Example: ORCL3CDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for shard 3. Example: ORCL13PDB >> 
    OP_TYPE:                                 ## << Mandatory variable for operation type for shard 3, set to primaryshard >> 
-   SGA_SIZE:                                ## << Optional variable for SGA SIZE for shard 3. Example: 12G>> 
-   PGA_SIZE:                                ## << Optional  variable for PGA SIZE for shard 3. Example: 12G >>
+   SGA_SIZE:                                ## << Optional variable for SGA SIZE for Catalog. Example: 6144. The values are in MB. Do not add "MB" after numeric value" >> 
+   PGA_SIZE:                                ## << Optional variable for PGA SIZE for Catalog. Example: 2048. The values are in MB. Do not add "MB" after numeric value" >>
    COMMON_OS_PWD_FILE:                      ## << Encrupted OS Password file. Example: common_os_pwdfile.enc >>
    PWD_KEY:                                 ## << File with the password key. Example: pwd.key >>
    OLD_ORACLE_SID:                          ## << If you are using DB clone feature, you need to set the old cdb name to be cloned. >>
