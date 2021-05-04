@@ -75,8 +75,11 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
           imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }}
+          securityContext:
+           capabilities:
+            add: ["NET_RAW"]
 {{- if .Values.clone.db }}   
-          command: [ {{ .Values.global.ocloneScrCMD }} ]
+          command: "{{ .Values.pvc.stagingLoc }}/runOraShardSetup.sh"
 {{- end }}
           ports:
            - containerPort: {{ .Values.global.dbports.containerDBPort }}

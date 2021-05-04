@@ -70,6 +70,9 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.global.gsmimage.repository }}:{{ .Values.global.gsmimage.tag }}"
           imagePullPolicy: {{ .Values.global.gsmimage.pullPolicy }}
+          securityContext:
+           capabilities:
+            add: ["NET_RAW"]
           ports:
            - containerPort: {{ .Values.global.gsmports.containerGSMPort }}
              name: {{ .Values.global.gsmports.containerGSMPortName }}  
