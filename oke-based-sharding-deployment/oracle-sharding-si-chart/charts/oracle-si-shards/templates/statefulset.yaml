@@ -79,7 +79,7 @@ spec:
            capabilities:
             add: ["NET_RAW"]
 {{- if .Values.clone.db }}   
-          command: "{{ .Values.pvc.stagingLoc }}/runOraShardSetup.sh"
+          command: ["{{ .Values.pvc.stagingLoc }}/runOraShardSetup.sh"]
 {{- end }}
           ports:
            - containerPort: {{ .Values.global.dbports.containerDBPort }}
