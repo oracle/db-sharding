@@ -63,7 +63,7 @@ gsm:
    port:                                    ## << Port for the Kubernetes service type. Example: 1521  >> 
   env:
    SHARD_DIRECTOR_PARAMS:                   ## << Parameters director_name,director_region,director_port for Shard Director. Example: "director_name=sharddirector1;director_region=region1;director_port=1521"  >> 
-   SHARD1_GROUP_PARAM                       ## << Parameters group_name,deploy_as,group_region for the Shard Group "group_name=shardgroup1;deploy_as=primary;group_region=region1"  >> 
+   SHARD1_GROUP_PARAMS:                       ## << Parameters group_name,deploy_as,group_region for the Shard Group "group_name=shardgroup1;deploy_as=primary;group_region=region1"  >> 
    CATALOG_PARAMS:                          ## << Parameters catalog_host,catalog_db,catalog_pdb,catalog_port,catalog_name,catalog_region for Shard Catalog. Example: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=24">> 
    SHARD1_PARAMS:                           ## << Parameters like shard_host,shard_db,shard_pdb, shard_port, shard_group for shard1. Example: "shard_host=oshard1-0.oshard1;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" >> 
    SHARD2_PARAMS:                           ## << Parameters like shard_host,shard_db,shard_pdb, shard_port, shard_group for shard2. Example: "shard_host=oshard2-0.oshard2;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" >> 
