@@ -355,16 +355,22 @@ class OraCommon:
            """
            Shutdown the database
            """
-           self.log_info_message("Inside shutdown_db()",self.file_name)
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
-           sqlcmd='''
-                  shutdown immediate;
-           '''
-           self.log_info_message("Running the sqlplus command to shutdown the database: " + sqlcmd,self.file_name)
-           output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-           self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-           self.check_sql_err(output,error,retcode,True)
-
+           file="/home/oracle/shutDown.sh immediate"
+           if not os.path.isfile(file): 
+              self.log_info_message("Inside shutdown_db()",self.file_name)
+              sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
+              sqlcmd='''
+                shutdown immediate;
+              '''
+              self.log_info_message("Running the sqlplus command to shutdown the database: " + sqlcmd,self.file_name)
+              output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.check_sql_err(output,error,retcode,True)
+           else:
+              cmd='''sh {0}'''.format(file)
+              output,error,retcode=self.execute_cmd(cmd,None,None)
+              self.check_os_err(output,error,retcode,True)
+                 
       def mount_db(self,env_dict):
            """
            Mount the database
@@ -383,15 +389,21 @@ class OraCommon:
            """
            startup the database
            """
-           self.log_info_message("Inside start_db()",self.file_name)
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
-           sqlcmd='''
+           file="/home/oracle/startUp.sh"
+           if not os.path.isfile(file):
+              self.log_info_message("Inside start_db()",self.file_name)
+              sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
+              sqlcmd='''
                   startup;
-           '''
-           self.log_info_message("Running the sqlplus command to start the database: " + sqlcmd,self.file_name)
-           output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-           self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-           self.check_sql_err(output,error,retcode,True)
+              '''
+              self.log_info_message("Running the sqlplus command to start the database: " + sqlcmd,self.file_name)
+              output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.check_sql_err(output,error,retcode,True)
+           else:
+              cmd='''sh {0}'''.format(file)
+              output,error,retcode=self.execute_cmd(cmd,None,None)
+              self.check_os_err(output,error,retcode,True)
 
       def nomount_db(self,env_dict):
            """
@@ -540,3 +552,85 @@ class OraCommon:
              global_dbname = gdbname 
               
            return gdbname
+
+######### Sqlplus connect string  ###########
+      def get_sqlplus_str(self,home,osid,dbuser,password,hostname,port,svc,osep,role,wallet):
+         """
+         return the sqlplus connect string
+         """
+         path='''/usr/bin:/bin:/sbin:/usr/local/sbin:{0}/bin'''.format(home)
+         ldpath='''{0}/lib:/lib:/usr/lib'''.format(home)
+         export_cmd='''export ORACLE_HOME={0};export PATH={1};export LD_LIBRARY_PATH={2};export ORACLE_SID={3}'''.format(home,path,ldpath,osid)
+         if dbuser == 'sys' and password and hostname and port and svc:
+            return '''{5};{6}/bin/sqlplus {0}/{1}@//{2}:{3}/{4} as sysdba'''.format(dbuser,password,hostname,port,svc,export_cmd,home)
+         elif dbuser != 'sys' and password and hostname and svc:
+            return '''{5};{6}/bin/sqlplus {0}/{1}@//{2}:{3}/{4}'''.format(dbuser,password,hostname,"1521",svc,export_cmd,home)
+         elif dbuser and osep:
+            return dbuser
+         elif dbuser == 'sys' and not password:
+            return '''{1};{0}/bin/sqlplus "/ as sysdba"'''.format(home,export_cmd)
+         elif dbuser == 'sys' and  password:
+            return '''{1};{0}/bin/sqlplus {2}/{3} as sysdba'''.format(home,export_cmd,dbuser,password)
+         elif dbuser != 'sys' and password:
+            return '''{1};{0}/bin/sqlplus {2}/{3}'''.format(home,export_cmd,dbuser,password)
+         else:
+            self.log_info_message("Atleast specify db user and password for db connectivity. Exiting...",self.file_name)
+            self.prog_exit("127")
+
+######### Get Password ##############
+      def get_os_password(self):
+         """
+         get the OS password
+         """
+         ospasswd=self.get_password(None)
+         return ospasswd
+
+      def get_asm_passwd(self):
+         """
+         get the ASM password
+         """
+         asmpasswd=self.get_password(None)
+         return asmpasswd
+
+      def get_db_passwd(self):
+         """
+         get the DB password
+         """
+         dbpasswd=self.get_password(None)
+         return dbpasswd
+
+      def get_sys_passwd(self):
+         """
+         get the sys user password
+         """
+         dbpasswd=self.get_password(None)
+         return dbpasswd
+
+      def get_password(self,key):
+         """
+         get the password
+         """
+         passwd_file_flag=False
+         self.log_info_message("Getting the OS password",self.file_name)
+         if key == 'ASM':
+            pass
+         elif key == 'OS':
+            pass
+         else:
+            if self.check_key("SECRET_VOLUME",self.ora_env_dict):
+               msg='''SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
+            else:
+               self.ora_env_dict=self.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict)
+               msg='''SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
+               self.log_warn_message(msg,self.file_name)
+
+######### Get Password ##############
+      def get_oraversion(self,home):
+         """
+         get the software version
+         """
+         cmd='''{0}/bin/oraversion -majorVersion'''.format(home)
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.check_os_err(output,error,retcode,True)
+
+         return output 

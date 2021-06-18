@@ -8,7 +8,7 @@
 
 #This is the main file which calls other file to setup the sharding.
 if [ -z ${BASE_DIR} ]; then
-    BASE_DIR=$INSTALL_DIR/startup/scripts
+    BASE_DIR=$INSTALL_DIR/sharding/scripts
 fi
 
 if [ -z ${MAIN_SCRIPT} ]; then
@@ -23,7 +23,14 @@ cd $BASE_DIR
 $EXECUTOR $SCRIPT_NAME
 
 # Tail on alert log and wait (otherwise container will exit)
-echo "The following output is now a tail of the alert.log:"
-tail -f $ORACLE_BASE/diag/gsm/*/*/trace/alert*.log &
+
+if [ -z ${DEV_MODE} ]; then
+ echo "The following output is now a tail of the alert.log:"
+ tail -f $ORACLE_BASE/diag/gsm/*/*/trace/alert*.log &
+else
+ echo "The following output is now a tail of the /etc/passwd for dev mode"
+ tail -f /etc/passwd &
+fi
+ 
 childPID=$!
 wait $childPID

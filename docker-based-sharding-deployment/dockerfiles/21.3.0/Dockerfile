@@ -2,19 +2,19 @@
 # Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
 # MAINTAINER <paramdeep.saini@oracle.com>
 #
-# This is the Dockerfile for Oracle Database 21
+# This is the Dockerfile for Oracle Database 19c
 #
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------
-# (1) LINUX.X64_213000_gsm.zip
-#     Download Oracle Database 21c GSM Software
+# (1) LINUX.X64_193000_gsm.zip
+#     Download Oracle Database 19c GSM Software
 #     from http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
 #
 # HOW TO BUILD THIS IMAGE
 # -----------------------
 # Put all downloaded files in the same directory as this Dockerfile
 # Run:
-#      $ docker build -t oracle/gsm:21.3.0 .
+#      $ docker build -t oracle/gsm:19.3.0 .
 #
 # Pull base image
 # ---------------
@@ -28,8 +28,8 @@ MAINTAINER Paramdeep Saini <paramdeep.saini@oracle.com>
 # -------------------------------------------------------------
 ENV GSM_BASE="/u01/app/oracle" \
     GSM_HOME="/u01/app/oracle/product/21c/gsmhome_1" \
-    INVENTORY="/u01/app/oraInventory" \
-    INSTALL_DIR="/opt/scripts" \
+    INVENTORY="/u01/app/oracle/oraInventory" \
+    INSTALL_DIR="/opt/oracle/scripts" \
     INSTALL_FILE_1="LINUX.X64_213000_gsm.zip" \
     INSTALL_RSP="21c_gsm_install.rsp" \
     RUN_FILE="runOracle.sh" \
@@ -39,12 +39,14 @@ ENV GSM_BASE="/u01/app/oracle" \
     INSTALL_GSM_BINARIES_FILE="installGSMBinaries.sh" \
     GSM_SETUP_FILE="setupOshardEnv.sh"  \
     GSM_ENV_SETUP_FILE="setupGSM.sh" \
-    GSM_SCRIPTS="scripts"
+    GSM_SCRIPTS="scripts" \
+    MAINPY="main.py" \
+    CHECKLIVENESS="checkLiveness.sh" 
 # Use second ENV so that variable get substituted
 ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
      ORACLE_HOME=$GSM_HOME \
      ORACLE_BASE=$GSM_BASE \
-     SCRIPT_DIR=$INSTALL_DIR/startup \
+     SCRIPT_DIR=$INSTALL_DIR/sharding \
      PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH \
      GSM_PATH=$GSM_HOME/bin:/usr/sbin:$PATH \
      GSM_LD_LIBRARY_PATH=$GSM_HOME/lib:/usr/lib:/lib 
@@ -53,8 +55,8 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
 # Copy files needed during both installation and runtime
 # ------------
 COPY $INSTALL_FILE_1 $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_RSP $GSM_ENV_SETUP_FILE $INSTALL_GSM_BINARIES_FILE $GSM_SETUP_FILE $INSTALL_DIR/install/
-COPY $RUN_FILE $GSM_SETUP_FILE $USER_SCRIPTS_FILE $INSTALL_DIR/startup/ 
-COPY $GSM_SCRIPTS $INSTALL_DIR/startup/scripts
+COPY $RUN_FILE $GSM_SETUP_FILE $CHECKLIVENESS $USER_SCRIPTS_FILE $SCRIPT_DIR/
+COPY $GSM_SCRIPTS $SCRIPT_DIR/scripts/
 
 RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     sync && \
@@ -73,6 +75,7 @@ RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     rm -f $INSTALL_DIR/install/*  && \
     chown -R oracle:oinstall $SCRIPT_DIR && \
     chmod 755 $SCRIPT_DIR/*.sh && \
+    chmod 755 $SCRIPT_DIR/scripts/*.py && \
     sync
 
 USER  oracle
@@ -81,5 +84,8 @@ EXPOSE 1521
 
 VOLUME ["$GSM_BASE/oradata"]
 
+HEALTHCHECK --interval=2m --start-period=25m \
+   CMD "$SCRIPT_DIR/$CHECKLIVENESS" >/dev/null || exit 1
+
 # Define default command to start Oracle Database.
-CMD exec $INSTALL_DIR/startup/$RUN_FILE
+CMD exec $SCRIPT_DIR/$RUN_FILE
