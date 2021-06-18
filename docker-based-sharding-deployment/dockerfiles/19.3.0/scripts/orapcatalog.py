@@ -60,6 +60,9 @@ class OraPCatalog:
             else:
                self.reset_passwd()
                self.setup_cdb_catalog()
+               self.set_spfile_nonm_params()
+               self.restart_db()
+               self.alter_db()
                self.setup_pdb_catalog()
                self.set_primary_listener()
                self.restart_listener()
@@ -335,7 +338,11 @@ class OraPCatalog:
             This function drop teh catalog setup table and reste the env to default values.
            """
       #     systemStr='''{0}/bin/sqlplus {1}/{2}'''.format(self.ora_env_dict["ORACLE_HOME"],"system",self.ora_env_dict["ORACLE_PWD"])
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+      #     sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+             
+           ohome=self.ora_env_dict["ORACLE_HOME"]
+           inst_sid=self.ora_env_dict["ORACLE_SID"]
+           sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
            self.ocommon.log_info_message("Inside reset_catalog_setup",self.file_name)
            catalog_reset_file='''{0}/.catalog/reset_catalog_completed'''.format(self.ora_env_dict["HOME"])
            if self.ocommon.check_key("RESET_ENV",self.ora_env_dict):
@@ -358,9 +365,11 @@ class OraPCatalog:
            """
             This function check the catalog status.
            """
-           systemStr='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           #systemStr='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
 
-        #   self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+           ohome=self.ora_env_dict["ORACLE_HOME"]
+           inst_sid=self.ora_env_dict["ORACLE_SID"]
+           systemStr=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
            msg='''Checking shardsetup table in CDB'''
            self.ocommon.log_info_message(msg,self.file_name)
            sqlcmd='''
@@ -390,7 +399,10 @@ class OraPCatalog:
            """
             This function setup the catalog.
            """
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           ohome=self.ora_env_dict["ORACLE_HOME"]
+           inst_sid=self.ora_env_dict["ORACLE_SID"]
+           sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None) 
            # Assigning variable
            dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
            dbr_dest=self.ora_env_dict["DB_RECOVERY_FILE_DEST"]
@@ -409,12 +421,6 @@ class OraPCatalog:
              alter system set db_create_file_dest=\"{0}\" scope=both;
              alter system set db_recovery_file_dest_size={1} scope=both;
              alter system set db_recovery_file_dest=\"{2}\" scope=both;
-             alter system set open_links=16 scope=spfile;
-             alter system set open_links_per_instance=16 scope=spfile;
-             alter system set db_file_name_convert='*','{0}/' scope=spfile;
-             alter system set dg_broker_config_file1=\"{6}/oradata/{7}/{8}/dr2{8}.dat\" scope=spfile;
-             alter system set dg_broker_config_file2=\"{6}/oradata/{7}/{8}/dr1{8}.dat\" scope=spfile;
-             @{6}/rdbms/admin/setCatalogDBPrivs.sql;
              alter user gsmcatuser account unlock;
              alter user gsmcatuser identified by HIDDEN_STRING;
              alter system set dg_broker_start=true scope=both;
@@ -428,42 +434,79 @@ class OraPCatalog:
            ### Unsetting the encrypt value to None
            self.ocommon.unset_mask_str()
 
-           self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
-           self.ocommon.shutdown_db(self.ora_env_dict)
-           self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
-           self.ocommon.mount_db(self.ora_env_dict)
+      def set_spfile_nonm_params(self):
+           """
+            This function setup the catalog.
+           """
+           #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+              ohome=self.ora_env_dict["ORACLE_HOME"]
+              inst_sid=self.ora_env_dict["ORACLE_SID"]
+              sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+              self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+              dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
+              obase=self.ora_env_dict["ORACLE_BASE"]
+              dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
+                
+              msg='''Setting up catalog CDB with spfile non modifiable parameters'''
+              self.ocommon.log_info_message(msg,self.file_name)
+              sqlcmd='''
+               alter system set open_links_per_instance=16 scope=spfile;
+               alter system set db_file_name_convert='*','{0}/' scope=spfile;
+               alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
+               alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
+              '''.format(dbf_dest,obase,"dbconfig",dbuname)
 
-           self.ocommon.log_info_message("Enabling archivelog at DB level",self.file_name)
-           sqlcmd='''
-           alter database archivelog;
-           alter database open;
-           '''
-           output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-           self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-           self.ocommon.check_sql_err(output,error,retcode,True)
+              output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.ocommon.check_sql_err(output,error,retcode,True)
 
-           self.ocommon.log_info_message("Enabling flashback and force logging at DB level",self.file_name)
-           sqlcmd='''
-           alter database flashback on;
-           alter database force logging;
-           '''
-           output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-           self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-           self.ocommon.check_sql_err(output,error,retcode,None)
+      def restart_db(self):
+          """
+          restarting the db 
+          """ 
+          if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+            ohome=self.ora_env_dict["ORACLE_HOME"]
+            inst_sid=self.ora_env_dict["ORACLE_SID"]
+            sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+            self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
+            self.ocommon.shutdown_db(self.ora_env_dict)
+            self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
+            self.ocommon.start_db(self.ora_env_dict)
 
-           self.ocommon.log_info_message("Opening PDB",self.file_name)
-           sqlcmd='''
-           ALTER PLUGGABLE DATABASE ALL OPEN;
-           '''
-           output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-           self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-           self.ocommon.check_sql_err(output,error,retcode,None)
+            #self.ocommon.log_info_message("Enabling archivelog at DB level",self.file_name)
+            #sqlcmd='''
+            # alter database archivelog;
+            # alter database open;
+            #'''
+            #output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+            #self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+            #self.ocommon.check_sql_err(output,error,retcode,True)
 
+      def alter_db(self):
+          """
+          Alter db 
+          """
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          inst_sid=self.ora_env_dict["ORACLE_SID"]
+          sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+          self.ocommon.log_info_message("Enabling flashback and force logging at DB level",self.file_name)
+          sqlcmd='''
+            alter database flashback on;
+            alter database force logging;
+            ALTER PLUGGABLE DATABASE ALL OPEN;
+          '''
+          output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+          self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+          self.ocommon.check_sql_err(output,error,retcode,None)
+                           
       def setup_pdb_catalog(self):
            """
             This function setup the catalog.
            """
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           ohome=self.ora_env_dict["ORACLE_HOME"]
+           inst_sid=self.ora_env_dict["ORACLE_SID"]
+           sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)            
            # Assigning variable
            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
            if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
@@ -496,10 +539,11 @@ class OraPCatalog:
             This function update the catalog setup on this DB.
            """
        #    systemStr='''{0}/bin/sqlplus {1}/{2}'''.format(self.ora_env_dict["ORACLE_HOME"],"system","HIDDEN_STRING")
-           systemStr='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+      #     systemStr='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
 
-#           self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-
+           ohome=self.ora_env_dict["ORACLE_HOME"]
+           inst_sid=self.ora_env_dict["ORACLE_SID"]
+	   systemStr=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
            msg='''Updating shardsetup table'''
            self.ocommon.log_info_message(msg,self.file_name)
            sqlcmd='''
@@ -619,8 +663,11 @@ class OraPCatalog:
            """
             This function setup the catalog.
            """
-           sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
            # Assigning variable
+           ohome=self.ora_env_dict["ORACLE_HOME"]
+           inst_sid=self.ora_env_dict["ORACLE_SID"]
+	   sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
            if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
               msg='''Setting up catalog PDB'''
@@ -654,6 +701,28 @@ class OraPCatalog:
           """
            This function backup the files such as spfile, password file and other required files to a under oradata/dbconfig
           """
+          self.ocommon.log_info_message("Inside backup_files()",self.file_name)
+          ohome=self.ora_env_dict["ORACLE_HOME"]
+          if self.ocommon.get_oraversion(ohome) >= 21:
+             obase=self.ora_env_dict["ORACLE_BASE_HOME"]
+          else:
+             obase=self.ora_env_dict["ORACLE_BASE"]
+          dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
+          dbsid=self.ora_env_dict["ORACLE_SID"]
+          cmd_names='''
+               mkdir -p {0}/oradata/{1}/{2}
+               cp {3}/dbs/spfile{2}.ora {0}/oradata/{1}/{2}/
+               cp {3}/dbs/orapw{2}   {0}/oradata/{1}/{2}/
+               cp {3}/network/admin/sqlnet.ora {0}/oradata/{1}/{2}/
+               cp {3}/network/admin/listener.ora {0}/oradata/{1}/{2}/
+               cp {3}/network/admin/tnsnames.ora {0}/oradata/{1}/{2}/
+               touch {0}/oradata/{1}/{2}/status_completed
+          '''.format(obase,"dbconfig",dbuname,ohome)
+          cmd_list = [y for y in (x.strip() for x in cmd_names.splitlines()) if y]
+          for cmd in cmd_list:
+             msg='''Executing cmd {0}'''.format(cmd)
+             self.ocommon.log_info_message(msg,self.file_name)
+             output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)           
 
       ############################### GSM Completion Message #######################################################
       def gsm_completion_message(self):
