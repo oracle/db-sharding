@@ -24,7 +24,7 @@ $EXECUTOR $SCRIPT_NAME
 
 # Tail on alert log and wait (otherwise container will exit)
 
-if ( -z ${DEV_MODE} ]; then
+if [ -z ${DEV_MODE} ]; then
  echo "The following output is now a tail of the alert.log:"
  tail -f $ORACLE_BASE/diag/gsm/*/*/trace/alert*.log &
 else
