@@ -704,7 +704,10 @@ class OraPCatalog:
           self.ocommon.log_info_message("Inside backup_files()",self.file_name)
           ohome=self.ora_env_dict["ORACLE_HOME"]
           if self.ocommon.get_oraversion(ohome) >= 21:
-             obase=self.ora_env_dict["ORACLE_BASE_HOME"]
+             if self.ocommon.check_key("ORACLE_BASE_HOME",self.ora_env_dict):
+                obase=self.ora_env_dict["ORACLE_BASE_HOME"]
+             else:
+                obase=self.ora_env_dict["ORACLE_BASE"]
           else:
              obase=self.ora_env_dict["ORACLE_BASE"]
           dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
