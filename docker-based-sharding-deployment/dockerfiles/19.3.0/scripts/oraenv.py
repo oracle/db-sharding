@@ -122,6 +122,8 @@ class OraEnv:
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_online_shard.log"
       elif file_type == "CHECK_GSM_SHARD":
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_gsm_shard.log"
+      elif file_type == "INVITED_NODE":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/invited_nodeop.log"
       else:
         pass
 

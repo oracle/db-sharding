@@ -126,10 +126,10 @@ def main():
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("CHECK_GSM_SHARD",arg)
       elif opt in ('--invitednode'):
-           file_name = oenv.logfile_name("INVITE_NODE")
+           file_name = oenv.logfile_name("INVITED_NODE")
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
-           oenv.add_custom_variable("INVITE_NODE",arg)
+           oenv.add_custom_variable("INVITED_NODE",arg)
       else:
          pass
 
