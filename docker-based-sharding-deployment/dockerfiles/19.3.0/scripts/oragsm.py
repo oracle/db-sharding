@@ -75,6 +75,8 @@ class OraGSM:
                 self.ocommon.prog_exit("127")
              else:
                 shard_host=self.ora_env_dict["INVITED_NODE"] 
+                temp_host= shard_host.split('.',1)[0]
+                retcode1=self.perform_invited_nodeop(temp_host,"remove")
                 retcode1=self.perform_invited_nodeop(shard_host,"remove")
                 retcode=self.perform_invited_nodeop(shard_host,"add")
                 if retcode == 0:
@@ -1806,7 +1808,7 @@ class OraGSM:
                            temp_host= shard_host.split('.',1)[0] 
                            group_region=self.get_shardg_region_name(shard_group)
                            dtrname=self.get_director_name(group_region)
-                           recode=self.perform_invited_nodeop(shard_host,"remove")  
+                           recode=self.perform_invited_nodeop(temp_host,"remove")  
                 else:
                    self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!",self.file_name)  
 
