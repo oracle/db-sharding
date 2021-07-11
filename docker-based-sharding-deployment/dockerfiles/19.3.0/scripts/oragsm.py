@@ -1748,6 +1748,7 @@ class OraGSM:
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                  ### Unsetting the encrypt value to None
                  self.ocommon.unset_mask_str()
+                 retcode1=self.perform_invited_nodeop(shost,"remove")
 
       def set_hostid_null(self):
           """
