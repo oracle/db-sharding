@@ -167,6 +167,7 @@ class OraPCatalog:
               fname='''/tmp/{0}'''.format(common_os_pwd_file)
               fdata=self.ocommon.read_file(fname)
               password=fdata
+              self.ocommon.remove_file(fname)
 
            if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict):
               msg="ORACLE_PWD is passed as an env variable. Check Passed!"
