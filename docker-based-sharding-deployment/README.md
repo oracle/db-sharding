@@ -17,7 +17,19 @@ To assist in building the images, you can use the [buildDockerImage.sh](dockerfi
 
 **IMPORTANT:** Oracle Global Service Manager container is useful when you want to configure the Global Data Service Framework. The Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases. 
 
-For complete Oracle Sharding Database setup, please go through following steps and execute them as per your environment:
+## Using GSM and Sharding Image
+To deploy a Oracle Sharding topology, please execute the steps in the following sections below:
+1. [Create Oracle Global Service Manager Image](#create-oracle-global-service-manager-image)
+2. [Create Oracle Database Image](#create-oracle-database-image)
+3. [Create Extended Oracle Database Image with Sharding Feature](#create-extended-oracle-database-image-with-sharding-feature)
+4. [Create Network Bridge](create-network-bridge)
+5. [Password Setup](password-setup)
+6. [Deploying Catalog Container](#deploying-catalog-container)
+7. [Deploying Shard Containers](#deploying-shard-containers)
+8. [Deploying GSM Container](deploying-gsm-container)
+9. [Support](#support)
+10. [License](#license) 
+12. [Copyright](#copyright) 
 
 ### Create Oracle Global Service Manager Image
 **IMPORTANT:** You will have to provide the installation binaries of Oracle Global Service Manager Oracle Database 19c  (19.3) for Linux x86-64 and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You also have to make sure to have internet connectivity for yum. 
@@ -72,7 +84,7 @@ If you are planning to create a test env within a single machine, you can use a 
 # docker network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
 
-**Note:** You can change subnet and one of the above mentioned docker bridge based on your enviornment.
+**Note:** You can change subnet and choose one of the above mentioned docker network bridge based on your enviornment.
 
 ### Create Containers
 Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers:
@@ -318,12 +330,12 @@ mkdir -p /oradata/dbfiles/GSMDATA
 chown -R 54321:54321 /oradata/dbfiles/GSMDATA
 ```
 
-##### Create Container
+##### Create GSM Master Container
 ```
   docker run -d --hostname oshard-gsm1 \
    --dns-search=example.com \
    --network=shard_pub1_nw \
-   --ip=10.0.20.101 \
+   --ip=10.0.20.100 \
    -e DOMAIN=example.com \
    -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1521" \
    -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
@@ -340,7 +352,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    -e OP_TYPE=gsm \
    -e MASTER_GSM="TRUE" \
    --privileged=false \
-   --name gsm1 oracle/databse-gsm:19.3.0
+   --name gsm1 oracle/database-gsm:19.3.0
    
    Mandatory Parameters:
       SHARD_DIRECTOR_PARAMS:     Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
@@ -404,10 +416,71 @@ To check the gsm1 container/services creation logs, please tail docker logs. It 
 docker logs -f gsm1
 ```
 
+#### Create GSM Standby Container
+You need GSM standby container to serve the connection when master GSM fails.
+
+##### Create Directory
+```
+mkdir -p /oradata/dbfiles/GSM2DATA
+chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
+```
+
+##### Create Container
+```
+  docker run -d --hostname oshard-gsm2 \
+   --dns-search=example.com \
+   --network=shard_pub1_nw \
+   --ip=10.0.20.101 \
+   -e DOMAIN=example.com \
+   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=standby;director_port=1522" \
+   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=standby" \
+   -e CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=PCATCDB;catalog_pdb=PCAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=primary,standby" \
+   -e CATALOG_SETUP="True" \
+   -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
+   -e PWD_KEY=pwd.key \
+   -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
+   -v /opt/containers/shard_host_file:/etc/hosts \
+   --volume /opt/.secrets:/run/secrets \
+   -e OP_TYPE=gsm \
+   --privileged=false \
+   --name gsm2 oracle/database-gsm:19.3.0
+**Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
+
+   Mandatory Parameters:
+      CATALOG_SETUP:             Accept True. if set then , it will only restrict till catalog connection and setup.
+      CATALOG_PARAMS:            Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
+                                 key=catalog_host,       value=catalog hostname
+                                 key=catalog_db,         value=catalog cdb name
+                                 key=catalog_pdb,        value=catalog pdb name
+                                 key=catalog_port,       value=catalog db port name
+                                 key=catalog_name,       value=catalog name in GSM
+                                 key=catalog_region,     value=specify comma separated region name for catalog db deployment
+```
+
+To check the gsm2 container/services creation logs, please tail docker logs. It will take 2 minutes to create the gsm container service.
+
+```
+docker logs -f gsm2
+```
 
 **IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
 
+```
     ##############################################
 	Oracle GSM Setup Completed Successfully!
 	###############################################
 ```
+
+## Support 
+
+Oracle GSM and Sharding Database is supported for Oracle Linux 7.
+
+## License 
+
+To download and run Oracle GSM and Sharding Database, regardless whether inside or outside a Docker container, you must download the binaries from the Oracle website and accept the license indicated at that page.
+
+All scripts and files hosted in this project and GitHub docker-images/OracleDatabase repository required to build the Docker images are, unless otherwise noted, released under UPL 1.0 license.
+
+## Copyright 
+
+Copyright (c) 2014-2019 Oracle and/or its affiliates. All rights reserved.
