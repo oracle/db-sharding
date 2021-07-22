@@ -20,7 +20,8 @@ To assist in building the images, you can use the [buildDockerImage.sh](dockerfi
 For complete Oracle Sharding Database setup, please go through following steps and execute them as per your environment:
 
 ### Create Oracle Global Service Manager Image
-**IMPORTANT:** You will have to provide the installation binaries of Oracle Global Service Manager Oracle Database 19c  (19.3) for Linux x86-64 and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You also have to make sure to have internet connectivity for yum. Note that you must not uncompress the binaries.
+**IMPORTANT:** You will have to provide the installation binaries of Oracle Global Service Manager Oracle Database 19c  (19.3) for Linux x86-64 and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You also have to make sure to have internet connectivity for yum. 
+**Note:** You must not uncompress the binaries.
 
 The `buildDockerImage.sh` script is just a utility shell script that performs MD5 checks and is an easy way for beginners to get started. Expert users are welcome to directly call `docker build` with their preferred set of parameters. Before you build the image make sure that you have provided the installation binaries and put them into the right folder. Go into the **dockerfiles** folder and run the **buildDockerImage.sh** the script as root or with sudo privileges:
 
@@ -35,7 +36,20 @@ For detailed usage of command, please execute following command:
 ### Create Oracle Database Image
 To build Oracle Sharding on docker/container, you need to download and build Oracle 19.3 Database image, please refer [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) of Oracle Single Database available on Oracle GitHub repository.
 
-**Note**: You just need to create the image. You will create the container as per the steps given in this document.
+**Note**: You just need to create the image as per the instructions given in [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) but you will create the container as per the steps given in this document under [Create Container][] section.
+
+### Create Extended Oracle Database Image with Sharding Feature
+After creating the base image using buildDockerImage.sh in the previous step, use buildExtensions.sh present under the extensions folder to build an extended image that will include the Sharding Feature. Please refer [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/extensions/README.md) of extensions folder of Oracle Single Database available on Oracle GitHub repository.
+
+For example: 
+```
+./buildExtensions.sh -a -x sharding -b oracle/database:19.3.0-ee  -t oracle/database-ext-sharding:19.3.0-ee 
+
+Where:
+"-x sharding"					is to specify to have sharding feature in the extended image
+"-b oracle/database:19.3.0-ee" 			is to specify the Base image created in previous step
+"oracle/database-ext-sharding:19.3.0-ee"	is to specify the name:tag for the extended image with Sharding Feature
+```
 
 ### Create Network Bridge
 Before creating a container, create the macvlan bridge. If you are using the same bridge name with the same network subnet then you can use the same IPs mentioned in **Create Containers** section.
