@@ -36,7 +36,7 @@ For detailed usage of command, please execute following command:
 ### Create Oracle Database Image
 To build Oracle Sharding on docker/container, you need to download and build Oracle 19.3 Database image, please refer [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) of Oracle Single Database available on Oracle GitHub repository.
 
-**Note**: You just need to create the image as per the instructions given in [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) but you will create the container as per the steps given in this document under [Create Container](# Create Containers) section.
+**Note**: You just need to create the image as per the instructions given in [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) but you will create the container as per the steps given in this document under [Create Containers](#create-containers) section.
 
 ### Create Extended Oracle Database Image with Sharding Feature
 After creating the base image using buildDockerImage.sh in the previous step, use buildExtensions.sh present under the extensions folder to build an extended image that will include the Sharding Feature. Please refer [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/extensions/README.md) of extensions folder of Oracle Single Database available on Oracle GitHub repository.
@@ -52,7 +52,7 @@ Where:
 ```
 
 ### Create Network Bridge
-Before creating a container, create the macvlan bridge. If you are using the same bridge name with the same network subnet then you can use the same IPs mentioned in **Create Containers** section.
+Before creating a container, create the docker network by creating docker network bridge based on your enviornment. If you are using the bridge name with the network subnet mentioned in this README.md then you can use the same IPs mentioned in [Create Containers](#create-containers) section.
 
 #### Macvlan Bridge
 
@@ -72,9 +72,9 @@ If you are planning to create a test env within a single machine, you can use a 
 # docker network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
 
-**Note:** You can change subnet according to your environment.
+**Note:** You can change subnet and one of the above mentioned docker bridge based on your enviornment.
 
-### Create Containers.
+### Create Containers
 Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers:
 
 #### Setup Hostfile
@@ -90,25 +90,15 @@ For example:
 Add the following host entries in /opt/containers/shard_host_file as Oracle database containers do not have root access to modify the /etc/hosts file. This file must be pre-populated. You can change these entries based on your environment and network setup.
 
 ```
-127.0.0.1       localhost.localdomain   localhost
-10.0.20.101     oshard-gsm1.example.com  oshard-gsm1
-10.0.20.102    oshard-catalog-0.example.com  oshard-catalog-0
-10.0.20.103    oshard1-0.example.com   oshard1-0
-10.0.20.104    oshard2-0.example.com   oshard2-0
-10.0.20.105    oshard3-0.example.com   oshard3-0
+127.0.0.1       localhost.localdomain           localhost
+10.0.20.100     oshard-gsm1.example.com         oshard-gsm1
+10.0.20.100     oshard-gsm2.example.com         oshard-gsm2
+10.0.20.102     oshard-catalog-0.example.com    oshard-catalog-0
+10.0.20.103     oshard1-0.example.com           oshard1-0
+10.0.20.104     oshard2-0.example.com           oshard2-0
+10.0.20.105     oshard3-0.example.com           oshard3-0
+10.0.20.106     oshard4-0.example.com           oshard4-0
 ```
-
-#### Copy User Scripts to setup Env
-From the cloned Oracle Sharding repository, you need to copy `oke-based-sharding-deployment/oracle-gds-docker-image/dockerfiles/<version>/scripts` to some other directory and expose as a volume to DB containers to run the scripts to setup the Oracle Sharding containers. In our example, we created `/oradata` on docker host and copied the scripts directory under `/oradata`. Exeucte following steps:
-
-```
-mkdir /oradata
-cp -r <dockerfile_cloned_dir>/oke-based-sharding-deployment/oracle-gds-docker-image/dockerfiles/<version>/scripts /oradata/scripts
-chown -R 54321:54321 /oradata/scripts
-```
-
-**Note**: Change the ownership of /oradata/scripts contents as oracle user id inside the image is 54321.
-
 #### Password Setup
 Specify the secret volume for resetting database users password during catalog and shard setup. It can be a shared volume among all the containers
 
@@ -128,7 +118,6 @@ After seeding password and saving the `/opt/.secrets/common_os_pwdfile` file, ex
 openssl enc -aes-256-cbc -md md5 -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
 rm -f /opt/.secrets/common_os_pwdfile
 ```
-
 #### Deploying Catalog Container
 The shard catalog is a special-purpose Oracle Database that is a persistent store for SDB configuration data and plays a key role in the automated deployment and centralized management of a sharded database. It also hosts the gold schema of the application and the master copies of common reference data (duplicated tables)
 
@@ -166,7 +155,6 @@ docker run -d --hostname oshard-catalog-0 \
  -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
  -e PWD_KEY=pwd.key \
  -v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
- -v /oradata/scripts:/opt/oracle/scripts/setup \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets \
  --privileged=false \
@@ -187,7 +175,6 @@ docker run -d --hostname oshard-catalog-0 \
       OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB.
       OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
 ```
-
 
 To check the catalog container/services creation logs, please tail docker logs. It will take 20 minutes to create the catalog container service.
 
@@ -239,7 +226,6 @@ docker run -d --hostname oshard1-0 \
  -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
  -e PWD_KEY=pwd.key \
  -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
- -v /oradata/scripts:/opt/oracle/scripts/setup \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets \
  --privileged=false \
@@ -289,11 +275,10 @@ docker run -d --hostname oshard2-0 \
  -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
  -e PWD_KEY=pwd.key \
  -v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
- -v /oradata/scripts:/opt/oracle/scripts/setup \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets \
  --privileged=false \
-  --name shard2 oracle/database:19.3.0-ee
+ --name shard2 oracle/database:19.3.0-ee
   
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
