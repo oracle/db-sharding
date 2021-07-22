@@ -46,6 +46,7 @@ sqlplus / as sysdba << EOF
    alter system set open_links_per_instance=16 scope=spfile;
    alter system set dg_broker_config_file1="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr2$DB_UNIQUE_NAME.dat" scope=spfile;
    alter system set dg_broker_config_file2="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr1$DB_UNIQUE_NAME.dat" scope=spfile;
+   alter system set wallet_root="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME" scope=spfile;
    alter system set db_file_name_convert='*','/' scope=spfile; 
    shutdown immediate
    exit;

@@ -448,7 +448,7 @@ class OraPCatalog:
               dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
               obase=self.ora_env_dict["ORACLE_BASE"]
               dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
-                
+   
               msg='''Setting up catalog CDB with spfile non modifiable parameters'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
@@ -456,6 +456,7 @@ class OraPCatalog:
                alter system set db_file_name_convert='*','{0}/' scope=spfile;
                alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
                alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
+               alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
               '''.format(dbf_dest,obase,"dbconfig",dbuname)
 
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
