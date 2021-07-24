@@ -457,7 +457,6 @@ class OraPCatalog:
                      alter system set db_file_name_convert='*','{0}/' scope=spfile;
                      alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
                      alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
-                     #alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
                   '''.format(dbf_dest,obase,"dbconfig",dbuname)
 
                   output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
