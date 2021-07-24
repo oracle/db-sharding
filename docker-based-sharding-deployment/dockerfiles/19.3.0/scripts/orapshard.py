@@ -486,7 +486,7 @@ class OraPShard:
                   dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
                   obase=self.ora_env_dict["ORACLE_BASE"]
                   dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
-                  cmd='''mkdir -p {1}/oradata/{2}/{3}/wallet'''.format(dbf_dest,obase,"dbconfig",dbuname)
+                  cmd='''mkdir -p {1}/oradata/{2}/{3}/wallet; cp -r {4}/admin/* {1}/oradata/{2}/{3}/wallet'''.format(dbf_dest,obase,"dbconfig",dbuname,ohome)
                   output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)                  
                   msg='''Setting up catalog CDB with spfile non modifiable parameters'''
                   self.ocommon.log_info_message(msg,self.file_name)
