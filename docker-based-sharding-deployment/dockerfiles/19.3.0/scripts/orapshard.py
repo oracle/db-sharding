@@ -477,8 +477,8 @@ class OraPShard:
             This function setup the catalog.
            """
            #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-           if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
-              if self.ora_env_dict["CLONE_DB"].upper() == "TRUE":
+           if self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+              if self.ora_env_dict["CLONE_DB"].upper() != "TRUE":
                   ohome=self.ora_env_dict["ORACLE_HOME"]
                   inst_sid=self.ora_env_dict["ORACLE_SID"]
                   sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
@@ -505,8 +505,8 @@ class OraPShard:
           """
           restarting the db
           """
-          if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
-            if self.ora_env_dict["CLONE_DB"].upper() == "TRUE":
+          if self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+            if self.ora_env_dict["CLONE_DB"].upper() != "TRUE":
                ohome=self.ora_env_dict["ORACLE_HOME"]
                inst_sid=self.ora_env_dict["ORACLE_SID"]
                sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
