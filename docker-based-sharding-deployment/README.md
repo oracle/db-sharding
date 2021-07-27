@@ -166,6 +166,7 @@ docker run -d --hostname oshard-catalog-0 \
  -e OP_TYPE=catalog \
  -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
  -e PWD_KEY=pwd.key \
+ -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets \
@@ -235,6 +236,7 @@ docker run -d --hostname oshard1-0 \
  -e ORACLE_SID=ORCL1CDB \
  -e ORACLE_PDB=ORCL1PDB \
  -e OP_TYPE=primaryshard \
+ -e SHARD_SETUP="true" \
  -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
  -e PWD_KEY=pwd.key \
  -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
@@ -286,6 +288,7 @@ docker run -d --hostname oshard2-0 \
  -e OP_TYPE=primaryshard \
  -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
  -e PWD_KEY=pwd.key \
+ -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets \
