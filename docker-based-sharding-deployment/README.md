@@ -104,7 +104,7 @@ Add the following host entries in /opt/containers/shard_host_file as Oracle data
 ```
 127.0.0.1       localhost.localdomain           localhost
 10.0.20.100     oshard-gsm1.example.com         oshard-gsm1
-10.0.20.100     oshard-gsm2.example.com         oshard-gsm2
+10.0.20.101     oshard-gsm2.example.com         oshard-gsm2
 10.0.20.102     oshard-catalog-0.example.com    oshard-catalog-0
 10.0.20.103     oshard1-0.example.com           oshard1-0
 10.0.20.104     oshard2-0.example.com           oshard2-0
@@ -340,7 +340,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    --network=shard_pub1_nw \
    --ip=10.0.20.100 \
    -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1521" \
+   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
    -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
    -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
    -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
@@ -435,9 +435,9 @@ chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
    --network=shard_pub1_nw \
    --ip=10.0.20.101 \
    -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=standby;director_port=1522" \
-   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=standby" \
-   -e CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=PCATCDB;catalog_pdb=PCAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=primary,standby" \
+   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region1;director_port=1522" \
+   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region1" \
+   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
    -e CATALOG_SETUP="True" \
    -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
    -e PWD_KEY=pwd.key \
