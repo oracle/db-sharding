@@ -19,8 +19,9 @@ global:
    oraclePwd:                               ## << Kubernetes secret created for db password. E.g. db-user-pass >>
    oraclePwdLoc:                            ## << Secret mounting location inside the pod. E.g. /mnt/secrets >>
   strategy:                                 ## << Pod creation Strategy. E.g. Recreate >>
-  getScrCmd:                                ## << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" >>
+  getScrCmd:                                ## << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts; cp -i -r scripts/* /opt/oracle/scripts/sharding/scripts/" >>
   registrySecret:                           ## << Registry Secret. E.g. oshardsecret >>
+  ocloneScrCMD:                             ## << Cloning script to start the cloning/ E.g. /opt/oracle/scripts/sharding/runOraShardSetup.sh >>
   gsmports:
    containerGSMProtocol:                    ## << GSM Protocol. E.g. TCP >>
    containerGSMPortName:                    ## << GSM PORT Name. E.g. oshardgsm-port>>
@@ -57,7 +58,7 @@ gsm:
    storageSize:                             ## << Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Access Mode of the PVC Storage. Example: ReadWriteOnce  >> 
    storageClassName:                        ## << Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
-   stagingLoc:                              ## << Staging location for GSM scripts inside the POD. Example: /opt/oracle/gsm/scripts/setup  >> 
+   stagingLoc:                              ## << Staging location for GSM scripts inside the POD. Example: /opt/oracle/scripts/sharding/scripts  >> 
   service:
    type:                                    ## << Kubernetes service type. Example: LoadBalancer  >> 
    port:                                    ## << Port for the Kubernetes service type. Example: 1521  >> 
@@ -70,7 +71,7 @@ gsm:
    SHARD3_PARAMS:                           ## << Parameters like shard_host,shard_db,shard_pdb, shard_port, shard_group for shard3. Example: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" >> 
    SERVICE1_PARAMS:                         ## << Parameters service_name,service_role for RW DB service. Example: "service_name=oltp_rw_svc;service_role=primary" >> 
    SERVICE2_PARAMS:                         ## << Parameters service_name,service_role for RO DB service. Example: "service_name=oltp_ro_svc;service_role=primary" >> 
-   BASE_DIR:                                ## << Base Directory for the GSM Setup. Example: /opt/oracle/gsm/scripts/setup >> 
+   BASE_DIR:                                ## << Base Directory for the GSM Setup. Example: /opt/oracle/scripts/sharding/scripts >> 
    COMMON_OS_PWD_FILE:                      ## << Encrupted OS Password file >>
    PWD_KEY:                                 ## << File with the password key >>
    OP_TYPE:                                 ## << Mandatory parameter and value must be set to "gsm". >> 
@@ -90,7 +91,7 @@ oshard1:
    storageSize:                             ## << Shard 1 Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Shard 1 Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Shard 1 Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci. >> 
-   stagingLoc:                              ## << Shard 1 Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/setup >> 
+   stagingLoc:                              ## << Shard 1 Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/sharding/scripts >> 
   env:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for shard 1. Example: ORCL1CDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for shard 1. Example: ORCL1PDB >> 
@@ -124,7 +125,7 @@ oshard2:
    storageSize:                             ## << Shard 2 Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Shard 2 Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Shard 2 Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
-   stagingLoc:                              ## << Shard 2 Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/setup >> 
+   stagingLoc:                              ## << Shard 2 Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/sharding/scripts >> 
   env:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for shard 2. Example: ORCL2CDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for shard 2. Example: ORCL1PDB >> 
@@ -158,7 +159,7 @@ oshard3:
    storageSize:                             ## << Shard 3 Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Shard 3 Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Shard 3 Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
-   stagingLoc:                              ## << Shard 3 Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/setup >> 
+   stagingLoc:                              ## << Shard 3 Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/sharding/scripts >> 
   env:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for shard 3. Example: ORCL3CDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for shard 3. Example: ORCL13PDB >> 
@@ -192,7 +193,7 @@ oshard-catalog:
    storageSize:                             ## << Catalog Size of the PVC Storage. Example: 50Gi  >>
    accessModes:                             ## << Catalog Access Mode of the PVC Storage. Example: ReadWriteOnce >> 
    storageClassName:                        ## << Catalog Plugin for Volume plugin used by a Persistent Volume Claim. Example: oci  >> 
-   stagingLoc:                              ## << Catalog Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/setup >> 
+   stagingLoc:                              ## << Catalog Staging location for shard1 setup scripts inside the pod. Example: /opt/oracle/scripts/sharding/scripts >> 
   env:
    ORACLE_SID:                              ## << Mandatory variable for CDB SID Name for Catalog. Example: CATCDB >> 
    ORACLE_PDB:                              ## << Mandatory variable for PDB Name for Catalog. Example: ORCL13PDB >> 

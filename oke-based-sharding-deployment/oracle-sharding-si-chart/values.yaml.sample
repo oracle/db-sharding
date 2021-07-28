@@ -20,9 +20,9 @@ global:
    oraclePwd: db-user-pass
    oraclePwdLoc: /mnt/secrets
   strategy: Recreate
-  getScrCmd: "export https_proxy=https://1.2.3.4:443; export http_proxy=http://1.2.3.4:80;curl https://codeload.github.com/oracle/db-sharding/tar.gz/master  |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" 
+  getScrCmd: "export https_proxy=https://1.2.3.4:443; export http_proxy=http://1.2.3.4:80;curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts; cp -i -r scripts/* /opt/oracle/scripts/sharding/scripts/"
   registrySecret: oshardsecret
-  ocloneScrCMD: /opt/oracle/scripts/setup/runOraShardSetup.sh
+  ocloneScrCMD: /opt/oracle/scripts/sharding/runOraShardSetup.sh
   gsmports:
    containerGSMProtocol: TCP
    containerGSMPortName: oshardgsm-port
@@ -58,7 +58,7 @@ gsm:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: standard
-   stagingLoc: /opt/oracle/gsm/scripts/setup
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
   service:
    type: LoadBalancer
    port: 1521
@@ -71,7 +71,6 @@ gsm:
    SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" 
    SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
    SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
-   BASE_DIR: /opt/oracle/gsm/scripts/setup
    COMMON_OS_PWD_FILE: common_os_pwdfile.enc
    PWD_KEY: pwd.key
    OP_TYPE: gsm  
@@ -91,7 +90,7 @@ oshard1:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: standard
-   stagingLoc: /opt/oracle/scripts/setup
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
   env:
    ORACLE_SID: ORCL1CDB
    ORACLE_PDB: ORCL1PDB
@@ -120,7 +119,7 @@ oshard2:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName:  standard
-   stagingLoc: /opt/oracle/scripts/setup
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
   env:
    ORACLE_SID: ORCL2CDB
    ORACLE_PDB: ORCL2PDB
@@ -149,7 +148,7 @@ oshard3:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName:  standard
-   stagingLoc: /opt/oracle/scripts/setup
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
   env:
    ORACLE_SID: ORCL3CDB
    ORACLE_PDB: ORCL3PDB
@@ -178,7 +177,7 @@ oshard-catalog:
    storageSize: 50Gi
    accessModes: ReadWriteOnce
    storageClassName: standard
-   stagingLoc: /opt/oracle/scripts/setup
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
   env:
    ORACLE_SID: CATCDB
    ORACLE_PDB: CAT1PDB

@@ -91,6 +91,8 @@ spec:
            - containerPort: {{ .Values.global.dbports.containerAgentPort }}
              name: {{ .Values.global.dbports.containerAgentPortName }}
           env:
+           - name: SHARD_SETUP
+             value: "true"
            - name: ORACLE_SID
              value: {{ .Values.env.ORACLE_SID }}
            - name: ORACLE_PDB
