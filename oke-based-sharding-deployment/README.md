@@ -8,7 +8,7 @@ Helm is the package manager (analogous to yum and apt) and Charts are packages (
 To deploy Oracle Sharding on OKE using Helm and Chart, execute following steps in a given order:
 * [Create Container Engine for Kubernetes](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm)
    * You must have 1 node in each AD to distribute the shards across ADs
-   * if you want to automate OKE deployment, you can refer following:
+   * If you want to automate OKE deployment, you can refer following:
      * [Ansible Collection](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/ansible.htm)
      * [Terraform Provider](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/terraform.htm)
 * [Deploy Oracle Sharding using Helm and Chart](./oracle-sharding-si-chart/README.md)
