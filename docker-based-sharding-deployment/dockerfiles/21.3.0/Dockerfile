@@ -63,15 +63,15 @@ RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     $INSTALL_DIR/install/$CHECK_SPACE_FILE && \
     $INSTALL_DIR/install/$SETUP_LINUX_FILE && \
     $INSTALL_DIR/install/$GSM_ENV_SETUP_FILE  && \
-    sed -e '/hard *memlock/s/^/#/g' -i /etc/security/limits.d/oracle-database-preinstall-19c.conf && \
+    sed -e '/hard *memlock/s/^/#/g' -i /etc/security/limits.d/oracle-database-preinstall-21c.conf && \
     su oracle -c "$INSTALL_DIR/install/$INSTALL_GSM_BINARIES_FILE" && \
     $INVENTORY/orainstRoot.sh && \
     $GSM_HOME/root.sh && \
     rm -rf $INSTALL_DIR/install && \
-    rm -f /etc/sysctl.d/99-oracle-database-preinstall-19c-sysctl.conf && \
+    rm -f /etc/sysctl.d/99-oracle-database-preinstall-21c-sysctl.conf && \
     rm -f /etc/sysctl.d/99-sysctl.conf && \
-    rm -f /etc/rc.d/init.d/oracle-database-preinstall-19c-firstboot && \
-    rm -f /etc/security/limits.d/oracle-database-preinstall-19c.conf && \
+    rm -f /etc/rc.d/init.d/oracle-database-preinstall-21c-firstboot && \
+    rm -f /etc/security/limits.d/oracle-database-preinstall-21c.conf && \
     rm -f $INSTALL_DIR/install/*  && \
     chown -R oracle:oinstall $SCRIPT_DIR && \
     chmod 755 $SCRIPT_DIR/*.sh && \
