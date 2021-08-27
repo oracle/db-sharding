@@ -8,8 +8,8 @@ This chart bootstraps a single catalog, 3 shards along with 2 shard directors de
 * Kubernetes 1.10+
 * To Deploy kubernetes cluster with 3 nodes in worker node pool and 2 worker nodes in gsm (for shard director) node pool on OKE, please refer Deploy Kubernetes cluster on OKE for Sharding. 
 * PV provisioner support in the underlying infrastructure. Since we have used OCI, we used the oci class for persistent volumes.
-* Oracle Database 19.3 image must be available to be pulled from your registry server.
-* Oracle GSM 19.3 image must be available to be pulled from your registry server.
+* Oracle Database 21.3 image must be available to be pulled from your registry server.
+* Oracle GSM 21.3 image must be available to be pulled from your registry server.
 * Pods must have GitHub access to pull required scripts to setup the shard on Oracle Databases. Otherwise, you need to specify the script staging location available on pods.
 
 ## Creating the Kubernetes Secret
@@ -91,17 +91,17 @@ The following table lists the configurable parameters of the Oracle Sharding cha
 global:
   gsmimage:
    repository:                              ## < GSM Image Repository >
-   tag:                                     ## << Database Image Version. E.g. 19.3.0 >>
+   tag:                                     ## << Database Image Version. E.g. 21.3.0 >>
    pullPolicy:                              ## << Image pull policy. E.g. IfNotPresent >>
   dbimage:
    repository:                              ## << DB Image Repository >>
-   tag:                                     ## << Database Image Version. E.g. 19.3.0-ee >>
+   tag:                                     ## << Database Image Version. E.g. 21.3.0-ee >>
    pullPolicy:                              ## << Image pull policy. E.g. IfNotPresent >>
   secret:
    oraclePwd:                               ## << Kubernetes secret created for db password. E.g. db-user-pass >>
    oraclePwdLoc:                            ## << Secret mounting location inside the pod. E.g. /mnt/secrets >>
   strategy:                                 ## << Pod creation Strategy. E.g. Recreate >>
-  getScrCmd:                                ## << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts" >>
+  getScrCmd:                                ## << Init container scripts. If you are behind proxy you need to add "export https_proxy=<PROXY_NAME:PORT" and change it to "export https_proxy=<PROXY_NAME:PORT> ; curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/21.3.0/scripts" >>
   registrySecret:                           ## << Registry Secret. E.g. oshardsecret >>
   gsmports:
    containerGSMProtocol:                    ## << GSM Protocol. E.g. TCP >>
