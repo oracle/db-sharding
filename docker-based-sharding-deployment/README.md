@@ -11,6 +11,7 @@ Please review README of following sections in a given order. After reviewing the
     * Please refer to [Oracle Container Runtime for Docker Documentation](https://docs.oracle.com/cd/E52668_01/E87205/html/index.html) to install and configure docker-engine. You can use XFS file system with overlay2 file system.
 
 This project offers sample Dockerfiles for:
+  * Oracle Database 21c Global Service Manager (GSM/GDS) (21.3) for Linux x86-64
   * Oracle Database 19c Global Service Manager (GSM/GDS) (19.3) for Linux x86-64
 
 To assist in building the images, you can use the [buildDockerImage.sh](dockerfiles/buildDockerImage.sh) script.See section **Create Oracle Global Service Manager Image** for instructions and usage.
