@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+# LICENSE UPL 1.0
 # Since: November, 2020
 # Author: paramdeep.saini@oracle.com
 # Description: Build script for building RAC container image

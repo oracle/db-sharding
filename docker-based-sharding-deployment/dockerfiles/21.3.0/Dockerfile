@@ -11,15 +11,15 @@
 #
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------
-# (1) LINUX.X64_193000_gsm.zip
-#     Download Oracle Database 19c GSM Software
+# (1) LINUX.X64_213000_gsm.zip
+#     Download Oracle Database 21c GSM Software
 #     from http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
 #
 # HOW TO BUILD THIS IMAGE
 # -----------------------
 # Put all downloaded files in the same directory as this Dockerfile
 # Run:
-#      $ docker build -t oracle/gsm:19.3.0 .
+#      $ docker build -t oracle/gsm:21.3.0 .
 #
 # Pull base image
 # ---------------

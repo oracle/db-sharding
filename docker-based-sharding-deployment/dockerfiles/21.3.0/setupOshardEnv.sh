@@ -1,7 +1,14 @@
 #!/bin/bash
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# MAINTAINER <paramdeep.saini@oracle.com>
+#
+# LICENSE UPL 1.0
+# Since: November, 2020
+# Author: paramdeep.saini@oracle.com
+# Description:
+#
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
 
 export NOW=$(date +"%Y%m%d%H%M")
 export LOGDIR="/tmp"
