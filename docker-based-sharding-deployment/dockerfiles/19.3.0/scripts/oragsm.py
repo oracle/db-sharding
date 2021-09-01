@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 import os
 import sys
@@ -57,7 +57,7 @@ class OraGSM:
                 self.add_invited_node("ADD_SHARD")
                 self.remove_invited_node("ADD_SHARD")
                 sys.exit(0)
-          elif self.ocommon.check_key("DEPLOY_SHARD",self.ora_env_dict):
+          if self.ocommon.check_key("DEPLOY_SHARD",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
              if not status:
@@ -67,22 +67,6 @@ class OraGSM:
                 self.deploy_shard()
                 self.setup_gsm_service()
                 sys.exit(0)
-          elif self.ocommon.check_key("INVITED_NODE",self.ora_env_dict):
-             self.catalog_checks()
-             status = self.catalog_setup_checks()
-             if not status:
-                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
-                self.ocommon.prog_exit("127")
-             else:
-                shard_host=self.ora_env_dict["INVITED_NODE"] 
-                temp_host= shard_host.split('.',1)[0]
-                retcode1=self.perform_invited_nodeop(temp_host,"remove")
-                retcode1=self.perform_invited_nodeop(shard_host,"remove")
-                retcode=self.perform_invited_nodeop(shard_host,"add")
-                if retcode == 0:
-                  sys.exit(0)
-                else:
-                  sys.exit(1)
           elif self.ocommon.check_key("ADD_SGROUP_PARAMS",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -352,7 +336,6 @@ class OraGSM:
                     fname='''/tmp/{0}'''.format(common_os_pwd_file)
                     fdata=self.ocommon.read_file(fname)
                     password=fdata
-                    self.ocommon.remove_file(fname) 
 
                  if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict):
                     msg="ORACLE_PWD is passed as an env variable. Check Passed!"
@@ -1741,7 +1724,6 @@ class OraGSM:
                  gsmcmd='''
                   connect {1}/{2};
                   remove shard -shard {8};
-                  remove cdb -cdb {5} 
                   config vncr;
                   exit;
                   '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
@@ -1749,7 +1731,6 @@ class OraGSM:
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                  ### Unsetting the encrypt value to None
                  self.ocommon.unset_mask_str()
-                 retcode1=self.perform_invited_nodeop(shost,"remove")
 
       def set_hostid_null(self):
           """
@@ -1786,12 +1767,22 @@ class OraGSM:
                 else:
                    reg_exp = self.add_shard_regex()
 
+                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                cpasswd="HIDDEN_STRING"
+                #dtrname,dtrport,dtregion=self.process_director_vars()
+                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                 for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
                         shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
                         group_region=self.get_shardg_region_name(shard_group)
                         dtrname=self.get_director_name(group_region)
-                        retcode=self.perform_invited_nodeop(shard_host,"add") 
+                        gsmcmd='''
+                         connect {1}/{2};
+                         add invitednode {3};
+                         exit;
+                        '''.format("NA",cadmin,cpasswd,shard_host)
+                        output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
       def remove_invited_node(self,op_str):
                 """
@@ -1803,6 +1794,12 @@ class OraGSM:
                 else:
                    reg_exp = self.add_shard_regex()
 
+                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                cpasswd="HIDDEN_STRING"
+                #dtrname,dtrport,dtregion=self.process_director_vars()
+                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+
                 if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
                    for key in self.ora_env_dict.keys():
                        if(reg_exp.match(key)):
@@ -1810,25 +1807,15 @@ class OraGSM:
                            temp_host= shard_host.split('.',1)[0] 
                            group_region=self.get_shardg_region_name(shard_group)
                            dtrname=self.get_director_name(group_region)
-                           recode=self.perform_invited_nodeop(temp_host,"remove")  
+                           gsmcmd='''
+                            connect {1}/{2};
+                            remove invitednode {3};
+                            exit;
+                           '''.format("NA",cadmin,cpasswd,temp_host)
+                           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                 else:
                    self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!",self.file_name)  
 
-      def perform_invited_nodeop(self,shard_host,op_type):
-               """
-               Perform Node addition and deletion
-               """
-               gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
-               cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
-               cpasswd="HIDDEN_STRING"
-               self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-               gsmcmd='''
-                  connect {1}/{2};
-                  {4} invitednode {3}
-                  exit;
-               '''.format("NA",cadmin,cpasswd,shard_host,op_type)
-               output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-               return retcode
 
       def deploy_shard(self):
                 """

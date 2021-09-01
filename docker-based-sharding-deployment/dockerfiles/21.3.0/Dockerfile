@@ -1,8 +1,13 @@
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2018,2021 Oracle and/or its affiliates.
+#
+# ORACLE DOCKERFILES PROJECT
+# --------------------------
+# This is the Dockerfile for Oracle GSM 21c Release 3 to build the container image
 # MAINTAINER <paramdeep.saini@oracle.com>
 #
-# This is the Dockerfile for Oracle Database 19c
+# This is the Dockerfile for Oracle GSM  21c
 #
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------

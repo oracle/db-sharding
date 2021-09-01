@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 """
  This file read the env variables from a file or using env command and populate them in  variable 
@@ -122,8 +122,6 @@ class OraEnv:
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_online_shard.log"
       elif file_type == "CHECK_GSM_SHARD":
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_gsm_shard.log"
-      elif file_type == "INVITED_NODE":
-         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/invited_nodeop.log"
       else:
         pass
 

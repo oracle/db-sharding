@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 """
 This is the main file which calls other file to setup the sharding.
@@ -20,7 +20,7 @@ def main():
 
    # Checking Comand line Args
    try:
-      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','validatenochunks=','invitednode=','help'])
+      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','validatenochunks=','help'])
    except getopt.GetoptError:
       pass
   
@@ -45,7 +45,7 @@ def main():
 
    for opt, arg in opts:
       if opt in ('--help'):
-         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', '--invitednode', or --help'''
+         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', or --help'''
          stdout_handler.handle(oralogger)
       elif opt in ('--addshard'):
            file_name = oenv.logfile_name("ADD_SHARD")   
@@ -125,11 +125,6 @@ def main():
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("CHECK_GSM_SHARD",arg)
-      elif opt in ('--invitednode'):
-           file_name = oenv.logfile_name("INVITED_NODE")
-           oralogger.filename_ =  file_name
-           ocommon.log_info_message("=======================================================================",file_name)
-           oenv.add_custom_variable("INVITED_NODE",arg)
       else:
          pass
 

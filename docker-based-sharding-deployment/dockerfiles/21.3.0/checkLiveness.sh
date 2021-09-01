@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# Since: November, 2020
+# Author: paramdeep.saini@oracle.com
+# Description: Build script for building RAC container image
+#
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
 
 export PYTHON="/bin/python"
 

@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 
 import os
@@ -189,7 +190,7 @@ class OraPShard:
               output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
               self.ocommon.check_os_err(output,error,retcode,True) 
               passwd_file_flag = True
-            
+
            if not passwd_file_flag:
               s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
               passlen = 8
@@ -198,7 +199,6 @@ class OraPShard:
               fname='''/tmp/{0}'''.format(common_os_pwd_file)
               fdata=self.ocommon.read_file(fname)
               password=fdata
-              self.ocommon.remove_file(fname)
 
            if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict):
               msg="ORACLE_PWD is passed as an env variable. Check Passed!"
@@ -477,44 +477,40 @@ class OraPShard:
             This function setup the catalog.
            """
            #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-           if self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
-              if self.ora_env_dict["CLONE_DB"].upper() != "TRUE":
-                  ohome=self.ora_env_dict["ORACLE_HOME"]
-                  inst_sid=self.ora_env_dict["ORACLE_SID"]
-                  sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
-                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                  dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
-                  obase=self.ora_env_dict["ORACLE_BASE"]
-                  dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
-                  cmd='''mkdir -p {1}/oradata/{2}/{3}/wallet; cp -r {4}/admin/* {1}/oradata/{2}/{3}/wallet'''.format(dbf_dest,obase,"dbconfig",dbuname,ohome)
-                  output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)                  
-                  msg='''Setting up catalog CDB with spfile non modifiable parameters'''
-                  self.ocommon.log_info_message(msg,self.file_name)
-                  sqlcmd='''
-                     alter system set open_links_per_instance=16 scope=spfile;
-                     alter system set open_links=16 scope=spfile; 
-                     alter system set db_file_name_convert='*','{0}/' scope=spfile;
-                     alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
-                     alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
-                     alter system set wallet_root=\"{1}/oradata/{2}/{3}/wallet\" scope=spfile;
-                  '''.format(dbf_dest,obase,"dbconfig",dbuname)
-                  output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-                  self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-                  self.ocommon.check_sql_err(output,error,retcode,True)
+           if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+              ohome=self.ora_env_dict["ORACLE_HOME"]
+              inst_sid=self.ora_env_dict["ORACLE_SID"]
+              sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+              self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+              dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
+              obase=self.ora_env_dict["ORACLE_BASE"]
+              dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
+
+              msg='''Setting up catalog CDB with spfile non modifiable parameters'''
+              self.ocommon.log_info_message(msg,self.file_name)
+              sqlcmd='''
+               alter system set open_links_per_instance=16 scope=spfile;
+               alter system set open_links=16 scope=spfile; 
+               alter system set db_file_name_convert='*','{0}/' scope=spfile;
+               alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
+               alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
+              '''.format(dbf_dest,obase,"dbconfig",dbuname)
+              output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.ocommon.check_sql_err(output,error,retcode,True)
 
       def restart_db(self):
           """
           restarting the db
           """
-          if self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
-            if self.ora_env_dict["CLONE_DB"].upper() != "TRUE":
-               ohome=self.ora_env_dict["ORACLE_HOME"]
-               inst_sid=self.ora_env_dict["ORACLE_SID"]
-               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
-               self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
-               self.ocommon.shutdown_db(self.ora_env_dict)
-               self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
-               self.ocommon.start_db(self.ora_env_dict)
+          if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+            ohome=self.ora_env_dict["ORACLE_HOME"]
+            inst_sid=self.ora_env_dict["ORACLE_SID"]
+            sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+            self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
+            self.ocommon.shutdown_db(self.ora_env_dict)
+            self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
+            self.ocommon.start_db(self.ora_env_dict)
 
            # self.ocommon.log_info_message("Enabling archivelog at DB level",self.file_name)
            # sqlcmd='''
@@ -788,10 +784,7 @@ class OraPShard:
           self.ocommon.log_info_message("Inside backup_files()",self.file_name)
           ohome=self.ora_env_dict["ORACLE_HOME"]
           if self.ocommon.get_oraversion(ohome) >= 21:
-             if self.ocommon.check_key("ORACLE_BASE_HOME",self.ora_env_dict):
-                obase=self.ora_env_dict["ORACLE_BASE_HOME"]
-             else:
-                obase=self.ora_env_dict["ORACLE_BASE"]
+             obase=self.ora_env_dict["ORACLE_BASE_HOME"]
           else:
              obase=self.ora_env_dict["ORACLE_BASE"]
           obase=self.ora_env_dict["ORACLE_BASE"]
