@@ -14,7 +14,7 @@ This project offers sample Dockerfiles for:
   * Oracle Database 21c Global Service Manager (GSM/GDS) (21.3) for Linux x86-64
   * Oracle Database 19c Global Service Manager (GSM/GDS) (19.3) for Linux x86-64
 
-To assist in building the images, you can use the [buildDockerImage.sh](dockerfiles/buildDockerImage.sh) script.See section **Create Oracle Global Service Manager Image** for instructions and usage.
+To assist in building the images, you can use the [buildContainerImage.sh](dockerfiles/buildContainerImage.sh) script.See section **Create Oracle Global Service Manager Image** for instructions and usage.
 
 **IMPORTANT:** Oracle Global Service Manager container is useful when you want to configure the Global Data Service Framework. The Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases. 
 
@@ -36,15 +36,15 @@ To deploy a Oracle Sharding topology, please execute the steps in the following 
 **IMPORTANT:** You will have to provide the installation binaries of Oracle Global Service Manager Oracle Database 19c  (19.3) for Linux x86-64 and put them into the `dockerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You also have to make sure to have internet connectivity for yum. 
 **Note:** You must not uncompress the binaries.
 
-The `buildDockerImage.sh` script is just a utility shell script that performs MD5 checks and is an easy way for beginners to get started. Expert users are welcome to directly call `docker build` with their preferred set of parameters. Before you build the image make sure that you have provided the installation binaries and put them into the right folder. Go into the **dockerfiles** folder and run the **buildDockerImage.sh** the script as root or with sudo privileges:
+The `buildContainerImage.sh` script is just a utility shell script that performs MD5 checks and is an easy way for beginners to get started. Expert users are welcome to directly call `docker build` with their preferred set of parameters. Before you build the image make sure that you have provided the installation binaries and put them into the right folder. Go into the **dockerfiles** folder and run the **buildContainerImage.sh** the script as root or with sudo privileges:
 
 ```
-./buildDockerImage.sh -v (Software Version)
-./buildDockerImage.sh -v 19.3.0
+./buildContainerImage.sh -v (Software Version)
+./buildContainerImage.sh -v 19.3.0
 ```
 For detailed usage of command, please execute following command:
 ```
-./buildDockerImage.sh -h
+./buildContainerImage.sh -h
 ```
 ### Create Oracle Database Image
 To build Oracle Sharding on docker/container, you need to download and build Oracle 19.3 Database image, please refer [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) of Oracle Single Database available on Oracle GitHub repository.
@@ -52,7 +52,7 @@ To build Oracle Sharding on docker/container, you need to download and build Ora
 **Note**: You just need to create the image as per the instructions given in [README.MD](https://github.com/oracle/docker-images/blob/master/OracleDatabase/SingleInstance/README.md) but you will create the container as per the steps given in this document under [Create Containers](#create-containers) section.
 
 ### Create Extended Oracle Database Image with Sharding Feature
-After creating the base image using buildDockerImage.sh in the previous step, use buildExtensions.sh present under the extensions folder to build an extended image that will include the Sharding Feature. Please refer [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/extensions/README.md) of extensions folder of Oracle Single Database available on Oracle GitHub repository.
+After creating the base image using buildContainerImage.sh in the previous step, use buildExtensions.sh present under the extensions folder to build an extended image that will include the Sharding Feature. Please refer [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/extensions/README.md) of extensions folder of Oracle Single Database available on Oracle GitHub repository.
 
 For example: 
 ```
@@ -128,7 +128,7 @@ vi /opt/.secrets/common_os_pwdfile
 
 After seeding password and saving the `/opt/.secrets/common_os_pwdfile` file, execute following command:  
 ```
-openssl enc -aes-256-cbc -md md5 -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
+openssl enc -aes-256-cbc -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
 rm -f /opt/.secrets/common_os_pwdfile
 ```
 #### Deploying Catalog Container
