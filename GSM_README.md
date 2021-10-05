@@ -125,7 +125,7 @@ Before performing catalog container, review the following notes carefully:
  * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
  * Change /oradata/dbfiles/CATALOG based on your enviornment.
  * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
- * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:21.3.0-ee` to `--name catalog oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+ * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog container-registry.oracle.com/database/enterprise:21.3.0.0` to `--name catalog container-registry.oracle.com/database/enterprise:21.3.0.0 /opt/oracle/scripts/sharding/runOraShardSetup.sh`
    * In this case, /oradata/dbfiles/CATALOG must contain the DB backup and it must not be in zipped format. E.g. /oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB. 
 ```
 docker run -d --hostname oshard-catalog-0 \
@@ -196,7 +196,7 @@ Before creating shard1 container, review the following notes carefully:
  * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
  * Change /oradata/dbfiles/ORCL1CDB based on your enviornment.
  * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
- * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:21.3.0-ee` to `--name shard1 oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+ * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 container-registry.oracle.com/database/enterprise:21.3.0.0` to `--name shard1 container-registry.oracle.com/database/enterprise:21.3.0.0 /opt/oracle/scripts/sharding/runOraShardSetup.sh`
    * In this case, `/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -246,7 +246,7 @@ Before creating shard1 container, review the following notes carefully:
  * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
  * Change /oradata/dbfiles/ORCL2CDB based on your enviornment.
  * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
- * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:21.3.0-ee` to `--name shard2 oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+ * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 container-registry.oracle.com/database/enterprise:21.3.0.0` to `--name shard2 container-registry.oracle.com/database/enterprise:21.3.0.0 /opt/oracle/scripts/sharding/runOraShardSetup.sh`
    * In this case, `/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -326,6 +326,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    --volume /opt/.secrets:/run/secrets:ro \
    -e OP_TYPE=gsm \
    -e MASTER_GSM="TRUE" \
+   -p 1522:1522 \
    --privileged=false \
    --name gsm1 container-registry.oracle.com/database/gsm:21.3.0.0
    
@@ -417,6 +418,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
    -v /opt/containers/shard_host_file:/etc/hosts \
    --volume /opt/.secrets:/run/secrets:ro \
    -e OP_TYPE=gsm \
+   -p 1522:1522 \
    --privileged=false \
    --name gsm2 container-registry.oracle.com/database/gsm:21.3.0.0
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
