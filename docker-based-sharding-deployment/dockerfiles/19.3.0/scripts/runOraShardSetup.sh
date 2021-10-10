@@ -19,7 +19,7 @@ sqlplus / as sysdba << EOF
    exit;
 EOF
 
-echo 'Y' | nid target=/ dbname=$NEW_ORACLE_SID
+echo 'Y' | nid target=/ dbname="$NEW_ORACLE_SID"
 
 if [ $? -eq 0 ]; then
  echo "DB name changed sucessfully"
@@ -51,6 +51,21 @@ sqlplus / as sysdba << EOF
    exit;
 EOF
 
+## Get the version
+ dbversion=$( $ORACLE_HOME/bin/oraversion -majorVersion )
+ if [ ! -z ${dbversion} ]; then
+   if [ ${dbversion} -ge 21 ]; then
+     echo "Setting DB Parameter based on the vserion"
+     export ORACLE_SID=$NEW_ORACLE_SID
+     sqlplus / as sysdba << EOF
+      startup nomount
+      alter system set wallet_root="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME" scope=spfile;
+      shutdown immediate
+      exit;
+EOF
+    fi
+  fi
+ 
 echo "Changing OLD SID string to new string"
 sed -i "s/$OLD_ORACLE_SID/$ORACLE_SID/g" $ORACLE_HOME/network/admin/tnsnames.ora
 sed -i "s/$OLD_ORACLE_PDB/$ORACLE_PDB/g" $ORACLE_HOME/network/admin/tnsnames.ora
