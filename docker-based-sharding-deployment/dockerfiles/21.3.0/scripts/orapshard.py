@@ -505,7 +505,7 @@ class OraPShard:
            """
             This function setup the catalog parameter based on db version.
            """
-           #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+           ohome=self.ora_env_dict["ORACLE_HOME"]
            if self.ocommon.get_oraversion(ohome) >= 21:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
