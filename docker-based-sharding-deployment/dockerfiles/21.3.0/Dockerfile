@@ -52,8 +52,8 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
      ORACLE_HOME=$GSM_HOME \
      ORACLE_BASE=$GSM_BASE \
      SCRIPT_DIR=$INSTALL_DIR/sharding \
-     PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH \
-     GSM_PATH=$GSM_HOME/bin:/usr/sbin:$PATH \
+     PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+     GSM_PATH=$GSM_HOME/bin:$PATH \
      GSM_LD_LIBRARY_PATH=$GSM_HOME/lib:/usr/lib:/lib 
     
 

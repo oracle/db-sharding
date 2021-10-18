@@ -468,7 +468,9 @@ class OraPCatalog:
             This function setup the shard parameter based on db version.
            """
            ohome1=self.ora_env_dict["ORACLE_HOME"]
-           if self.ocommon.get_oraversion(ohome1) >= 21:
+           version=self.ocommon.get_oraversion(ohome).strip()
+           self.ocommon.log_info_message(version,self.file_name)
+           if int(version) >= 21:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
@@ -728,7 +730,9 @@ class OraPCatalog:
           """
           self.ocommon.log_info_message("Inside backup_files()",self.file_name)
           ohome=self.ora_env_dict["ORACLE_HOME"]
-          if self.ocommon.get_oraversion(ohome) >= 21:
+          version=self.ocommon.get_oraversion(ohome).strip()
+          self.ocommon.log_info_message("Check Version " + version,self.file_name)
+          if int(version) >= 21:
              obase=self.ora_env_dict["ORACLE_BASE_HOME"]
           else:
              obase=self.ora_env_dict["ORACLE_BASE"]
