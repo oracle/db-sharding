@@ -730,14 +730,16 @@ class OraPCatalog:
           """
           self.ocommon.log_info_message("Inside backup_files()",self.file_name)
           ohome=self.ora_env_dict["ORACLE_HOME"]
-          version=self.ocommon.get_oraversion(ohome).strip()
-          self.ocommon.log_info_message("Check Version " + version,self.file_name)
-          if int(version) >= 21:
-             obase=self.ora_env_dict["ORACLE_BASE_HOME"]
-          else:
-             obase=self.ora_env_dict["ORACLE_BASE"]
+          obase=self.ora_env_dict["ORACLE_BASE"]
           dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
           dbsid=self.ora_env_dict["ORACLE_SID"]
+
+          version=self.ocommon.get_oraversion(ohome).strip()
+          wallet_backup_cmd='''ls -ltr /bin'''
+          self.ocommon.log_info_message("Check Version " + version,self.file_name)
+          if int(version) >= 21:
+             obase1=self.ora_env_dict["ORACLE_BASE_HOME"]
+             wallet_backup_cmd='''cp -r {3}/admin/ {0}/oradata/{1}/{2}/'''.format(obase,"dbconfig",dbuname,ohome)
           cmd_names='''
                mkdir -p {0}/oradata/{1}/{2}
                cp {3}/dbs/spfile{2}.ora {0}/oradata/{1}/{2}/
