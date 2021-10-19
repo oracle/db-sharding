@@ -155,6 +155,7 @@ class OraGSM:
              self.ocommon.log_info_message("GSM liveness check completed sucessfully!",self.file_name)
              sys.exit(0)
           elif self.ocommon.check_key("INVITED_NODE_OP",self.ora_env_dict):
+             self.catalog_checks()
              status = self.catalog_setup_checks()
              if not status:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
@@ -1776,8 +1777,7 @@ class OraGSM:
                 cpasswd="HIDDEN_STRING"
                 #dtrname,dtrport,dtregion=self.process_director_vars()
                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                shard_host==self.ora_env_dict["INVITED_NODE_OP"]
-                group_region=self.get_shardg_region_name(shard_group)
+                shard_host=self.ora_env_dict["INVITED_NODE_OP"]
                 gsmcmd='''
                    connect {1}/{2};
                    remove invitednode {3}; 
