@@ -154,6 +154,14 @@ class OraGSM:
                 self.ocommon.prog_exit("127")
              self.ocommon.log_info_message("GSM liveness check completed sucessfully!",self.file_name)
              sys.exit(0)
+          elif self.ocommon.check_key("INVITED_NODE_OP",self.ora_env_dict):
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.invited_node_op()      
+                sys.exit(0)
           elif self.ocommon.check_key("CATALOG_SETUP",self.ora_env_dict):
              # If user pass env avariable CATALOG_SETUP true then it will just create gsm director and add catalog but will not add any shard
              # It will also add service
@@ -1757,6 +1765,26 @@ class OraGSM:
                  self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
                  self.ocommon.check_sql_err(output,error,retcode,None)
                  self.ocommon.unset_mask_str()
+
+      def invited_node_op(self):
+                """
+                This function perform the invitedaddition and deletion
+                """
+                self.ocommon.log_info_message("Inside invited_node_op()",self.file_name)
+                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                cpasswd="HIDDEN_STRING"
+                #dtrname,dtrport,dtregion=self.process_director_vars()
+                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                shard_host==self.ora_env_dict["INVITED_NODE_OP"]
+                group_region=self.get_shardg_region_name(shard_group)
+                gsmcmd='''
+                   connect {1}/{2};
+                   remove invitednode {3}; 
+                   add invitednode {3};
+                   exit;
+                '''.format("NA",cadmin,cpasswd,shard_host)
+                output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
       def add_invited_node(self,op_str):
                 """

@@ -20,7 +20,7 @@ def main():
 
    # Checking Comand line Args
    try:
-      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','validatenochunks=','help'])
+      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','validatenochunks=','invitednode=','help'])
    except getopt.GetoptError:
       pass
   
@@ -45,7 +45,7 @@ def main():
 
    for opt, arg in opts:
       if opt in ('--help'):
-         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', or --help'''
+         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', '--invitednode', or --help'''
          stdout_handler.handle(oralogger)
       elif opt in ('--addshard'):
            file_name = oenv.logfile_name("ADD_SHARD")   
@@ -125,6 +125,11 @@ def main():
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("CHECK_GSM_SHARD",arg)
+      elif opt in ('--invitednode'):
+           file_name = oenv.logfile_name("INVITED_NODE_OP")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("INVITED_NODE_OP",arg)
       else:
          pass
 
