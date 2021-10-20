@@ -520,7 +520,7 @@ class OraPShard:
               msg='''Setting up catalog CDB with spfile non modifiable parameters based on version'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
-                alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
+                alter system set wallet_root=\"{1}/oradata/{2}/{3}/admin\" scope=spfile;
               '''.format(dbf_dest,obase,"dbconfig",dbuname)
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)

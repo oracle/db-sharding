@@ -520,7 +520,7 @@ class OraPShard:
               msg='''Setting up catalog CDB with spfile non modifiable parameters based on version'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
-                alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
+                alter system set wallet_root=\"{1}/oradata/{2}/{3}/admin\" scope=spfile;
               '''.format(dbf_dest,obase,"dbconfig",dbuname)
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
@@ -811,15 +811,16 @@ class OraPShard:
           """
           self.ocommon.log_info_message("Inside backup_files()",self.file_name)
           ohome=self.ora_env_dict["ORACLE_HOME"]
-          version=self.ocommon.get_oraversion(ohome).strip()
-          self.ocommon.log_info_message("Check Version " + version,self.file_name)
-          if int(version) >= 21:
-             obase=self.ora_env_dict["ORACLE_BASE_HOME"]
-          else:
-             obase=self.ora_env_dict["ORACLE_BASE"]
           obase=self.ora_env_dict["ORACLE_BASE"]
           dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
           dbsid=self.ora_env_dict["ORACLE_SID"]
+
+          version=self.ocommon.get_oraversion(ohome).strip()
+          wallet_backup_cmd='''ls -ltr /bin'''
+          self.ocommon.log_info_message("Check Version " + version,self.file_name)
+          if int(version) >= 21:
+             obase1=self.ora_env_dict["ORACLE_BASE_HOME"]
+             wallet_backup_cmd='''cp -r {3}/admin/ {0}/oradata/{1}/{2}/'''.format(obase,"dbconfig",dbuname,ohome)
           cmd_names='''
                mkdir -p {0}/oradata/{1}/{2}
                cp {3}/dbs/spfile{2}.ora {0}/oradata/{1}/{2}/
@@ -827,8 +828,9 @@ class OraPShard:
                cp {3}/network/admin/sqlnet.ora {0}/oradata/{1}/{2}/
                cp {3}/network/admin/listener.ora {0}/oradata/{1}/{2}/
                cp {3}/network/admin/tnsnames.ora {0}/oradata/{1}/{2}/
+               {4}
                touch {0}/oradata/{1}/{2}/status_completed
-          '''.format(obase,"dbconfig",dbuname,ohome)
+          '''.format(obase,"dbconfig",dbuname,ohome,wallet_backup_cmd)
           cmd_list = [y for y in (x.strip() for x in cmd_names.splitlines()) if y]
           for cmd in cmd_list:
              msg='''Executing cmd {0}'''.format(cmd)
