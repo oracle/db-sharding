@@ -348,7 +348,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    --network=shard_pub1_nw \
    --ip=10.0.20.100 \
    -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
+   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1521" \
    -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
    -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
    -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
@@ -476,11 +476,11 @@ docker logs -f gsm2
 
 **IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
 
-```
+
     ##############################################
 	Oracle GSM Setup Completed Successfully!
 	###############################################
-```
+
 
 ## Support 
 
