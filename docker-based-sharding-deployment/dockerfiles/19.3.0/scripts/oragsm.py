@@ -1735,7 +1735,7 @@ class OraGSM:
                   connect {1}/{2};
                   remove shard -shard {8};
                   remove cdb -cdb {5};
-                  remove invitednode {2};
+                  remove invitednode {3};
                   config vncr;
                   exit;
                   '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
