@@ -1,0 +1,26 @@
+# /*
+# ** Oracle Sharding Tools Library
+# **
+# ** Copyright © 2019 Oracle and/or its affiliates. All rights reserved.
+# ** Licensed under the Universal Permissive License v 1.0 as shown at 
+# **   http://oss.oracle.com/licenses/upl 
+# */
+
+version: '3.7'
+services:
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+  web:
+    image: oracle/oracle-sdb-mid-tier-routing-services:latest
+    environment:
+      - CATALOG_URL=jdbc:oracle:thin:@<host>:<port>:<service>
+      - CATALOG_USERNAME=app_schema
+      - CATALOG_PASSWD=
+      - CATALOG_SVC_NAME=<service_name>
+      - SWIM_LANE_CACHE_HOST=<REDIS_IP>   
+      - SWIM_LANE_CACHE_PORT=<REDIS_PORT>
+      - SWIM_LANE_CACHE_TYPE=REDIS
+    ports:
+      - "8080:8080"

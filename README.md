@@ -1,92 +1,99 @@
-# db-sharding
+# Oracle Sharding tools and deployment automation library
 
+[SDB-terraform-onprem]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/sdb-terraform-onprem
+[SDB-terraform-oci]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/sdb-terraform-oci
+[SDB-terraform]: https://github.com/oracle/db-sharding/tree/master/deployment-with-terraform/
+[SDB-Mid-Tier-Routing]: https://github.com/oracle/db-sharding/tree/master/Mid-Tier-Routing
+[SDB-Fast-Data-Ingest]: https://github.com/oracle/db-sharding/tree/master/sharding-fast-data-ingest
+[OKE-sharding]: https://github.com/oracle/db-sharding/tree/master/oke-based-sharding-deployment
+[DOCKER-sharding]: https://github.com/oracle/db-sharding/tree/master/docker-based-sharding-deployment
+[MTR-Intro]: https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing#introduction
+[SDB-prod-page]: https://www.oracle.com/database/technologies/high-availability/sharding.html
+[SDB-prod-doc]: https://docs.oracle.com/en/database/oracle/oracle-database/19/shard/
+[OCI]: https://www.oracle.com/cloud/
+[SDB]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 
+- [About](#about)
+- [Terraform based deployment of Oracle sharded database](#terraform-based-deployment-of-oracle-sharded-database)
+  * [Overview](#overview)
+  * [Details](#details)
+- [Mid-tier routing for use in Oracle sharded database client applications](#mid-tier-routing-for-use-in-oracle-sharded-database-client-applications)
+  * [Overview](#overview-1)
+  * [Details](#details-1)
+- [OKE based deployment of Oracle sharded database](#oke-based-deployment-of-oracle-sharded-database)
+  * [Overview](#overview-2)
+  * [Details](#details-2)
+- [Docker based deployment of Oracle sharded database](#docker-based-deployment-of-oracle-sharded-database)
+  * [Overview](#overview-3)
+  * [Details](#details-3)
+- [Sharding Fast Data Ingest](#routing-implementations-for-use-in-oracle-sharding-client-applications)
+  * [Overview](#overview-4)
+  * [Details](#details-4)
 
-## Getting started
+## About
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+This repository provides Oracle Sharded database deployment automation and tools :
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+* Terraform based deployment of Oracle sharded database.
+* Mid-tier routing for use in Oracle sharded database applications.
+* OKE based deployment of Oracle sharded database.
+* Fast data ingest for sharding applications.
 
-## Add your files
+If you want to learn more about Oracle sharding a.k.a Oracle Sharded Database, please refer to the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+<strong> Note </strong> : Oracle Sharding and Oracle Sharded Database (SDB) are interchangeably used names in the documentation and refer to the same entity. 
 
-```
-cd existing_repo
-git remote add origin https://orahub.oci.oraclecorp.com/paramdeep_saini/db-sharding.git
-git branch -M main
-git push -uf origin main
-```
+ 
+## Terraform based deployment of Oracle sharded database
 
-## Integrate with your tools
+### Overview 
 
-- [ ] [Set up project integrations](https://orahub.oci.oraclecorp.com/paramdeep_saini/db-sharding/-/settings/integrations)
+Provides Terraform modules, configuration and scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Sharded Database][SDB] (SDB) on either [Oracle Cloud Infrastructure][OCI] (OCI) or On-Premise. It creates and configures SDB infrastructure components necessary for a successful Sharded Database setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
 
-## Collaborate with your team
+### Details
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+For more details, please refer to the [SDB-Terraform][SDB-terraform] documentation.
 
-## Test and Deploy
+## Mid-tier routing for use in Oracle sharded database client applications
 
-Use the built-in continuous integration in GitLab.
+### Overview
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Please refer to the Sharded database [Mid-Tier Routing introduction][MTR-Intro] for an overview.
 
-***
+### Details
 
-# Editing this README
+For more details, please refer to the [SDB Mid-Tier routing][SDB-Mid-Tier-Routing] documentation.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## OKE based deployment of Oracle sharded database 
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Overview 
 
-## Name
-Choose a self-explaining name for your project.
+Oracle Kubernetes Engine (OKE) based deployment of sharded database.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+### Details
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+For more details, please refer to the [OKE sharding][OKE-sharding] documentation.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Docker based deployment of Oracle sharded database 
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### Overview 
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Docker based deployment of sharded database.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Details
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+For more details, please refer to the [Docker sharding][DOCKER-sharding] documentation.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Fast data ingest
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Overview
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+The Fast data ingest library consist of several parts:
+ * Generic routing table interfaces
+ * Sharding metadata implementation
+ * Metadata reader (encapsulated select queries)
+ * Tools for efficient parallel splitting with respect to sharding key
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Details
 
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+For more details, please refer to the [Fast data ingest][SDB-Fast-Data-Ingest] documentation.

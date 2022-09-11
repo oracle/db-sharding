@@ -1,0 +1,10 @@
+1. Get the application URL by running these commands:
+{{- if contains "LoadBalancer" .Values.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "oracle-sharding-si-chart.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "oracle-sharding-si-chart.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo sqlplus <username>/<password>@$SERVICE_IP:{{ .Values.service.port }}/"service_name"
+{{- else if contains "ClusterIP" .Values.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oracle-sharding-si-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo sqlplus <username>/<password>@$SERVICE_IP:{{ .Values.service.port }}/"service_name"
+{{- end }}

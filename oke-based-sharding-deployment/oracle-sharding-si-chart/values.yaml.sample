@@ -1,0 +1,195 @@
+# Default values for oracle-sharding-si-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+---
+global:
+  gsmimage:
+   repository: dbintg-racgsm-release.dockerhub-phx.oci.mycorp.com/oracle/database-gsm
+   tag: RDBMS_19c.0.0.0.0_LINUX.X64_210416
+   pullPolicy: IfNotPresent
+  dbimage:
+   repository: racpack-docker-images.dockerhub-phx.oci.mycorp.com/oracle/database-si
+   tag: 19c-ee
+   pullPolicy: IfNotPresent
+  secret:
+   oraclePwd: db-user-pass
+   oraclePwdLoc: /mnt/secrets
+  strategy: Recreate
+  getScrCmd: "export https_proxy=https://1.2.3.4:443; export http_proxy=http://1.2.3.4:80;curl https://codeload.github.com/oracle/db-sharding/tar.gz/master |   tar -xz --strip=4 db-sharding-master/docker-based-sharding-deployment/dockerfiles/19.3.0/scripts; cp -i -r scripts/* /opt/oracle/scripts/sharding/scripts/"
+  registrySecret: oshardsecret
+  ocloneScrCMD: /opt/oracle/scripts/sharding/runOraShardSetup.sh
+  gsmports:
+   containerGSMProtocol: TCP
+   containerGSMPortName: oshardgsm-port
+   containerGSMPort: 1521
+   containerONSrPortName:  gsm-onsrport
+   containerONSrPort: 6234
+   containerONSlPortName:  gsm-onslport
+   containerONSlPort: 6123
+   containerAgentPortName:  gsm-agentport
+   containerAgentPort: 8080
+  dbports:
+   containerDBProtocol: TCP
+   containerDBPortName: db1-port
+   containerDBPort: 1521
+   containerONSrPortName:  db1-onsrport
+   containerONSrPort: 6234
+   containerONSlPortName:  db1-onslport
+   containerONSlPort: 6123
+   containerAgentPortName:  db1-agentport
+   containerAgentPort: 8080
+  service:
+   type: LoadBalancer
+   port: 1521
+
+gsm:
+  replicaCount: 1
+  gsmHostName: gsmhost
+  nodeselector: mkube
+  oci:
+   region:  mkube
+   zone: mkube
+  pvc:
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: standard
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
+  service:
+   type: LoadBalancer
+   port: 1521
+  env:
+   SHARD_DIRECTOR_PARAMS: "director_name=sharddirector1;director_region=region1;director_port=1521"
+   SHARD1_GROUP_PARAMS: "group_name=shardgroup1;deploy_as=primary;group_region=region1" 
+   CATALOG_PARAMS: "catalog_host=oshard-catalog-0.oshard-catalog;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=24"
+   SHARD1_PARAMS: "shard_host=oshard1-0.oshard1;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"
+   SHARD2_PARAMS: "shard_host=oshard2-0.oshard2;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"
+   SHARD3_PARAMS: "shard_host=oshard3-0.oshard3;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" 
+   SERVICE1_PARAMS: "service_name=oltp_rw_svc;service_role=primary"
+   SERVICE2_PARAMS: "service_name=oltp_ro_svc;service_role=primary"
+   COMMON_OS_PWD_FILE: common_os_pwdfile.enc
+   PWD_KEY: pwd.key
+   OP_TYPE: gsm  
+   SECRET_VOLUME: "/mnt/secrets"
+   MASTER_GSM: "CONFIGURE"
+
+oshard1:
+  replicaCount: 1
+  app: oshard-db1
+  nodeselector: mkube
+  shardHostName: oshard1
+  storageType: "bv"
+  oci:
+   region:  mkube
+   zone: mkube
+  pvc:
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: standard
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
+  env:
+   ORACLE_SID: ORCL1CDB
+   ORACLE_PDB: ORCL1PDB
+   OP_TYPE: primaryshard
+   OLD_ORACLE_SID: goldcdb
+   SECRET_VOLUME: "/mnt/secrets"
+  clone:
+   db: 
+   ocid:  
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
+
+oshard2:
+  replicaCount: 1
+  app: oshard-db2
+  nodeselector: mkube
+  shardHostName: oshard2
+  storageType: "bv"
+  oci:
+   region: mkube
+   zone: mkube
+  pvc:
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName:  standard
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
+  env:
+   ORACLE_SID: ORCL2CDB
+   ORACLE_PDB: ORCL2PDB
+   OP_TYPE: primaryshard
+   OLD_ORACLE_SID: goldcdb
+   SECRET_VOLUME: "/mnt/secrets"
+  clone:
+   db:
+   ocid:  
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
+
+oshard3:
+  replicaCount: 1
+  app: oshard-db3
+  nodeselector: mkube
+  shardHostName: oshard3
+  storageType: "bv"
+  oci:
+   region:  mkube
+   zone: mkube
+  pvc:
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName:  standard
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
+  env:
+   ORACLE_SID: ORCL3CDB
+   ORACLE_PDB: ORCL3PDB
+   OP_TYPE: primaryshard
+   OLD_ORACLE_SID: goldcdb
+   SECRET_VOLUME: "/mnt/secrets"
+  clone:
+   db:
+   ocid:  
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs
+
+oshard-catalog:
+  replicaCount: 1
+  app: oshard-cat
+  nodeselector: mkube
+  shardHostName: oshard-catalog
+  storageType: "bv"
+  oci:
+   region: mkube
+   zone: mkube
+  pvc:
+   storageSize: 50Gi
+   accessModes: ReadWriteOnce
+   storageClassName: standard
+   stagingLoc: /opt/oracle/scripts/sharding/scripts
+  env:
+   ORACLE_SID: CATCDB
+   ORACLE_PDB: CAT1PDB
+   OP_TYPE: catalog
+   OLD_ORACLE_SID: goldcdb
+   OLD_ORACLE_PDB: goldpdb
+   SECRET_VOLUME: "/mnt/secrets"
+  clone:
+   db:
+   ocid:  
+  nfs:
+   storageClassName: oci-fss
+   mountOptions: nosuid
+   serverName: xx.xx.xx.xx
+   path: /shard_nfs

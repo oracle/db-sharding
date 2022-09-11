@@ -1,0 +1,27 @@
+{
+  "name": "ShardedDatabase-MidTierRouting-Demo-AppBackend",
+  "main": "./sdb-mtr-demo-app-backend.js",
+  "scripts": {
+    "start": "node sdb-mtr-demo-app-backend"
+  },
+  "author": "Bharath Ramaprasad <bharath.ramaprasad@oracle.com>",
+  "dependencies": {
+    "body-parser": "~1.0.1",
+    "cors": "^2.8.5",
+    "express": "~4.16.4",
+    "mongoose": "~6.4.6",
+    "morgan": "~1.0.0",
+    "oracledb": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=6"
+  },
+  "maintainers": [
+    {
+      "name": "Oracle Corp."
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/oracle/db-sharding/issues"
+  }
+}

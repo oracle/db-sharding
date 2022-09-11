@@ -1,0 +1,94 @@
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.gsm.gsmHostName }}
+  labels:
+{{ include "oracle-sharding-si-chart.labels" . | indent 4 }}
+spec:
+  #type: {{ .Values.global.service.type }}
+  clusterIP: None
+  ports:
+    - port: {{ .Values.global.gsmports.containerGSMPort }}
+      targetPort: {{ .Values.global.gsmports.containerGSMPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerGSMPortName }}
+    - port: {{ .Values.global.gsmports.containerONSrPort }}
+      targetPort: {{ .Values.global.gsmports.containerONSrPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerONSrPortName }}
+    - port: {{ .Values.global.gsmports.containerONSlPort }}
+      targetPort: {{ .Values.global.gsmports.containerONSlPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerONSlPortName }}
+    - port: {{ .Values.global.gsmports.containerAgentPort }}
+      targetPort: {{ .Values.global.gsmports.containerAgentPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerAgentPortName }}
+  selector:
+    app.kubernetes.io/name: {{ include "oracle-sharding-si-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.gsm.gsmHostName }}-svc0"
+  labels:
+{{ include "oracle-sharding-si-chart.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.global.service.type }}
+  ports:
+    - port: {{ .Values.global.gsmports.containerGSMPort }}
+      targetPort: {{ .Values.global.gsmports.containerGSMPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerGSMPortName }}
+    - port: {{ .Values.global.gsmports.containerONSrPort }}
+      targetPort: {{ .Values.global.gsmports.containerONSrPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerONSrPortName }}
+    - port: {{ .Values.global.gsmports.containerONSlPort }}
+      targetPort: {{ .Values.global.gsmports.containerONSlPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerONSlPortName }}
+    - port: {{ .Values.global.gsmports.containerAgentPort }}
+      targetPort: {{ .Values.global.gsmports.containerAgentPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerAgentPortName }}
+  selector:
+    app.kubernetes.io/name: {{ include "oracle-sharding-si-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    statefulset.kubernetes.io/pod-name: "{{ .Values.gsm.gsmHostName }}-0"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.gsm.gsmHostName }}-svc1"
+  labels:
+{{ include "oracle-sharding-si-chart.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.global.service.type }}
+  ports:
+    - port: {{ .Values.global.gsmports.containerGSMPort }}
+      targetPort: {{ .Values.global.gsmports.containerGSMPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerGSMPortName }}
+    - port: {{ .Values.global.gsmports.containerONSrPort }}
+      targetPort: {{ .Values.global.gsmports.containerONSrPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerONSrPortName }}
+    - port: {{ .Values.global.gsmports.containerONSlPort }}
+      targetPort: {{ .Values.global.gsmports.containerONSlPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerONSlPortName }}
+    - port: {{ .Values.global.gsmports.containerAgentPort }}
+      targetPort: {{ .Values.global.gsmports.containerAgentPortName }}
+      protocol: {{ .Values.global.gsmports.containerGSMProtocol }}
+      name: {{ .Values.global.gsmports.containerAgentPortName }}
+  selector:
+    app.kubernetes.io/name: {{ include "oracle-sharding-si-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    statefulset.kubernetes.io/pod-name: "{{ .Values.gsm.gsmHostName }}-1"

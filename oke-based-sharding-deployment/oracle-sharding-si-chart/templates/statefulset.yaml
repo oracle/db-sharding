@@ -1,0 +1,120 @@
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+---
+apiVersion: apps/v1
+kind: StatefulSet 
+metadata:
+  name: {{ .Values.gsm.gsmHostName }}
+  labels:
+{{ include "oracle-sharding-si-chart.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.gsm.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "oracle-sharding-si-chart.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  serviceName: {{ .Values.gsm.gsmHostName }} 
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "oracle-sharding-si-chart.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.global.registrySecret }}
+      securityContext:
+          runAsNonRoot: true
+          runAsUser: 54321
+          fsGroup: 54321
+      volumes:
+          - name: {{ include "oracle-sharding-si-chart.fullname" . }}
+            persistentVolumeClaim:
+              claimName: {{ include "oracle-sharding-si-chart.fullname" . }} 
+          - name: "staging-{{ .Chart.Name }}"
+            emptyDir:
+              medium: Memory
+          - name: dshm
+            emptyDir:
+              medium: Memory
+          - name:  "oraclepwd-{{ .Chart.Name }}"
+            secret:
+              secretName: {{ .Values.global.secret.oraclePwd }}
+      nodeSelector:
+          oraclegsm: {{ .Values.gsm.nodeselector }}
+      initContainers:
+        - name: "clone-{{ .Chart.Name }}"
+          securityContext:
+              runAsUser: 0
+              runAsNonRoot: false
+              privileged: true
+          image: "{{ .Values.global.gsmimage.repository }}:{{ .Values.global.gsmimage.tag }}"
+          imagePullPolicy: {{ .Values.global.gsmimage.pullPolicy }}
+          command:
+           - bash
+           - "-c"
+           - |
+             set -ex
+             {{ .Values.global.getScrCmd }}
+             cp -r scripts/* {{ .Values.gsm.pvc.stagingLoc }}
+             chown -R 54321:54321 {{ .Values.gsm.pvc.stagingLoc }}
+             chmod 755 {{ .Values.gsm.pvc.stagingLoc }}/*
+             chown 54321:54321 /opt/oracle/gsmdata
+             chmod 750 /opt/oracle/gsmdata
+          volumeMounts:
+           - name:  "staging-{{ .Chart.Name }}"
+             mountPath: "{{ .Values.gsm.pvc.stagingLoc }}"
+           - name: {{ include "oracle-sharding-si-chart.fullname" . }}
+             mountPath: /opt/oracle/gsmdata
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.gsmimage.repository }}:{{ .Values.global.gsmimage.tag }}"
+          imagePullPolicy: {{ .Values.global.gsmimage.pullPolicy }}
+          securityContext:
+           capabilities:
+            add: ["NET_RAW"]
+          ports:
+           - containerPort: {{ .Values.global.gsmports.containerGSMPort }}
+             name: {{ .Values.global.gsmports.containerGSMPortName }}  
+           - containerPort: {{ .Values.global.gsmports.containerONSlPort }}
+             name: {{ .Values.global.gsmports.containerONSlPortName }} 
+           - containerPort: {{ .Values.global.gsmports.containerONSrPort }}
+             name: {{ .Values.global.gsmports.containerONSrPortName }}
+           - containerPort: {{ .Values.global.gsmports.containerAgentPort }}
+             name: {{ .Values.global.gsmports.containerAgentPortName }}
+          env:
+           - name: SHARD_DIRECTOR_PARAMS
+             value: {{ .Values.gsm.env.SHARD_DIRECTOR_PARAMS }}
+           - name: SHARD1_GROUP_PARAMS
+             value: {{ .Values.gsm.env.SHARD1_GROUP_PARAMS }}
+           - name: CATALOG_PARAMS
+             value: {{ .Values.gsm.env.CATALOG_PARAMS }}
+           - name: SHARD1_PARAMS
+             value: {{ .Values.gsm.env.SHARD1_PARAMS }}
+           - name: SHARD2_PARAMS
+             value: {{ .Values.gsm.env.SHARD2_PARAMS }}
+           - name: SHARD3_PARAMS
+             value: {{ .Values.gsm.env.SHARD3_PARAMS }}
+           - name: SERVICE1_PARAMS
+             value: {{ .Values.gsm.env.SERVICE1_PARAMS }}
+           - name: SERVICE2_PARAMS
+             value: {{ .Values.gsm.env.SERVICE2_PARAMS }}
+           - name: OP_TYPE
+             value: {{ .Values.gsm.env.OP_TYPE }}
+           - name: BASE_DIR
+             value: {{ .Values.gsm.env.BASE_DIR }}
+           - name: KUBE_SVC
+             value: {{ .Values.gsm.gsmHostName }}
+           - name: SECRET_VOLUME
+             value: "{{ .Values.gsm.env.SECRET_VOLUME }}"
+           - name: MASTER_GSM
+             value: "{{ .Values.gsm.env.MASTER_GSM }}"
+          volumeMounts:
+           - name: {{ include "oracle-sharding-si-chart.fullname" . }}
+             mountPath: /opt/oracle/gsmdata
+           - name: dshm
+             mountPath: /dev/shm
+           - name: "staging-{{ .Chart.Name }}"
+             mountPath: {{ .Values.gsm.pvc.stagingLoc }}
+           - name: "oraclepwd-{{ .Chart.Name }}"
+             mountPath: {{ .Values.global.secret.oraclePwdLoc }}

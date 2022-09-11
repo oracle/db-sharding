@@ -1,0 +1,69 @@
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+{{- if contains "bv" .Values.storageType }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "oracle-si-shards.fullname" . }}
+{{- if .Values.clone.db }}
+  annotations:
+    volume.beta.kubernetes.io/oci-volume-source: "{{ .Values.clone.ocid }}"
+{{- end }} 
+  labels:
+{{ include "oracle-si-shards.labels" . | indent 4 }}
+spec:
+  storageClassName: "{{ .Values.pvc.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
+  accessModes:
+  - "{{ .Values.pvc.accessModes }}"
+  resources:
+    requests:
+      storage: {{ .Values.pvc.storageSize }}
+{{- else if contains "nfs" .Values.storageType }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+   name: {{ include "oracle-si-shards.fullname" . }}-pv
+spec:
+  storageClassName: "{{ .Values.nfs.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
+  capacity:
+    storage: {{ .Values.pvc.storageSize }} 
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - {{ .Values.nfs.mountOptions }}
+  nfs:
+  # Replace this with the IP of your FSS file system in OCI
+   server: "{{ .Values.nfs.serverName }}"
+  # Replace this with the Path of your FSS file system in OCI
+   path: "{{ .Values.nfs.path }}"
+   readOnly: false
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: {{ include "oracle-si-shards.fullname" . }}
+spec:
+ storageClassName: "{{ .Values.nfs.storageClassName }}"
+  selector:
+    matchLabels:
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
+ accessModes:
+ - ReadWriteMany
+ resources:
+  requests:
+ # Although storage is provided here it is not used for FSS file systems
+    storage: {{ .Values.pvc.storageSize }}
+ volumeName: {{ include "oracle-si-shards.fullname" . }}-pv
+{{- end }}

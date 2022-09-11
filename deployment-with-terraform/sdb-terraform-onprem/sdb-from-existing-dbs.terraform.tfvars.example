@@ -1,0 +1,168 @@
+# Copyright 2017, 2019, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+
+setup_mode="from_existing_databases"
+ssh_private_key_path = "~/.ssh/id_rsa"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+ssh_timeout = "3m"
+os_user = "oracle" 
+oracle_base = "/scratch/oracle"
+gsm_version =  "19.3.0"
+db_version = "19.3.0"
+gsm_zip_location = "/Users/oracle"
+gsm_zip_name = "V982067-01"
+ora_inventory_location = "/scratch/oraInventory"
+unix_group_name = "dba"
+db_zip_location = "/Users/oracle"
+db_zip_name = "V982063-01"
+db_home_path = "/scratch/oracle/db"
+sdb_admin_username = "mysdbadmin"
+use_dbparamfile = "false"
+use_dbtemplatefile = "false"
+use_netparamfile = "false"
+shard_directors = {
+   "shard-director-1"  = {
+      name = "sharddirector1"
+      host = "vm1"
+      port = "1522"
+      region = "region1"      
+   }
+  "shard-director-2"  = {
+      name = "sharddirector2"
+      host = "vm2"
+      port = "1522"
+      region = "region2"   
+  }
+}
+shards = {
+  "shard-1" = {
+      host = "vm3"
+      port = "1521"
+      # Valid values for globalDBName   : <db_name>.<db_domain> - when database domain isn't NULL
+      #                                   <db_name>             - when database domain is NULL
+      globalDBName = "sh1"
+      # value for sid : <db_name> specified in globalDBName 
+      sid = "sh1"
+      shard_group = "primary_shardgroup"
+      dbparamfile = ""
+      dbtemplatefile = ""
+      netparamfile = ""
+  },
+  "shard-2" = {
+      host = "vm4"
+      port = "1521"
+      # Valid values for globalDBName   : <db_name>.<db_domain> - when database domain isn't NULL
+      #                                   <db_name>             - when database domain is NULL
+      globalDBName = "sh2"
+      # value for sid : <db_name> specified in globalDBName
+      sid = "sh2"
+      shard_group = "primary_shardgroup"
+      dbparamfile = ""
+      dbtemplatefile = ""
+      netparamfile = ""
+  }
+}
+standby_shards = {
+  "shard-3" = {
+      host = "vm5"
+      port = "1521"
+      # Valid values for globalDBName   : <db_name>.<db_domain> - when database domain isn't NULL
+      #                                   <db_name>             - when database domain is NULL
+      globalDBName = "sh3"
+      # value for sid : <db_name> specified in globalDBName
+      sid = "sh3"
+      shard_group = "secondary_shardgroup"
+      primary_host = "vm3"
+      primary_port = "1521"
+      # value for sid : Primary db's globalDBName
+      primary_sid = "sh1"
+      dbparamfile = ""
+      dbtemplatefile = ""
+      netparamfile = ""
+   },
+  "shard-4" = {
+      host = "vm6"
+      port = "1521"
+      # Valid values for globalDBName   : <db_name>.<db_domain> - when database domain isn't NULL
+      #                                   <db_name>             - when database domain is NULL      
+      globalDBName = "sh4"
+      # value for sid : <db_name> specified in globalDBName      
+      sid = "sh4"
+      shard_group = "secondary_shardgroup"
+      primary_host = "vm4" 
+      primary_port = "1521"
+      # value for sid : Primary db's globalDBName    
+      primary_sid = "sh2"
+      dbparamfile = ""
+      dbtemplatefile = ""
+      netparamfile = ""
+  }
+}
+shard_catalogs = {
+  "shard-catalog-1" = {
+    host = "vm1"
+    port = "1521"
+    # Valid values for globalDBName   : <db_name>.<db_domain> - when database domain isn't NULL
+    #                                   <db_name>             - when database domain is NULL      
+    globalDBName = "shardcat"    
+    # value for sid : <db_name> specified in globalDBName          
+    sid = "shardcat"
+    chunks = "8"
+    sdb_name = "cust_sdb"
+    regions = "region1,region2"
+    sharding_method = "system"
+    replication_type = "DG"
+    replication_protection_mode = "MAXPERFORMANCE"
+    replication_factor = "0"
+ }
+}
+shard_catalog_standbys = {
+  "shard-catalog-2" = {
+    host = "vm2"
+    port = "1521"
+    # Valid values for globalDBName   : <db_name>.<db_domain> - when database domain isn't NULL
+    #                                   <db_name>             - when database domain is NULL    
+    globalDBName = "catstby"    
+    # value for sid : <db_name> specified in globalDBName
+    sid = "catstby"
+    chunks = "8"
+    sdb_name = "cust_sdb"
+    regions = "region1,region2"
+    sharding_method = "system"
+    replication_type = "DG"
+    replication_protection_mode = "MAXPERFORMANCE"
+    replication_factor = "0"
+    primary_host = "vm1"
+    primary_port = "1521"
+    # value for sid : Primary db's globalDBName
+    primary_sid = "shardcat"
+ }
+}
+primary_shard_groups = {
+ "primary-shardgroup" = {
+    name = "primary_shardgroup"
+    deploy_as = "primary"
+    region = "region1"
+    replication_factor = "0"
+    shard_space = "shardspaceora"
+  }
+}
+standby_shard_groups = {
+  "secondary-shardgroup" = {
+    name = "secondary_shardgroup"
+    deploy_as = "active_standby"
+    region = "region2"
+    replication_factor = "0"
+    shard_space = "shardspaceora"
+  }
+}
+global_services = {
+  "oltp_rw" = {
+      service_name = "oltp_rw_srvc"
+      role = "primary"
+  },
+  "oltp_ro" = {
+      service_name = "oltp_ro_srvc"
+      role = "physical_standby"
+  }
+}

@@ -1,0 +1,42 @@
+# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+
+# OCI mandatory vars - User must override these variable values as necessary
+tenancy_ocid="<tenancy-ocid>"
+user_ocid="<user-ocid>"
+fingerprint="<fingerprint>"
+region="<oci-region>" # OCI region
+private_key_path="/home/<userid>/.oci/oci_api_key.pem"
+compartment_ocid="<compartment-ocid>"
+ssh_private_key_path = "~/.ssh/id_rsa"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+local_user = "<userid>" # local user who will invoke terraform commands 
+assign_public_ip = false
+compute_image_source_ocid = "<image-source-ocid>"
+
+# Sharding specific mandatory vars - User must override these variable values as necessary
+sharding_method = "system" # Currently only system sharding is supported.
+gsm_version =  "<version>" # For example : 19.3.0
+db_version = "<version>" # For example : 19.0.0
+gsm_zip_location = "<full-path-to-gsm-zip-file.zip>"
+# GDS regions
+gds_regions=["region1", "region2"] # GDS region is equivalent to an OCI Availability Domain(AD)
+num_of_gsm_per_ad=1 # number of GSM instances per AD (GDS region)
+# Shardgroup per GDS region
+# Note : Shardgroups must be defined in the following order : 
+#        1. Primary shardgroup (exactly one and mandatory).
+#        2. Followed by, zero or more standby shardgroups.
+shard_groups = {
+ "shardgroup-1" = {
+    name = "primary_shardgroup"
+    subnet_id = "<subnet-ocid>"
+    deploy_as = "primary"
+  },
+  "shardgroup-2" = {
+    name = "standby_shardgroup"
+    subnet_id = "<subnet-ocid>"
+    deploy_as = "active_standby"
+  }
+}
+# Number of shards per shardgroup
+num_of_shards=2

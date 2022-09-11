@@ -1,0 +1,10 @@
+1. Get the application URL by running these commands:
+{{- if contains "LoadBalancer" .Values.gsm.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ .Values.gsm.gsmHostName }}-svc0'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Values.gsm.gsmHostName }}-svc0 --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo sqlplus <username>/<password>@$SERVICE_IP:{{ .Values.gsm.service.port }}/"gsm_service_name"
+{{- else if contains "ClusterIP" .Values.gsm.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "oracle-sharding-si-chart.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo sqlplus <username>/<password>@$SERVICE_IP:{{ .Values.gsm.service.port }}/"service_name"
+{{- end }}

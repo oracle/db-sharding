@@ -1,0 +1,38 @@
+{
+  "name": "sdb-mid-tier-routing-invoice-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "webpack-dev-server --open"
+  },
+  "author": "Bharath Ramaprasad <bharath.ramaprasad@oracle.com>",
+  "dependencies": {
+    "@babel/polyfill": "^7.0.0",
+    "bootstrap": "^4.3.1",
+    "material-ui": "^0.20.2",
+    "react": "^16.0.0",
+    "react-bootstrap": "^1.0.0-beta.5",
+    "react-dom": "^16.0.0",
+    "react-router-dom": "^4.1.2",
+    "react-tap-event-plugin": "^3.0.3"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.5",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "html-webpack-plugin": "^3.2.0",
+    "path": "^0.12.7",
+    "webpack": "^4.15.0",
+    "webpack-cli": "^3.0.8",
+    "webpack-dev-server": "^3.1.3"
+  },
+  "maintainers": [
+    {
+      "name": "Oracle Corp."
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/oracle/db-sharding/issues"
+  }
+}

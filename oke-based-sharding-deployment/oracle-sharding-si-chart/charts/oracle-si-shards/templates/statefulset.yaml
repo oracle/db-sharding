@@ -1,0 +1,131 @@
+## Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+# MAINTAINER <paramdeep.saini@oracle.com>
+#
+---
+apiVersion: apps/v1
+kind: StatefulSet 
+metadata:
+  name: {{ .Values.shardHostName }} 
+  labels:
+{{ include "oracle-si-shards.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+      failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
+  serviceName: {{ .Values.shardHostName }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "oracle-si-shards.fullname" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        failure-domain.beta.kubernetes.io/region: {{ .Values.oci.region }}
+        failure-domain.beta.kubernetes.io/zone: {{ .Values.oci.zone }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.global.registrySecret }}
+      securityContext:
+          runAsUser: 54321
+          fsGroup: 54321
+      volumes:
+          - name: {{ include "oracle-si-shards.fullname" . }}
+            persistentVolumeClaim:
+              claimName: {{ include "oracle-sharding-si-chart.fullname" . }} 
+          - name: dshm
+            emptyDir:
+              medium: Memory
+          - name: "staging-{{ .Chart.Name }}" 
+            emptyDir:
+              medium: Memory
+          - name: "oraclepwd-{{ .Values.shardHostName }}"  
+            secret:
+              secretName: {{ .Values.global.secret.oraclePwd }} 
+              defaultMode: 256        
+      nodeSelector:
+          oracleshard: {{ .Values.nodeselector }}
+      initContainers:
+        - name: "clone-{{ .Chart.Name }}"
+          securityContext:
+              runAsUser: 0
+              runAsNonRoot: false
+              privileged: true
+          image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
+          imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }} 
+          command:
+           - bash
+           - "-c"
+           - |
+             set -ex
+             {{ .Values.global.getScrCmd }}
+             cp -r scripts/* {{ .Values.pvc.stagingLoc }}
+             chown -R 54321:54321 "{{ .Values.pvc.stagingLoc }}"
+             chmod 755 {{ .Values.pvc.stagingLoc }}/*
+             chown 54321:54321 /opt/oracle/oradata
+             chmod 750 /opt/oracle/oradata
+          volumeMounts:
+           - name:  "staging-{{ .Chart.Name }}"
+             mountPath: "{{ .Values.pvc.stagingLoc }}"
+           - name: {{ include "oracle-si-shards.fullname" . }}
+             mountPath: /opt/oracle/oradata
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.dbimage.repository }}:{{ .Values.global.dbimage.tag }}"
+          imagePullPolicy: {{ .Values.global.dbimage.pullPolicy }}
+          securityContext:
+           capabilities:
+            add: ["NET_RAW"]
+{{- if .Values.clone.db }}   
+          command: ["{{ .Values.pvc.stagingLoc }}/runOraShardSetup.sh"]
+{{- end }}
+          ports:
+           - containerPort: {{ .Values.global.dbports.containerDBPort }}
+             name: {{ .Values.global.dbports.containerDBPortName }}  
+           - containerPort: {{ .Values.global.dbports.containerONSlPort }}
+             name: {{ .Values.global.dbports.containerONSlPortName }} 
+           - containerPort: {{ .Values.global.dbports.containerONSrPort }}
+             name: {{ .Values.global.dbports.containerONSrPortName }}
+           - containerPort: {{ .Values.global.dbports.containerAgentPort }}
+             name: {{ .Values.global.dbports.containerAgentPortName }}
+          env:
+           - name: SHARD_SETUP
+             value: "true"
+           - name: ORACLE_SID
+             value: {{ .Values.env.ORACLE_SID }}
+           - name: ORACLE_PDB
+             value: {{ .Values.env.ORACLE_PDB }}
+           - name: KUBE_SVC
+             value: {{ .Values.shardHostName }}
+           - name: ORACLE_HOSTNAME 
+             value: "{{ .Values.shardHostName }}-0.{{ .Values.shardHostName }}"
+           - name: OP_TYPE
+             value: {{ .Values.env.OP_TYPE }}
+           - name: CLONE_DB
+             value: "{{ .Values.clone.db  }}"
+           - name: OLD_ORACLE_SID
+             value: {{ .Values.env.OLD_ORACLE_SID  }}
+           - name: OLD_ORACLE_PDB
+             value: {{ .Values.env.OLD_ORACLE_PDB  }}
+           - name: SECRET_VOLUME
+             value: "{{ .Values.env.SECRET_VOLUME }}"
+{{- if .Values.env.SGA_SIZE }}
+           - name: INIT_SGA_SIZE
+             value: "{{ .Values.env.SGA_SIZE }}"
+{{- end }}
+{{- if .Values.env.PGA_SIZE }}
+           - name: INIT_PGA_SIZE
+             value: "{{ .Values.env.PGA_SIZE}}"
+{{- end }}
+          volumeMounts:
+           - name: {{ include "oracle-si-shards.fullname" . }}
+             mountPath: /opt/oracle/oradata
+           - name: "staging-{{ .Chart.Name }}"
+             mountPath: {{ .Values.pvc.stagingLoc }}
+           - name: "oraclepwd-{{ .Values.shardHostName }}"
+             readOnly: true
+             mountPath: {{ .Values.global.secret.oraclePwdLoc }}
+           - name: dshm
+             mountPath: /dev/shm

@@ -1,0 +1,30 @@
+# /*
+# ** Oracle Sharding Tools Library
+# **
+# ** Copyright © 2019 Oracle and/or its affiliates. All rights reserved.
+# ** Licensed under the Universal Permissive License v 1.0 as shown at 
+# **   http://oss.oracle.com/licenses/upl 
+# */
+
+version: '3.7'
+services:
+  web:
+    image: oracle/oracle-sdb-mid-tier-routing-services:latest
+    environment:
+      - CATALOG_URL=jdbc:oracle:thin:@<host>:<port>:<service>
+      - CATALOG_USERNAME=app_schema
+      - CATALOG_PASSWD=
+      - CATALOG_SVC_NAME=<service_name>
+      - SWIM_LANE_CACHE_HOST=localhost   
+      - SWIM_LANE_CACHE_PORT=0
+      - SWIM_LANE_CACHE_TYPE=IN_MEM_CACHE
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: "0.2"
+          memory: 250M
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8080:8080"

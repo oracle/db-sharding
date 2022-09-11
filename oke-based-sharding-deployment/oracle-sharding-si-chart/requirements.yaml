@@ -1,0 +1,24 @@
+## Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
+### Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
+### MAINTAINER <paramdeep.saini@oracle.com>
+---
+dependencies:
+- name: oracle-si-shards
+  version: ">= 0.0.1"
+  repository: file://./charts/oracle-si-shards/
+  alias: oshard1
+
+- name: oracle-si-shards
+  version: ">= 0.0.1"
+  repository: file://./charts/oracle-si-shards/
+  alias: oshard2
+
+- name: oracle-si-shards
+  version: ">= 0.0.1"
+  repository: file://./charts/oracle-si-shards/
+  alias: oshard3
+
+- name: oracle-si-shards
+  version: ">= 0.0.1"
+  repository: file://./charts/oracle-si-shards/
+  alias: oshard-catalog
