@@ -333,8 +333,6 @@ class OraGSM:
                     msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
                     self.ocommon.log_info_message(msg,self.file_name)
                     cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
-
-     #              cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\" -md md5'''.format(secret_volume,common_os_pwd_file,pwd_key)
                     output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
                     self.ocommon.check_os_err(output,error,retcode,True)
                     passwd_file_flag = True
@@ -556,10 +554,10 @@ class OraGSM:
                  while counter < end_counter:                 
                        for key in self.ora_env_dict.keys():
                            if(reg_exp.match(key)):
-                              catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
+                              catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
                               catalog_db_status=self.check_setup_status(catalog_host,catalog_db,catalog_pdb,catalog_port)
                               if catalog_db_status == 'completed':
-                                 self.configure_gsm_clog(catalog_host,catalog_db,catalog_pdb,catalog_port,catalog_name,catalog_region,catalog_chunks)
+                                 self.configure_gsm_clog(catalog_host,catalog_db,catalog_pdb,catalog_port,catalog_name,catalog_region,catalog_chunks,repl_type,repl_factor,repl_unit)
                                  break 
                               else:
                                  msg='''Catalog Status must return completed but returned value is {0}'''.format(status)
@@ -583,6 +581,9 @@ class OraGSM:
           catalog_host=None
           catalog_name=None
           catalog_chunks=None
+          repl_type=None
+          repl_factor=None
+          repl_unit=None
 
           self.ocommon.log_info_message("Inside process_clog_vars()",self.file_name)
           cvar_str=self.ora_env_dict[key]
@@ -601,7 +602,13 @@ class OraGSM:
               if ckey == 'catalog_name':
                  catalog_name = cvar_dict[ckey]
               if ckey == 'catalog_chunks':
-                     catalog_chunks = cvar_dict[ckey]                 
+                 catalog_chunks = cvar_dict[ckey]
+              if ckey == 'repl_type':
+                 repl_type = cvar_dict[ckey]
+              if ckey == 'repl_factor':
+                 repl_factor = cvar_dict[ckey]
+              if ckey == 'repl_unit':
+                 repl_unit = cvar_dict[ckey]                 
               ## Set the values if not set in above block
           if not catalog_port:
               catalog_port=1521
@@ -610,7 +617,7 @@ class OraGSM:
 
               ### Check values must be set
           if catalog_host and catalog_db and catalog_pdb and catalog_port and catalog_region and catalog_name:
-              return catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks
+              return catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit
           else:
               msg1='''catalog_db={0},catalog_pdb={1}'''.format((catalog_db or "Missing Value"),(catalog_pdb or "Missing Value"))
               msg2='''catalog_port={0},catalog_host={1}'''.format((catalog_port or "Missing Value"),(catalog_host or "Missing Value"))
@@ -630,7 +637,7 @@ class OraGSM:
             exit;
           '''.format("test")
           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-          matched_output=re.findall(str.encode("(?:GSMs\n)(?:.+\n)+"),output)
+          matched_output=re.findall("(?:GSMs\n)(?:.+\n)+",output)
           try:
              match=self.ocommon.check_substr_match(matched_output[0],"test")
           except:
@@ -651,25 +658,48 @@ class OraGSM:
           return re.compile('CATALOG_PARAMS') 
 
       
-      def configure_gsm_clog(self,chost,ccdb,cpdb,cport,catalog_name,catalog_region,catalog_chunks):
+      def configure_gsm_clog(self,chost,ccdb,cpdb,cport,catalog_name,catalog_region,catalog_chunks,repl_type,repl_factor,repl_unit):
                  """
                   This function configure the GSM catalog.
                  """
                  self.ocommon.log_info_message("Inside configure_gsm_clog()",self.file_name)
                  gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
                  cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                 replist=['native']             
+    
+                 chunks=None
+                 repl=None
+                 repfactor=None
+                 repunits=None
+               
                  if catalog_chunks:
                     chunks="-chunks {0}".format(catalog_chunks)
                  else:
                     chunks=""
+
+                 if repl_type and repl_type.lower() in replist:
+                    repl=" -repl {0}".format(repl_type)
+                 else:
+                    repl=""
+                    
+                 if repl_factor:
+                    repfactor=" -repfactor {0}".format(repl_factor)
+                 else:
+                    repfactor=""
+
+                 if repl_unit:
+                    repunits=" -repunits {0}".format(repl_unit)
+                 else:
+                    repunits=""
+
                  cpasswd="HIDDEN_STRING"
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
                  gsmcmd='''
-                  create shardcatalog -database \"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={0})(PORT={1}))(CONNECT_DATA=(SERVICE_NAME={2})))\" {7} -user {3}/{4} -sdb {5} -region {6} -agent_port 8080 -agent_password {4} -autovncr off;
+                  create shardcatalog -database \"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={0})(PORT={1}))(CONNECT_DATA=(SERVICE_NAME={2})))\" {7} -user {3}/{4} -sdb {5} -region {6} -agent_port 8080 -agent_password {4} {8} {9} {10} -autovncr off;
                   add invitednode {0};
                   exit;
-                  '''.format(chost,cport,cpdb,cadmin,cpasswd,catalog_name,catalog_region,chunks)
+                  '''.format(chost,cport,cpdb,cadmin,cpasswd,catalog_name,catalog_region,chunks,repl,repfactor,repunits)
 
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                  ### Unsetting the encrypt value to None
@@ -714,10 +744,9 @@ class OraGSM:
           if dname:
             gsmcmd=self.get_gsm_config_cmd(dname)
             output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-            ## matched_output=re.findall(str.encode("(?:GSMs\n)(?:.+\n)+"),output)
-            matched_output=re.findall(str.encode("GSMs\n.*\n\n(.+\n)+\n"),output)
+            matched_output=re.findall("(?:GSMs\n)(?:.+\n)+",output)
             try:
-              if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip(),dname):
+              if self.ocommon.check_substr_match(matched_output[0],dname):
                  status=True   
             except:
               status=False 
@@ -728,11 +757,10 @@ class OraGSM:
                     dname,dtrport,dtregion=self.process_director_vars(key)
                     gsmcmd=self.get_gsm_config_cmd(dname)
                     output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-                    matched_output=re.findall(str.encode("GSMs\n.*\n\n(.+\n)+\n"),output)
+                    matched_output=re.findall("(?:GSMs\n)(?:.+\n)+",output)
                     try:
-                      if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip(),dname):
+                      if self.ocommon.check_substr_match(matched_output[0],dname):
                          status=True
-                         break
                     except:
                          status=False
 
@@ -801,9 +829,9 @@ class OraGSM:
                                self.configure_gsm_director(dtrname,dtrport,dtregion,gsmhost,cadmin)
                      status = self.check_gsm_director(None)
                      if status == 'completed':
-                          break
+                        break
                      else:
-                          msg='''GSM shard director setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
+                        msg='''GSM shard director setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
                      time.sleep(60)
                      counter=counter+1                              
                       
@@ -825,7 +853,7 @@ class OraGSM:
                  reg_exp= self.catalog_regex()
                  for key in self.ora_env_dict.keys():
                      if(reg_exp.match(key)):
-                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
+                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmcmd='''
                   add gsm -gsm {0}  -listener {1} -pwd {2} -catalog {3}:{4}/{5}  -region {6};
@@ -1039,8 +1067,8 @@ class OraGSM:
           if dname:
              gsmcmd=self.get_gsm_config_cmd(dname)
              output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-             matched_output=re.findall(str.encode("Shard Groups\n.*\n\n(.*\n)"),output)
-             if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip(),group_name):
+             matched_output=re.findall("(?:Shard Groups\n)(?:.+\n)+",output)
+             if self.ocommon.check_substr_match(matched_output[0],group_name):
                 status=True
              else:
                 status=False
@@ -1052,11 +1080,10 @@ class OraGSM:
                      dname=self.get_director_name(group_region)
                      gsmcmd=self.get_gsm_config_cmd(dname)
                      output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-                     matched_output=re.findall(str.encode("Shard Groups\n.*\n\n(.*\n)"),output)
+                     matched_output=re.findall("(?:Shard Groups\n)(?:.+\n)+",output)  
                    #  match=re.search("(?i)(?m)"+group_name,matched_output)
-                     if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip(),group_name):
+                     if self.ocommon.check_substr_match(matched_output[0],group_name):
                           status=True
-                          break
                      else:
                           status=False
           return(self.ocommon.check_status_value(status))
@@ -1098,17 +1125,27 @@ class OraGSM:
                   This function configure the Shard Group.
                  """
                  self.ocommon.log_info_message("Inside configure_gsm_shardg()",self.file_name)
+                 cmd=None
                  gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
                  cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
                  cpasswd="HIDDEN_STRING"
                  dtrname=self.get_director_name(group_region)
+                 reg_exp= self.catalog_regex()
+                 for key in self.ora_env_dict.keys():
+                    if(reg_exp.match(key)):
+                       catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
+                       if repl_type:
+                         cmd=" -region {0} ".format(group_region)
+                       else:
+                         cmd=" -deploy_as {0} -region {1} ".format(deploy_as,group_region)
+
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
                  gsmcmd='''
                    connect {1}/{2};
-                   add shardgroup -shardgroup {3} -deploy_as {4} -region {5}
+                   add shardgroup -shardgroup {3} {4}
                  exit;
-                  '''.format("NA",cadmin,cpasswd,group_name,deploy_as,group_region)
+                  '''.format("NA",cadmin,cpasswd,group_name,cmd)
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)                 
 
                  ### Unsetting the encrypt value to None
@@ -1273,8 +1310,8 @@ class OraGSM:
                              output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                              ### Unsetting the encrypt value to None
                              self.ocommon.unset_mask_str()
-                             matched_output=re.findall(str.encode("(?:Chunks\n)(?:.+\n)+"),output)  
-                             if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip().lower(),shard_name.lower()):
+                             matched_output=re.findall("(?:Chunks\n)(?:.+\n)+",output)  
+                             if self.ocommon.check_substr_match(matched_output[0].lower(),shard_name.lower()):
                                 self.ocommon.prog_exit("127")
 
       def move_chunks_regex(self):
@@ -1636,9 +1673,9 @@ class OraGSM:
           status=False
           while counter < end_counter:
              output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-             error_check=re.findall(str.encode("(?:GSM-45034\n)(?:.+\n)+"),output)
+             error_check=re.findall("(?:GSM-45034\n)(?:.+\n)+",output)
              try: 
-                if self.ocommon.check_substr_match(str(error_check[0],'utf-8').strip(),"GSM-45034"):
+                if self.ocommon.check_substr_match(error_check[0],"GSM-45034"):
                    count = counter + 1
                    self.ocommon.log_info_message("Issue in catalog connection, retrying to connect to catalog in 30 seconds!",self.file_name)
                    time.sleep(20)
@@ -1646,11 +1683,10 @@ class OraGSM:
                    continue 
              except:
                 status=False
-             # matched_output=re.findall("(?:Databases\n)(?:.+\n)+",output)
-             matched_output=re.findall(str.encode("Databases\n.*\n\n(.*\n)"),output)
+             matched_output=re.findall("(?:Databases\n)(?:.+\n)+",output)
              if shard_name:
                 try:
-                  if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip().lower(),shard_name.lower()):
+                  if self.ocommon.check_substr_match(matched_output[0],shard_name.lower()):
                      status=True
                      break
                   else:
@@ -1664,9 +1700,8 @@ class OraGSM:
                       shard_db,shard_pdb,shard_port,shard_region,shard_host=self.process_shard_vars(key)
                       shard_name='''{0}_{1}'''.format(shard_db,shard_pdb)
                       try:
-                        if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip().lower(),shard_name.lower()):
+                        if self.ocommon.check_substr_match(matched_output[0],shard_name.lower()):
                            status=True
-                           break
                         else:
                           status=False
                       except:
@@ -1741,6 +1776,8 @@ class OraGSM:
                  gsmcmd='''
                   connect {1}/{2};
                   remove shard -shard {8};
+                  remove cdb -cdb {5};
+                  remove invitednode {3};
                   config vncr;
                   exit;
                   '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
@@ -1758,7 +1795,7 @@ class OraGSM:
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
-                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
                  sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_pdb,admuser)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  msg='''Setting host Id null in catalog as auto vncr is disabled'''
@@ -2038,11 +2075,11 @@ class OraGSM:
             exit;
           '''.format("test")
           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-          matched_output=re.findall(str.encode("Services\n.*\n\n(.*\n)"),output)
+          matched_output=re.findall("(?:Services\n)(?:.+\n)+",output)
           status=False
           if service_name:
             try:
-              if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip(),service_name):
+              if self.ocommon.check_substr_match(matched_output[0],service_name):
                  status=True
               else:
                  status=False
@@ -2055,9 +2092,8 @@ class OraGSM:
                   service_name,service_role=self.process_service_vars(key)
                #  match=re.search("(?i)(?m)"+service_name,matched_output)
                   try:
-                    if self.ocommon.check_substr_match(str(matched_output[0],'utf-8').strip(),service_name):
+                    if self.ocommon.check_substr_match(matched_output[0],service_name):
                       status=True
-                      break
                     else:
                       status=False
                   except:
@@ -2071,7 +2107,7 @@ class OraGSM:
           """
           self.ocommon.log_info_message("Inside service_regex()",self.file_name)
           return re.compile('SERVICE[0-9]+_PARAMS')
-
+		  
       def configure_gsm_service(self,service_name,service_role):
                  """
                   This function configure the service creation.
@@ -2124,7 +2160,7 @@ class OraGSM:
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
-                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks=self.process_clog_vars(key)
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
           sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_db)
           if self.ocommon.check_key("SAMPLE_SCHEMA",self.ora_env_dict):
              if self.ora_env_dict["SAMPLE_SCHEMA"] == 'DEPLOY':

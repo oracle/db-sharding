@@ -354,9 +354,9 @@ class OraPCatalog:
                     sqlcmd='''
                      drop table system.shardsetup;
                     '''
-                    output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd.encode('utf-8'),sqlcmd.encode('utf-8'),None)
+                    output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
                     self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-                    self.ocommon.check_sql_err(output.encode('utf-8'),error.enocde('utf-8'),retcode,True)
+                    self.ocommon.check_sql_err(output,error,retcode,True)
                  else:
                     msg='''Reset env already completed on this enviornment as {0} exist on this machine and not executing env reset'''.format(catalog_reset_file)
                     self.ocommon.log_info_message(msg,self.file_name)
@@ -383,7 +383,7 @@ class OraPCatalog:
             spool off
             exit;
            '''
-           output,error,retcode=self.ocommon.run_sqlplus(systemStr.encode('utf-8'),sqlcmd.encode('utf-8'),None)
+           output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.ocommon.check_sql_err(output,error,retcode,None)
            fname='''/tmp/{0}'''.format("catalog_setup.txt")
@@ -428,8 +428,6 @@ class OraPCatalog:
              alter system set local_listener='{4}:{5}' scope=both;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname)
 
-          # sqlcmd=bytes(sqlcmd,encoding='utf8')
-          # sqlpluslogincmd=bytes(sqlpluslogincmd,encoding='utf8')
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
            self.ocommon.check_sql_err(output,error,retcode,True)
@@ -740,7 +738,7 @@ class OraPCatalog:
           wallet_backup_cmd='''ls -ltr /bin'''
           self.ocommon.log_info_message("Check Version " + version,self.file_name)
           if int(version) >= 21:
-             obase1=self.ora_env_dict["ORACLE_BASE_HOME"]
+             obase1=self.ora_env_dict["ORACLE_BASE"]
              wallet_backup_cmd='''cp -r {3}/admin/ {0}/oradata/{1}/{2}/'''.format(obase,"dbconfig",dbuname,ohome)
           cmd_names='''
                mkdir -p {0}/oradata/{1}/{2}

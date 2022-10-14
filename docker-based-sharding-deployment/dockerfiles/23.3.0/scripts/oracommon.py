@@ -34,19 +34,13 @@ class OraCommon:
           This function execute the ran sqlplus or rman script and return the output
           """
           try:
-            self.log_info_message(type(cmd),self.file_name)
-            self.log_info_message(type(sql_cmd),self.file_name)
-            if not isinstance(cmd,bytes):
-              cmd=bytes(cmd,encoding='utf-8')
-            if not isinstance(sql_cmd,bytes):
-              sql_cmd=bytes(sql_cmd,encoding='utf-8')
-            message='''Received Command : {0}\n{1}'''.format(self.convert_to_str(self.mask_str(cmd)),self.convert_to_str(self.mask_str(sql_cmd)))
+            message="Received Command : {0}\n{1}".format(self.mask_str(cmd),self.mask_str(sql_cmd))
             self.log_info_message(message,self.file_name)
             sql_cmd=self.unmask_str(sql_cmd)
             cmd=self.unmask_str(cmd)
 #            message="Received Command : {0}\n{1}".format(cmd,sql_cmd)
 #            self.log_info_message(message,self.file_name)
-            p = subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=dbenv,shell=True)
+            p = subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=dbenv,shell=True,universal_newlines=True)
             p.stdin.write(sql_cmd)
             # (stdout,stderr), retcode = p.communicate(sqlplus_script.encode('utf-8')), p.returncode
             (stdout,stderr),retcode = p.communicate(),p.returncode
@@ -56,18 +50,17 @@ class OraCommon:
             self.log_error_message(error_msg,self.file_name)
             self.prog_exit(self)
 
-          return stdout,stderr,retcode
+          return stdout.replace("\n\n", "\n"),stderr,retcode
 
       def execute_cmd(self,cmd,env,dir):
           """
           Execute the OS command on host
           """
           try:
-            cmd=self.convert_to_bytes(cmd)
-            message="Received Command : {0}".format(self.convert_to_str(self.mask_str(cmd)))
+            message="Received Command : {0}".format(self.mask_str(cmd))
             self.log_info_message(message,self.file_name)
             cmd=self.unmask_str(cmd)
-            out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
             (output,error),retcode = out.communicate(),out.returncode
           except:
             error_msg=sys.exc_info()
@@ -82,34 +75,15 @@ class OraCommon:
           """
           newstr=None
           if self.oenv.encrypt_str__:
-             newstr=self.convert_to_str(mstr).replace('HIDDEN_STRING','********')
+             newstr=mstr.replace('HIDDEN_STRING','********')
  #            self.log_info_message(newstr,self.file_name)
           if newstr:
      #        message = "Masked the string as encryption flag is set in the singleton class"
      #        self.log_info_message(message,self.file_name)
-             return self.convert_to_bytes(newstr)
+             return newstr
           else:
-             return self.convert_to_bytes(mstr)
+             return mstr
           
-      def convert_to_bytes(self,str1):
-          """
-           This function convert to string to bytes
-          """
-          if str1:
-            if not isinstance(str1,bytes):
-               str1=bytes(str1,encoding='utf-8')
- 
-            return str1
-
-      def convert_to_str(self,str1):
-          """
-           This function convert bytes  to string
-          """
-          if str1:
-             if not isinstance(str1,str):
-                str1=str1.decode('utf=8')
-
-             return str1
 
       def unmask_str(self,mstr):
           """
@@ -117,14 +91,14 @@ class OraCommon:
           """
           newstr=None
           if self.oenv.encrypt_str__:
-             newstr=self.convert_to_str(mstr).replace('HIDDEN_STRING',self.oenv.original_str__.rstrip())
+             newstr=mstr.replace('HIDDEN_STRING',self.oenv.original_str__.rstrip())
       #       self.log_info_message(newstr,self.file_name)
           if newstr:
       #       message = "Unmasked the encrypted string and returning original string from singleton class"
       #       self.log_info_message(message,self.file_name)
-             return self.convert_to_bytes(newstr)
+             return newstr
           else:
-             return self.convert_to_bytes(mstr)
+             return mstr
 
       def set_mask_str(self,mstr):
           """
@@ -188,10 +162,6 @@ class OraCommon:
           """
           Check if there are any error in sql command output
           """
-          #output1=output.encode('utf-8')
-          #err1=err.encode('utf-8')
-          #output=output1
-          #err=err1
           match=None
           msg2='''Sql command  failed.Flag is set not to ignore this error.Please Check the logs,Exiting the Program!'''
           msg3='''Sql command  failed.Flag is set to ignore this error!'''
@@ -206,7 +176,7 @@ class OraCommon:
                 self.log_error_message("Sql Login Failed.Please Check the logs,Exiting the Program!",self.file_name)
                 self.prog_exit(self)
 
-          match=re.search(str.encode("(?i)(?m)error"),output)
+          match=re.search("(?i)(?m)error",output)
           if status:
              if (match):
                 self.log_error_message(msg2,self.file_name)
@@ -495,12 +465,8 @@ class OraCommon:
            """
             CHeck if substring exist 
            """
-           source_str1=source_str.encode('utf-8')
-           sub_str1=sub_str.encode('utf-8')
-           source_str=source_str1
-           sub_str=sub_str1
            self.log_info_message("Inside check_substr_match()",self.file_name)
-           if (source_str.find(sub_str != -1)):
+           if (source_str.find(sub_str) != -1):
               return True
            else:
               return False
@@ -666,4 +632,4 @@ class OraCommon:
          output,error,retcode=self.execute_cmd(cmd,None,None)
          self.check_os_err(output,error,retcode,True)
 
-         return self.convert_to_str(output) 
+         return output 

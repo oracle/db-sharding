@@ -381,7 +381,7 @@ if [ -z ${MAIN_SCRIPT} ]; then
 fi
 
 if [ -z ${EXECUTOR} ]; then
-    EXECUTOR="python3"
+    EXECUTOR="python"
 fi
 
 cd $BASE_DIR
