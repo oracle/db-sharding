@@ -542,8 +542,8 @@ docker logs -f gsm2
 
 ## Sample Container Files for Older Releases
 
-Oracle Database 19c Global Service Manager (GSM/GDS) (19.3) for Linux x86-64
-Oracle Database 21c Global Service Manager (GSM/GDS) (21.3) for Linux x86-64
+ * Oracle Database 19c Global Service Manager (GSM/GDS) (19.3) for Linux x86-64
+ * Oracle Database 21c Global Service Manager (GSM/GDS) (21.3) for Linux x86-64
 
 **Note:** The above version supported on Docker on Oracle Linux 7.
 
