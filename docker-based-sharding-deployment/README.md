@@ -90,8 +90,8 @@ For example:
 
 Where:
 "-x sharding"                                   is to specify to have sharding feature in the extended image
-"-b oracle/database:21.3.0-ee"                  is to specify the Base image created in previous step
-"oracle/database-ext-sharding:21.3.0-ee"        is to specify the name:tag for the extended image with Sharding Feature
+"-b oracle/database:23.3.0-ee"                  is to specify the Base image created in previous step
+"oracle/database-ext-sharding:23.3.0-ee"        is to specify the name:tag for the extended image with Sharding Feature
 ```
 
 ### Create Network Bridge
@@ -205,7 +205,7 @@ Before performing catalog container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/CATALOG based on your enviornment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:21.3.0-ee` to `--name catalog oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:23.3.0-ee` to `--name catalog oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, /oradata/dbfiles/CATALOG must contain the DB backup and it must not be in zipped format. E.g. /oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.
 
 ```
@@ -224,7 +224,7 @@ docker run -d --hostname oshard-catalog-0 \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name catalog oracle/database:21.3.0-ee
+ --name catalog oracle/database:23.3.0-ee
 
     Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
@@ -281,7 +281,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL1CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:21.3.0-ee` to `--name shard1 oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:23.3.0-ee` to `--name shard1 oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -300,7 +300,7 @@ docker run -d --hostname oshard1-0 \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard1 oracle/database:21.3.0-ee
+ --name shard1 oracle/database:23.3.0-ee
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
@@ -333,7 +333,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL2CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:21.3.0-ee` to `--name shard2 oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:23.3.0-ee` to `--name shard2 oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -352,7 +352,7 @@ docker run -d --hostname oshard2-0 \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard2 oracle/database:21.3.0-ee
+ --name shard2 oracle/database:23.3.0-ee
 
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
@@ -418,7 +418,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    -e OP_TYPE=gsm \
    -e MASTER_GSM="TRUE" \
    --privileged=false \
-   --name gsm1 oracle/database-gsm:21.3.0
+   --name gsm1 oracle/database-gsm:23.3.0
 
    Mandatory Parameters:
       SHARD_DIRECTOR_PARAMS:     Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
@@ -512,7 +512,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
    --volume /opt/.secrets:/run/secrets:ro \
    -e OP_TYPE=gsm \
    --privileged=false \
-   --name gsm2 oracle/database-gsm:21.3.0
+   --name gsm2 oracle/database-gsm:23.3.0
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
    Mandatory Parameters:
