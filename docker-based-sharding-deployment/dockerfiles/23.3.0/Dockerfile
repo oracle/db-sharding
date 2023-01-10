@@ -116,7 +116,7 @@ FROM base
 
 COPY --from=builder /u01 /u01
 
-RUN if [ ! -f $PYHTON_FILE ]; then \
+RUN if [ ! -f $PYTHON_FILE ]; then \
       ln -s $PYTHON3_FILE $PYTHON_FILE && \
       :; \
     fi && \
