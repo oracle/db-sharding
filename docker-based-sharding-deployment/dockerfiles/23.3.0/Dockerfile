@@ -56,6 +56,8 @@ ENV GSM_BASE="/u01/app/oracle" \
     GSM_ENV_SETUP_FILE="setupGSM.sh" \
     GSM_SCRIPTS="scripts" \
     MAINPY="main.py" \
+    PYTHON_FILE="/bin/python" \
+    PYTHON3_FILE="/bin/python3" \
     CHECKLIVENESS="checkLiveness.sh" 
 # Use second ENV so that variable get substituted
 ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
@@ -114,7 +116,11 @@ FROM base
 
 COPY --from=builder /u01 /u01
 
-RUN rm -f $INSTALL_DIR/install/*  && \
+RUN if [ ! -f $PYHTON_FILE ]; then \
+      ln -s $PYTHON3_FILE $PYTHON_FILE && \
+      :; \
+    fi && \
+    rm -f $INSTALL_DIR/install/*  && \
     chown -R oracle:oinstall $SCRIPT_DIR && \
     chmod 755 $SCRIPT_DIR/*.sh && \
     chmod 755 $SCRIPT_DIR/scripts/*.py && \
