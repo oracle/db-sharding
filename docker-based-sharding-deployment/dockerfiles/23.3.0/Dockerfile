@@ -56,8 +56,8 @@ ENV GSM_BASE="/u01/app/oracle" \
     GSM_ENV_SETUP_FILE="setupGSM.sh" \
     GSM_SCRIPTS="scripts" \
     MAINPY="main.py" \
-    PYTHON_FILE="/bin/python" \
-    PYTHON3_FILE="/bin/python3" \
+    PYTHON_FILE="/usr/bin/python" \
+    PYTHON3_FILE="/usr/bin/python3" \
     CHECKLIVENESS="checkLiveness.sh" 
 # Use second ENV so that variable get substituted
 ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
