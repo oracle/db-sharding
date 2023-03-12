@@ -20,7 +20,7 @@ def main():
 
    # Checking Comand line Args
    try:
-      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','validatenochunks=','invitednode=','help'])
+      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','checkreadyness=','validatenochunks=','invitednode=','help'])
    except getopt.GetoptError:
       pass
   
@@ -45,7 +45,7 @@ def main():
 
    for opt, arg in opts:
       if opt in ('--help'):
-         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', '--invitednode', or --help'''
+         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', '--checkreadyness','--invitednode', or --help'''
          stdout_handler.handle(oralogger)
       elif opt in ('--addshard'):
            file_name = oenv.logfile_name("ADD_SHARD")   
@@ -68,6 +68,12 @@ def main():
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("CHECK_LIVENESS",arg)
+      elif opt in ('--checkreadyness'):
+           oralogger.stdout_ = None
+           file_name = oenv.logfile_name("CHECK_READYNESS")  
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("CHECK_READYNESS",arg)
       elif opt in ('--resetlistener'):
            file_name = oenv.logfile_name("RESET_LISTENER")  
            oralogger.filename_ =  file_name

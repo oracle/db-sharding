@@ -148,6 +148,10 @@ class OraGSM:
              else:
                 sys.exit(0)
           elif self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+             filename=self.ora_env_dict["GSM_LOCK_STATUS_FILE"]
+             if os.path.exists(filename):
+                self.ocommon.log_info_message("provisioning is still in progress as file " + filename + " still exist!",self.file_name)
+                sys.exit(0)
              status = self.catalog_setup_checks()
              if not status:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
@@ -247,8 +251,16 @@ class OraGSM:
            This function performs the compute before performing setup
           """
           self.omachine.setup()
+          filename = self.ora_env_dict["GSM_LOCK_STATUS_FILE"]
+          touchfile = 'touch {0}'.format(filename)
+          if not os.path.isfile(filename):
+            self.ocommon.log_error_message("Setting file provisioning status file :" + filename ,self.file_name)
+            output,error,retcode=self.ocommon.execute_cmd(touchfile,None,self.ora_env_dict)
+            if retcode == 1:
+                   self.ocommon.log_error_message("error occurred while touching the file :" + filename + ". Exiting!",self.file_name)
+                   self.ocommon.prog_exit("127")
 
-      ###########  SETUP_MACHINE ENDS here ####################
+      ###########   ENDS here ####################
 
       def gsm_checks(self):
           """
@@ -396,7 +408,8 @@ class OraGSM:
                     self.ocommon.log_info_message(msg,self.file_name)
                  else:
                     if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
-                       hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                       ## hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                       hostname='''{0}'''.format(socket.getfqdn())
                     else:
                        hostname='''{0}'''.format(socket.gethostname())
                     msg='''ORACLE_HOSTNAME is not set, setting it to hostname {0} of the compute!'''.format(hostname)
@@ -678,8 +691,10 @@ class OraGSM:
                     chunks=""
 
                  if repl_type and repl_type.lower() in replist:
+                    self.ocommon.log_info_message("Repl_Type value Set to in block1:" + repl_type,self.file_name)
                     repl=" -repl {0}".format(repl_type)
                  else:
+                    self.ocommon.log_info_message("Repl_Type value Set to in block2:" + repl_type,self.file_name)
                     repl=""
                     
                  if repl_factor:
@@ -886,6 +901,10 @@ class OraGSM:
                           if status == 'completed':
                              break;
                    if status == 'completed':
+                      filename=self.ora_env_dict["GSM_LOCK_STATUS_FILE"]
+                      remfile='''rm -f {0}'''.format(filename)
+                      if os.path.isfile(filename):
+                         output,error,retcode=self.ocommon.execute_cmd(remfile,None,self.ora_env_dict)
                       break
                    else:
                       msg='''GSM shard director failed to start.Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)

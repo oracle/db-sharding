@@ -279,6 +279,24 @@ class OraCommon:
 
           return env_dict
 
+      def check_file(self,file,local,remote,user):
+          """
+            check locally or remotely
+            Attributes:
+               file (string): file to be created
+               local (boolean): dir to craetes locally
+               remote (boolean): dir to be created remotely
+               node (string): remote node name on which dir to be created
+               user (string): remote user to be connected
+          """
+          self.log_info_message("Inside check_file()",self.file_name)
+          if local:
+             if os.path.isfile(file):
+                  return True
+             else:
+                  return False
+               
+
       def read_file(self,fname):
           """
             Read the contents of a file and returns the contents to end user
