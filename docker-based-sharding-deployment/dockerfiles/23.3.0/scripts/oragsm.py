@@ -694,7 +694,6 @@ class OraGSM:
                     self.ocommon.log_info_message("Repl_Type value Set to in block1:" + repl_type,self.file_name)
                     repl=" -repl {0}".format(repl_type)
                  else:
-                    self.ocommon.log_info_message("Repl_Type value Set to in block2:" + repl_type,self.file_name)
                     repl=""
                     
                  if repl_factor:
