@@ -715,7 +715,16 @@ class OraGSM:
                   exit;
                   '''.format(chost,cport,cpdb,cadmin,cpasswd,catalog_name,catalog_region,chunks,repl,repfactor,repunits)
 
-                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                 counter=1
+                 while counter < 5:
+                   output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                   if retcode != 0:
+                      self.ocommon.log_info_message("Error occurred while creating the shard catalog, sleeping for 60 seconds",self.file_name)
+                      counter = counter + 1
+                      time.sleep(60)
+                   else:
+                      break
+
                  ### Unsetting the encrypt value to None
                  self.ocommon.unset_mask_str()
 
