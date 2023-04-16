@@ -125,9 +125,7 @@ RUN if [ ! -f $PYTHON_FILE ]; then \
     rm -f $INSTALL_DIR/install/*  && \
     chown -R oracle:oinstall $SCRIPT_DIR && \
     chmod 755 $SCRIPT_DIR/*.sh && \
-    chmod 755 $SCRIPT_DIR/scripts/*.py && \
-    chmod 755 $SCRIPT_DIR/scripts/*.sh && \
-    chmod 755 $SCRIPT_DIR/scripts/cmdExec && \
+    chmod 755 $SCRIPT_DIR/*.py && \
     sync
 
 USER  oracle

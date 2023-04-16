@@ -11,7 +11,7 @@
 
 #This is the main file which calls other file to setup the sharding.
 if [ -z ${BASE_DIR} ]; then
-    BASE_DIR=$INSTALL_DIR/sharding/scripts
+    BASE_DIR=$INSTALL_DIR/sharding
 fi
 
 if [ -z ${MAIN_SCRIPT} ]; then
