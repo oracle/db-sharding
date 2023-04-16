@@ -45,11 +45,27 @@ class OraPCatalog:
            This function setup the catalog on Primary DB.
           """
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+             create_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
+             exist_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+             self.ocommon.log_info_message("DB create lock file set to :" + create_db_file_lck ,self.file_name)
+             self.ocommon.log_info_message("DB exist lock file set to :" + exist_db_file_lck ,self.file_name)
+             if os.path.exists(create_db_file_lck):
+                self.ocommon.log_info_message("provisioning is still in progress as file " + create_db_file_lck + " still exist!",self.file_name)
+                sys.exit(0)
+             elif os.path.exists(exist_db_file_lck):
+                self.ocommon.log_info_message("Database is up and running as file " + exist_db_file_lck + " exist!",self.file_name)
+                sys.exit(0)
+             else:
+                status = self.catalog_setup_check()
+                if not status:
+                  self.ocommon.prog_exit("127")
+                self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
+                sys.exit(0)
+          elif self.ocommon.check_key("CHECK_READYNESS",self.ora_env_dict):
             status = self.catalog_setup_check()
             if not status:
+               self.ocommon.log_info_message("Catalog readyness check completed sucessfully!",self.file_name)
                self.ocommon.prog_exit("127")
-            self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
-            sys.exit(0)
           else:
             self.setup_machine()
             self.db_checks()
@@ -232,7 +248,8 @@ class OraPCatalog:
               self.ocommon.log_info_message(msg,self.file_name)
            else:
               if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
-                 hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                # hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                 hostname='''{0}'''.format(socket.getfqdn())
               else:
                  hostname='''{0}'''.format(socket.gethostname())
               msg='''ORACLE_HOSTNAME is not set, setting it to hostname {0} of the compute!'''.format(hostname)
@@ -454,6 +471,7 @@ class OraPCatalog:
               sqlcmd='''
                alter system set open_links_per_instance=16 scope=spfile;
                alter system set db_file_name_convert='*','{0}/' scope=spfile;
+               alter system set standby_file_management='AUTO' scope=spfile;
                alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
                alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
                alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
@@ -546,6 +564,7 @@ class OraPCatalog:
               alter system register;
               alter session set container={0};
               create user {1} identified by HIDDEN_STRING;
+              alter user {1} account unlock;
               grant connect, create session, gsmadmin_role to {1};
               grant inherit privileges on user SYS to GSMADMIN_INTERNAL;
               execute dbms_xdb.sethttpport(8080);

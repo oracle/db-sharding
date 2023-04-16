@@ -72,16 +72,27 @@ class OraPShard:
                self.ocommon.shutdown_db(self.ora_env_dict)
                self.ocommon.start_db(self.ora_env_dict) 
           elif self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+             create_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
+             exist_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+             self.ocommon.log_info_message("DB create lock file set to :" + create_db_file_lck ,self.file_name)
+             self.ocommon.log_info_message("DB exist lock file set to :" + exist_db_file_lck ,self.file_name)
+             if os.path.exists(create_db_file_lck):
+                self.ocommon.log_info_message("provisioning is still in progress as file " + create_db_file_lck + " still exist!",self.file_name)
+                sys.exit(0)             
+             elif os.path.exists(exist_db_file_lck):
+                self.ocommon.log_info_message("Database is up and running as file " + exist_db_file_lck + " exist!",self.file_name)
+                sys.exit(0)
+             else:
+                status = self.shard_setup_check()
+                if not status:
+                  self.ocommon.prog_exit("127")
+                self.ocommon.log_info_message("Shard liveness check completed sucessfully!",self.file_name)
+                sys.exit(0)
+          elif self.ocommon.check_key("CHECK_READYNESS",self.ora_env_dict):
             status = self.shard_setup_check()
             if not status:
+               self.ocommon.log_info_message("Shard readyness check completed sucessfully!",self.file_name)
                self.ocommon.prog_exit("127")
-            self.ocommon.log_info_message("Shard liveness check completed sucessfully!",self.file_name)
-            sys.exit(0)
-          elif self.ocommon.check_key("CREATE_DIR",self.ora_env_dict):
-            status = self.shard_setup_check()
-            if not status:
-               self.ocommon.prog_exit("127")
-            self.ocommon.create_dir(self.ora_env_dict["CREATE_DIR"],True,None,None) 
           else: 
             self.setup_machine() 
             self.db_checks()
@@ -264,7 +275,8 @@ class OraPShard:
               self.ocommon.log_info_message(msg,self.file_name)
            else:
               if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
-                 hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                 ## hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                 hostname='''{0}'''.format(socket.getfqdn())
               else:
                  hostname='''{0}'''.format(socket.gethostname())
               msg='''ORACLE_HOSTNAME is not set, setting it to hostname {0} of the compute!'''.format(hostname)
@@ -454,6 +466,7 @@ class OraPShard:
              alter system set db_recovery_file_dest_size={1} scope=both;
              alter system set db_recovery_file_dest=\"{2}\" scope=both; 
              alter system set db_file_name_convert='*','{0}/' scope=spfile;
+             alter system set standby_file_management='AUTO' scope=spfile;
              alter user gsmrootuser account unlock;
              grant sysdg to gsmrootuser;
              grant sysbackup to gsmrootuser;
@@ -465,7 +478,7 @@ class OraPShard:
              alter system set dg_broker_start=true scope=both;
              create or replace directory DATA_PUMP_DIR as '{3}';
              grant read,write on directory DATA_PUMP_DIR to GSMADMIN_INTERNAL;
-             alter system set local_listener='{4}:{5}' scope=both;
+             alter system set local_listener='{4}:{5}' scope=spfile;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname) 
                   
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)

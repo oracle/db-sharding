@@ -77,6 +77,8 @@ COPY $GSM_SCRIPTS $SCRIPT_DIR/scripts/
 
 RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     sync && \
+    cp $SCRIPT_DIR/scripts/* $SCRIPT_DIR/ && \
+    rm -rf $SCRIPT_DIR/scripts && \
     $INSTALL_DIR/install/$CHECK_SPACE_FILE && \
     $INSTALL_DIR/install/$SETUP_LINUX_FILE && \
     $INSTALL_DIR/install/$GSM_ENV_SETUP_FILE  && \
@@ -123,7 +125,7 @@ RUN if [ ! -f $PYTHON_FILE ]; then \
     rm -f $INSTALL_DIR/install/*  && \
     chown -R oracle:oinstall $SCRIPT_DIR && \
     chmod 755 $SCRIPT_DIR/*.sh && \
-    chmod 755 $SCRIPT_DIR/scripts/*.py && \
+    chmod 755 $SCRIPT_DIR/*.py && \
     sync
 
 USER  oracle
