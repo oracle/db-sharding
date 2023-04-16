@@ -1239,6 +1239,19 @@ class OraGSM:
                              self.ocommon.log_info_message("Shard Status : " + shard_db_status,self.file_name)
                              if shard_db_status == 'completed':
                                 self.configure_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group)
+                                counter2=1
+                                end_counter2=5
+                                while counter2 < end_counter2:
+                                       status1 = self.check_shard_status(shard_name)
+                                       if status1 == 'completed':
+                                          msg='''Shard DB setup completed in GSM'''
+                                          self.ocommon.log_info_message(msg,self.file_name)
+                                          break
+                                       else:
+                                          msg='''Shard DB is still not added in GSM. Sleeping for 60 seconds'''
+                                          self.ocommon.log_info_message(msg,self.file_name)
+                                          time.sleep(60)
+                                          counter2=counter2+1
                              else:
                                 msg='''Shard db status must return completed but returned value is {0}'''.format(status)
                                 self.ocommon.log_info_message(msg,self.file_name)
