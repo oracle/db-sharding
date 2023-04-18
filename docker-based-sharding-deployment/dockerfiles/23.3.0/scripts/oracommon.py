@@ -27,6 +27,7 @@ class OraCommon:
         self.ologger = oralogger
         self.ohandler = orahandler
         self.oenv  = oraenv.get_instance()
+        self.ora_env_dict = oraenv.get_env_vars()
         self.file_name  = os.path.basename(__file__)
 
       def run_sqlplus(self,cmd,sql_cmd,dbenv):
@@ -372,7 +373,7 @@ class OraCommon:
            """
            Shutdown the database
            """
-           file="/home/oracle/shutDown.sh immediate"
+           file="/home/oracle/shutDown.sh"
            if not os.path.isfile(file): 
               self.log_info_message("Inside shutdown_db()",self.file_name)
               sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(env_dict["ORACLE_HOME"])
@@ -384,7 +385,7 @@ class OraCommon:
               self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
               self.check_sql_err(output,error,retcode,True)
            else:
-              cmd='''sh {0}'''.format(file)
+              cmd='''sh {0} immediate'''.format(file)
               output,error,retcode=self.execute_cmd(cmd,None,None)
               self.check_os_err(output,error,retcode,True)
                  
@@ -624,22 +625,94 @@ class OraCommon:
          return dbpasswd
 
       def get_password(self,key):
-         """
-         get the password
-         """
-         passwd_file_flag=False
-         self.log_info_message("Getting the OS password",self.file_name)
-         if key == 'ASM':
-            pass
-         elif key == 'OS':
-            pass
-         else:
+            """
+            get the password
+            """
+            passwd_file_flag=False
+            password=None
+            password_file=None
             if self.check_key("SECRET_VOLUME",self.ora_env_dict):
+               self.log_info_message("Secret_Volume set to : ",self.ora_env_dict["SECRET_VOLUME"])
                msg='''SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
             else:
                self.ora_env_dict=self.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict)
                msg='''SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
                self.log_warn_message(msg,self.file_name)
+
+            if self.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict):
+               msg='''COMMON_OS_PWD_FILE passed as an env variable and set to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
+            else:
+               self.ora_env_dict=self.add_key("COMMON_OS_PWD_FILE","common_os_pwdfile.enc",self.ora_env_dict)
+               msg='''COMMON_OS_PWD_FILE not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
+               self.log_warn_message(msg,self.file_name)
+
+            if self.check_key("PWD_KEY",self.ora_env_dict):
+               msg='''PWD_KEY passed as an env variable and set to {0}'''.format(self.ora_env_dict["PWD_KEY"])
+            else:
+               self.ora_env_dict=self.add_key("PWD_KEY","pwd.key",self.ora_env_dict)
+               msg='''PWD_KEY not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["PWD_KEY"])
+               self.log_warn_message(msg,self.file_name)
+
+            if self.check_key("PASSWORD_FILE",self.ora_env_dict):
+               msg='''PASSWORD_FILE passed as an env variable and set to {0}'''.format(self.ora_env_dict["PASSWORD_FILE"])
+            else:
+               self.ora_env_dict=self.add_key("PASSWORD_FILE","dbpasswd.file",self.ora_env_dict)
+               msg='''PASSWORD_FILE not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["PASSWORD_FILE"])
+               self.log_warn_message(msg,self.file_name)          
+                    
+            secret_volume = self.ora_env_dict["SECRET_VOLUME"]
+            common_os_pwd_file = self.ora_env_dict["COMMON_OS_PWD_FILE"]
+            pwd_key = self.ora_env_dict["PWD_KEY"]
+            passwd_file='''{0}/{1}'''.format(secret_volume,self.ora_env_dict["COMMON_OS_PWD_FILE"])
+            dbpasswd_file='''{0}/{1}'''.format(secret_volume,self.ora_env_dict["PASSWORD_FILE"])
+            self.log_info_message("Password file set to : " + passwd_file,self.file_name)
+            p1='''{0}/{1}'''.format(secret_volume,common_os_pwd_file)
+            self.log_info_message("Secret Volume Location: " + p1,self.file_name)
+            #print(passwd_file)
+            if os.path.isfile(passwd_file):
+               msg='''Passwd file {0} exist. Password file Check passed!'''.format(passwd_file)
+               self.log_info_message(msg,self.file_name)
+               msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
+               self.log_info_message(msg,self.file_name)
+               cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
+               output,error,retcode=self.execute_cmd(cmd,None,None)
+               self.check_os_err(output,error,retcode,True)
+               passwd_file_flag = True
+               password_file='''/tmp/{0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
+            elif os.path.isfile(dbpasswd_file):
+               msg='''Passwd file {0} exist. Password file Check passed!'''.format(dbpasswd_file)
+               self.log_info_message(msg,self.file_name)
+               msg='''Reading encrypted passwd from file {0}.'''.format(dbpasswd_file)
+               self.log_info_message(msg,self.file_name)
+               cmd='''openssl base64 -d -in \"{0}\" -out \"/tmp/{1}\"'''.format(dbpasswd_file,self.ora_env_dict["PASSWORD_FILE"])
+               output,error,retcode=self.execute_cmd(cmd,None,None)
+               self.check_os_err(output,error,retcode,True)
+               passwd_file_flag = True
+               password_file='''/tmp/{0}'''.format(self.ora_env_dict["PASSWORD_FILE"])         
+
+            if not passwd_file_flag:
+               # get random password pf length 8 with letters, digits, and symbols
+               characters1 = string.ascii_letters +  string.digits + "_-%#"
+               str1 = ''.join(random.choice(string.ascii_uppercase) for i in range(4))
+               str2 = ''.join(random.choice(characters1) for i in range(8))
+               password=str1+str2
+            else:
+               fname='''{0}'''.format(password_file)
+               fdata=self.read_file(fname)
+               password=fdata
+               self.remove_file(fname)
+               
+
+            if self.check_key("ORACLE_PWD",self.ora_env_dict):
+               msg="ORACLE_PWD is passed as an env variable. Check Passed!"
+               self.log_info_message(msg,self.file_name)
+            else:
+               self.ora_env_dict=self.add_key("ORACLE_PWD",password,self.ora_env_dict)
+               msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
+               self.log_info_message(msg,self.file_name)
+
+               
+
 
 ######### Get Password ##############
       def get_oraversion(self,home):

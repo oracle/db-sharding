@@ -134,65 +134,13 @@ class OraPCatalog:
 
       def passwd_check(self):
            """
-           This funnction perform password related checks
+           Function to set the password
            """
-           passwd_file_flag = False
-           if self.ocommon.check_key("SECRET_VOLUME",self.ora_env_dict) and self.ocommon.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict) and self.ocommon.check_key("PWD_KEY",self.ora_env_dict):
-              msg='''SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
-           else:
-              self.ora_env_dict=self.ocommon.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict)
-              msg='''SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
-
-           self.ocommon.log_warn_message(msg,self.file_name)
-
-           if self.ocommon.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict):
-              msg='''COMMON_OS_PWD_FILE passed as an env variable and set to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
-           else:
-              self.ora_env_dict=self.ocommon.add_key("COMMON_OS_PWD_FILE","common_os_pwdfile.enc",self.ora_env_dict)
-              msg='''COMMON_OS_PWD_FILE not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
-
-           self.ocommon.log_warn_message(msg,self.file_name)
-
-           if self.ocommon.check_key("PWD_KEY",self.ora_env_dict):
-              msg='''PWD_KEY passed as an env variable and set to {0}'''.format(self.ora_env_dict["PWD_KEY"])
-           else:
-              self.ora_env_dict=self.ocommon.add_key("PWD_KEY","pwd.key",self.ora_env_dict)
-              msg='''PWD_KEY not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["PWD_KEY"])
-
-           self.ocommon.log_warn_message(msg,self.file_name)
-
-           secret_volume = self.ora_env_dict["SECRET_VOLUME"]
-           common_os_pwd_file = self.ora_env_dict["COMMON_OS_PWD_FILE"]
-           pwd_key = self.ora_env_dict["PWD_KEY"]
-           passwd_file='''{0}/{1}'''.format(self.ora_env_dict["SECRET_VOLUME"],self.ora_env_dict["COMMON_OS_PWD_FILE"])
-           if os.path.isfile(passwd_file):
-              msg='''Passwd file {0} exist. Password file Check passed!'''.format(passwd_file)
-              self.ocommon.log_info_message(msg,self.file_name)
-              msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
-              self.ocommon.log_info_message(msg,self.file_name)
-              cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
-              output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-              self.ocommon.check_os_err(output,error,retcode,True)
-              passwd_file_flag = True
-
-           if not passwd_file_flag:
-              s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
-              passlen = 8
-              password  =  "".join(random.sample(s,passlen ))
-           else:
-              fname='''/tmp/{0}'''.format(common_os_pwd_file)
-              fdata=self.ocommon.read_file(fname)
-              password=fdata
-              self.ocommon.remove_file(fname)
-
+           self.ocommon.get_password(None)
            if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict):
-              msg="ORACLE_PWD is passed as an env variable. Check Passed!"
-              self.ocommon.log_info_message(msg,self.file_name)
-           else:
-              self.ora_env_dict=self.ocommon.add_key("ORACLE_PWD",password,self.ora_env_dict)
-              msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
-              self.ocommon.log_info_message(msg,self.file_name)
-
+               msg='''ORACLE_PWD key is set. Check Passed!'''
+               self.ocommon.log_info_message(msg,self.file_name)
+               
       def set_user(self):
            """
            This funnction set the user for pdb and cdb.
@@ -441,7 +389,6 @@ class OraPCatalog:
              alter system set db_recovery_file_dest=\"{2}\" scope=both;
              alter user gsmcatuser account unlock;
              alter user gsmcatuser identified by HIDDEN_STRING;
-             alter system set dg_broker_start=true scope=both;
              alter system set local_listener='{4}:{5}' scope=both;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname)
 
@@ -475,7 +422,6 @@ class OraPCatalog:
                      alter system set standby_file_management='AUTO' scope=spfile;
                      alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
                      alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
-                     alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
                   '''.format(dbf_dest,obase,"dbconfig",dbuname)
 
                   output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
@@ -501,7 +447,7 @@ class OraPCatalog:
               msg='''Setting up catalog CDB with spfile non modifiable parameters based on version'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
-                alter system set wallet_root=\"{1}/oradata/{2}/{3}/admin\" scope=spfile;
+                alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
               '''.format(dbf_dest,obase,"dbconfig",dbuname)
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
