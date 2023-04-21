@@ -78,9 +78,13 @@ class OraPShard:
              self.ocommon.log_info_message("DB exist lock file set to :" + exist_db_file_lck ,self.file_name)
              if os.path.exists(create_db_file_lck):
                 self.ocommon.log_info_message("provisioning is still in progress as file " + create_db_file_lck + " still exist!",self.file_name)
-                sys.exit(0)             
+                sys.exit(127)             
              elif os.path.exists(exist_db_file_lck):
                 self.ocommon.log_info_message("Database is up and running as file " + exist_db_file_lck + " exist!",self.file_name)
+                status = self.shard_setup_check()
+                if not status:
+                  self.ocommon.prog_exit("127")
+                self.ocommon.log_info_message("Shard liveness check completed sucessfully!",self.file_name)
                 sys.exit(0)
              else:
                 status = self.shard_setup_check()
@@ -104,6 +108,7 @@ class OraPShard:
               self.reset_passwd()
               self.setup_cdb_shard()
               self.set_spfile_nonm_params()
+              self.ocommon.set_events("spfile")
               self.set_dbparams_version()
               self.restart_db()
               self.alter_db()

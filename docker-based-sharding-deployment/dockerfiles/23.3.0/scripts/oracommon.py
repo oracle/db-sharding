@@ -450,6 +450,37 @@ class OraCommon:
            self.log_info_message("Calling check_sql_err() to validate the gsm command return status",self.file_name)
            self.check_sql_err(output,error,retcode,None)
 
+      def set_events(self,source):
+         """
+         Seting events at DB level
+         """
+         scope='memory'
+         
+         if self.check_key("DB_EVENTS",self.ora_env_dict):
+            events=str(self.ora_env_dict["DB_EVENTS"]).split(";")
+
+            for event in events:
+              msg='''Setting up event {0}'''.format(event)
+              self.log_info_message(msg,self.file_name)
+              ohome=self.ora_env_dict["ORACLE_HOME"]
+              inst_sid=self.ora_env_dict["ORACLE_SID"]
+              sqlpluslogincmd=self.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+              self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+              if source is not None:
+                 if source == 'spfile':
+                    scope='spfile'
+                 elif source == 'both':
+                    scope == 'both'
+                 else:
+                    scope = 'memory'
+                     
+              sqlcmd="""
+                alter system set event='{0}' scope={1};
+              """.format(event,scope)
+              output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+              self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+              self.check_sql_err(output,error,retcode,True)
+              
       def start_gsm(self,env_dict):
            """
            Start the GSM
