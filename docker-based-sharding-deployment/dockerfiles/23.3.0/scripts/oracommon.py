@@ -521,6 +521,23 @@ class OraCommon:
            else:
               return False
 
+      def find_str_in_string(self,source_str,delimeter,search_str):
+         """AI is creating summary for find_str_in_string
+
+         Args:
+             source_str ([string]): [string where you need to search]
+             delimeter ([character]): [string delimeter]
+             search_str ([string]): [string to be searched]
+         """
+         if delimeter == 'comma':
+            new_str=source_str.split(',')
+            for str in new_str:
+               if str.lower() == search_str.lower():
+                  return True
+            return False
+         
+         return False
+      
       def check_status_value(self,match):
            """
              return completed or notcompleted

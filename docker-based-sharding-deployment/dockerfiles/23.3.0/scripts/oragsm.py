@@ -156,6 +156,10 @@ class OraGSM:
              if not status:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
                 self.ocommon.prog_exit("127")
+             status = self.check_gsm_director()
+             if not status:
+                self.ocommon.log_info_message("No GDS setup found on this system.",self.file_name)
+                self.ocommon.prog_exit("127")
              self.ocommon.log_info_message("GSM liveness check completed sucessfully!",self.file_name)
              sys.exit(0)
           elif self.ocommon.check_key("INVITED_NODE_OP",self.ora_env_dict):
@@ -515,10 +519,10 @@ class OraGSM:
                  while counter < end_counter:                 
                        for key in self.ora_env_dict.keys():
                            if(reg_exp.match(key)):
-                              catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
+                              catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
                               catalog_db_status=self.check_setup_status(catalog_host,catalog_db,catalog_pdb,catalog_port)
                               if catalog_db_status == 'completed':
-                                 self.configure_gsm_clog(catalog_host,catalog_db,catalog_pdb,catalog_port,catalog_name,catalog_region,catalog_chunks,repl_type,repl_factor,repl_unit)
+                                 self.configure_gsm_clog(catalog_host,catalog_db,catalog_pdb,catalog_port,catalog_name,catalog_region,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname)
                                  break 
                               else:
                                  msg='''Catalog Status must return completed but returned value is {0}'''.format(status)
@@ -545,6 +549,9 @@ class OraGSM:
           repl_type=None
           repl_factor=None
           repl_unit=None
+          stype=None
+          sspace=None
+          cfname=None
 
           self.ocommon.log_info_message("Inside process_clog_vars()",self.file_name)
           cvar_str=self.ora_env_dict[key]
@@ -569,16 +576,26 @@ class OraGSM:
               if ckey == 'repl_factor':
                  repl_factor = cvar_dict[ckey]
               if ckey == 'repl_unit':
-                 repl_unit = cvar_dict[ckey]                 
+                 repl_unit = cvar_dict[ckey]
+              if ckey == 'sharding_type':
+                 stype = cvar_dict[ckey]
+              if ckey == 'shard_space':
+                 sspace = cvar_dict[ckey]
+              if ckey == 'shard_configname':
+                 cfname = cvar_dict[ckey]
+                       
               ## Set the values if not set in above block
           if not catalog_port:
               catalog_port=1521
           if not catalog_region:
               catalog_region="region1,region2"
+          if stype:
+             if not sspace:
+                sspace="shardspace1,shardspace2"
 
               ### Check values must be set
           if catalog_host and catalog_db and catalog_pdb and catalog_port and catalog_region and catalog_name:
-              return catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit
+              return catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname
           else:
               msg1='''catalog_db={0},catalog_pdb={1}'''.format((catalog_db or "Missing Value"),(catalog_pdb or "Missing Value"))
               msg2='''catalog_port={0},catalog_host={1}'''.format((catalog_port or "Missing Value"),(catalog_host or "Missing Value"))
@@ -619,7 +636,7 @@ class OraGSM:
           return re.compile('CATALOG_PARAMS') 
 
       
-      def configure_gsm_clog(self,chost,ccdb,cpdb,cport,catalog_name,catalog_region,catalog_chunks,repl_type,repl_factor,repl_unit):
+      def configure_gsm_clog(self,chost,ccdb,cpdb,cport,catalog_name,catalog_region,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname):
                  """
                   This function configure the GSM catalog.
                  """
@@ -628,10 +645,35 @@ class OraGSM:
                  cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
                  replist=['native']             
     
+                 ### User Define Shardig Variables
+                 shardingtype=None
+                 shardspace=None
+                 configname=None
+                 
+                 if stype and sspace:
+                    if stype.lower() == 'user':
+                        shardingtype="-sharding user"
+                        shardspace=" -shardspace {0}".format(sspace)
+                    else:
+                       shardspace=""
+                       shardingtype=""
+                 else:
+                     shardspace=""
+                     shardingtype=""
+                       
+                 if cfname:
+                   configname=" -configname {0}".format(cfname)
+                 else:
+                  configname=""
+                    
+                 ### SNR Sharding
                  chunks=None
                  repl=None
                  repfactor=None
                  repunits=None
+                 
+                 
+                 
                
                  if catalog_chunks:
                     chunks="-chunks {0}".format(catalog_chunks)
@@ -658,10 +700,10 @@ class OraGSM:
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
                  gsmcmd='''
-                  create shardcatalog -database \"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={0})(PORT={1}))(CONNECT_DATA=(SERVICE_NAME={2})))\" {7} -user {3}/{4} -sdb {5} -region {6} -agent_port 8080 -agent_password {4} {8} {9} {10} -autovncr off;
+                  create shardcatalog -database \"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={0})(PORT={1}))(CONNECT_DATA=(SERVICE_NAME={2})))\" {7} -user {3}/{4} -sdb {5} -region {6} -agent_port 8080 -agent_password {4} {8} {9} {10} {11} {12} {13} -autovncr off;
                   add invitednode {0};
                   exit;
-                  '''.format(chost,cport,cpdb,cadmin,cpasswd,catalog_name,catalog_region,chunks,repl,repfactor,repunits)
+                  '''.format(chost,cport,cpdb,cadmin,cpasswd,catalog_name,catalog_region,chunks,repl,repfactor,repunits,shardingtype,shardspace,configname)
 
                  counter=1
                  while counter < 5:
@@ -824,7 +866,7 @@ class OraGSM:
                  reg_exp= self.catalog_regex()
                  for key in self.ora_env_dict.keys():
                      if(reg_exp.match(key)):
-                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
+                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmcmd='''
                   add gsm -gsm {0}  -listener {1} -pwd {2} -catalog {3}:{4}/{5}  -region {6};
@@ -1108,7 +1150,7 @@ class OraGSM:
                  reg_exp= self.catalog_regex()
                  for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
-                       catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
+                       catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
                        if repl_type:
                          cmd=" -region {0} ".format(group_region)
                        else:
@@ -1140,11 +1182,11 @@ class OraGSM:
                       for key in self.ora_env_dict.keys():
                           if(reg_exp.match(key)):
                              shard_db_status=None
-                             shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                             shard_db,shard_pdb,shard_port,shard_group,shard_host,sregion,sspace=self.process_shard_vars(key)
 
                              shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
                              if shard_db_status == 'completed':
-                                self.configure_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group)
+                                self.configure_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group,sregion,sspace)
                              else:
                                 msg='''Shard db status must return completed but returned value is {0}'''.format(status)
                                 self.ocommon.log_info_message(msg,self.file_name)
@@ -1580,6 +1622,8 @@ class OraGSM:
           shard_port=None
           shard_group=None
           shard_host=None
+          shard_region=None
+          shard_space=None
 
           self.ocommon.log_info_message("Inside process_shard_vars()",self.file_name)
         #  self.ocommon.log_info_message(key,self.file_name)
@@ -1600,6 +1644,11 @@ class OraGSM:
                  shard_group = cvar_dict[ckey]
               if ckey == 'shard_host':
                  shard_host = cvar_dict[ckey]
+              if ckey == 'shard_region':
+                shard_region = self.validate_shard_param("region",cvar_dict[ckey])
+              if ckey == 'shard_space':
+                 shard_space = self.validate_shard_param("shardspace",cvar_dict[ckey])
+                 
               # #  self.ocommon.log_info_message("shard_host: " + shard_host, self.file_name)
               ## Set the values if not set in above block
           if not shard_port:
@@ -1607,7 +1656,7 @@ class OraGSM:
 
               ### Check values must be set
           if shard_host and shard_db and shard_pdb and shard_port and shard_group:
-              return shard_db,shard_pdb,shard_port,shard_group,shard_host
+              return shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space
           else:
               msg1='''shard_db={0},shard_pdb={1}'''.format((shard_db or "Missing Value"),(shard_pdb or "Missing Value"))
               msg2='''shard_port={0},shard_host={1}'''.format((shard_port or "Missing Value"),(shard_host or "Missing Value"))
@@ -1616,6 +1665,34 @@ class OraGSM:
               self.ocommon.log_info_message(msg,self.file_name)
               self.ocommon.prog_exit("Error occurred")
 
+      def validate_shard_param(self,param_type,value):
+         """
+         This function validaet the shard param such as region and shardspace
+         """
+         status=False
+         reg_exp= self.catalog_regex()
+         self.ocommon.log_info_messages("Processing GSM params to verify the region and shardspace")
+         for key in self.ora_env_dict.keys():
+             if(reg_exp.match(key)):
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
+         if param_type == 'region':
+            if stype:
+               status=self.oracommon.find_str_in_string(stype,'comma',value)
+               if status:
+                  return value
+               else:
+                  return ""
+         
+         if param_type == 'shard_space':
+            if sspace:
+               status=self.oracommon.find_str_in_string(stype,'comma',value)
+               if status:
+                  return value
+               else:
+                  return ""
+            
+         return False
+         
       def process_chunks_vars(self,key):
           """
            This function process the chunks vars
@@ -1728,7 +1805,7 @@ class OraGSM:
           self.ocommon.log_info_message("Inside remove_shard_regex()",self.file_name)
           return re.compile('VALIDATE_SHARD')
 
-      def configure_gsm_shard(self,shost,scdb,spdb,sdbport,sgroup):
+      def configure_gsm_shard(self,shost,scdb,spdb,sdbport,sgroup,sregion,sspace):
                  """
                   This function configure the shard db.
                  """
@@ -1739,13 +1816,20 @@ class OraGSM:
                  dtrname=self.get_director_name(group_region)
                  shard_name='''{0}_{1}'''.format(scdb,spdb)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                 shard_region=None
+                 shard_space=None
+                 if sregion:
+                    shard_region=" -region {0}".format(sregion)
+                 if sspace:
+                    shard_space=" -shardspace {0}".format(sspace)
+                    
                  gsmcmd='''
                   connect {1}/{2};
                   add cdb -connect {3}:{4}:{5} -pwd {2};
-                  add shard -cdb {5} -connect "(DESCRIPTION = (ADDRESS = (PROTOCOL = tcp)(HOST = {3})(PORT = {4})) (CONNECT_DATA = (SERVICE_NAME = {6}) (SERVER = DEDICATED)))" -shardgroup {7} -pwd {2};
+                  add shard -cdb {5} -connect "(DESCRIPTION = (ADDRESS = (PROTOCOL = tcp)(HOST = {3})(PORT = {4})) (CONNECT_DATA = (SERVICE_NAME = {6}) (SERVER = DEDICATED)))" -shardgroup {7} -pwd {2} {9} {10};
                   config vncr;
                   exit;
-                  '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
+                  '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name,shard_region,shard_space)
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
                  ### Unsetting the encrypt value to None
                  self.ocommon.unset_mask_str()
@@ -1783,7 +1867,7 @@ class OraGSM:
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
-                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
                  sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_pdb,admuser)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  msg='''Setting host Id null in catalog as auto vncr is disabled'''
@@ -2148,7 +2232,7 @@ class OraGSM:
           reg_exp= self.catalog_regex()
           for key in self.ora_env_dict.keys():
               if(reg_exp.match(key)):
-                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit=self.process_clog_vars(key)
+                 catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
           sqlpluslogin='''{0}/bin/sqlplus "sys/HIDDEN_STRING@{1}:{2}/{3} as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"],catalog_host,catalog_port,catalog_db)
           if self.ocommon.check_key("SAMPLE_SCHEMA",self.ora_env_dict):
              if self.ora_env_dict["SAMPLE_SCHEMA"] == 'DEPLOY':

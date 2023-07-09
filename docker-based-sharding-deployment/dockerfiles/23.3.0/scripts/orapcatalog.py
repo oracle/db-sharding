@@ -82,6 +82,7 @@ class OraPCatalog:
                self.setup_cdb_catalog()
                self.set_spfile_nonm_params()
                self.ocommon.set_events("spfile")
+               self.set_dbparams_version()
                self.restart_db()
                self.alter_db()
                self.setup_pdb_catalog()
