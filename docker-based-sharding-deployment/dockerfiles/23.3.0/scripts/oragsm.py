@@ -156,7 +156,7 @@ class OraGSM:
              if not status:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
                 self.ocommon.prog_exit("127")
-             status = self.check_gsm_director()
+             status = self.check_gsm_director(None)
              if not status:
                 self.ocommon.log_info_message("No GDS setup found on this system.",self.file_name)
                 self.ocommon.prog_exit("127")
@@ -1223,12 +1223,12 @@ class OraGSM:
                       for key in self.ora_env_dict.keys():
                           if(reg_exp.match(key)):
                              shard_db_status=None
-                             shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                             shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                              shard_name='''{0}_{1}'''.format(shard_db,shard_pdb)
                              shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
                              self.ocommon.log_info_message("Shard Status : " + shard_db_status,self.file_name)
                              if shard_db_status == 'completed':
-                                self.configure_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group)
+                                self.configure_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group,shard_region,shard_space)
                                 counter2=1
                                 end_counter2=5
                                 while counter2 < end_counter2:
@@ -1273,7 +1273,7 @@ class OraGSM:
                 for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
                           shard_db_status=None
-                          shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                          shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
 
                           shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
                           if shard_db_status == 'completed':
@@ -1602,7 +1602,7 @@ class OraGSM:
                 reg_exp= self.validate_shard_regex()
                 for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
-                          shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                          shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                           shard_name='''{0}_{1}'''.format(shard_db,shard_pdb)
                           status = self.check_shard_status(shard_name)
                           if status == 'completed':
@@ -1762,7 +1762,7 @@ class OraGSM:
                 reg_exp= self.shard_regex()
                 for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
-                      shard_db,shard_pdb,shard_port,shard_region,shard_host=self.process_shard_vars(key)
+                      shard_db,shard_pdb,shard_port,shard_region,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                       shard_name='''{0}_{1}'''.format(shard_db,shard_pdb)
                       try:
                         if self.ocommon.check_substr_match(matched_output[0],shard_name.lower()):
@@ -1820,12 +1820,16 @@ class OraGSM:
                  shard_space=None
                  if sregion:
                     shard_region=" -region {0}".format(sregion)
+                 else:
+                    shard_region=""
                  if sspace:
                     shard_space=" -shardspace {0}".format(sspace)
+                 else:
+                    shard_space=""
                     
                  gsmcmd='''
                   connect {1}/{2};
-                  add cdb -connect {3}:{4}:{5} -pwd {2};
+                  add cdb -connect {3}:{4}/{5} -pwd {2};
                   add shard -cdb {5} -connect "(DESCRIPTION = (ADDRESS = (PROTOCOL = tcp)(HOST = {3})(PORT = {4})) (CONNECT_DATA = (SERVICE_NAME = {6}) (SERVER = DEDICATED)))" -shardgroup {7} -pwd {2} {9} {10};
                   config vncr;
                   exit;
@@ -1919,7 +1923,7 @@ class OraGSM:
                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                 for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
-                        shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                        shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                         group_region=self.get_shardg_region_name(shard_group)
                         dtrname=self.get_director_name(group_region)
                         gsmcmd='''
@@ -1948,7 +1952,7 @@ class OraGSM:
                 if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
                    for key in self.ora_env_dict.keys():
                        if(reg_exp.match(key)):
-                           shard_db,shard_pdb,shard_port,shard_group,shard_host=self.process_shard_vars(key)
+                           shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                            temp_host= shard_host.split('.',1)[0] 
                            group_region=self.get_shardg_region_name(shard_group)
                            dtrname=self.get_director_name(group_region)
