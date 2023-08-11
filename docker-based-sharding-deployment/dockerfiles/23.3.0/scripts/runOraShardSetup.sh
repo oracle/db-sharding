@@ -353,6 +353,15 @@ if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
    else
        echo "Performing Cloning as cloned status file does not exist"
        cloneDB;
+       $ORACLE_BASE/checkDBStatus.sh
+       if [ $? -eq 0 ]; then
+         echo "DB is in READ WRITE State"
+         touch "$ORACLE_BASE/oradata/.${ORACLE_SID}.exist_lck"
+         $ORACLE_BASE/$LOCKING_SCRIPT --acquire --file "$ORACLE_BASE/oradata/.${ORACLE_SID}.exist_lck"
+       else
+         echo "DB is not in READ WRITE state"
+         exit 1;
+        fi
    fi
 else
      echo "Error: The $ORACLE_BASE/oradata/$OLD_ORACLE_SID (ORACLE_BASE/oradata/OLD_ORACLE_SID) dir does not exist. Error exiting ."

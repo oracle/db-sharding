@@ -605,7 +605,28 @@ class OraCommon:
            get the domain name from hostname
            """
            return ohost.partition('.')[2]
+        
+######### Get the DOMAIN##############
+      def get_host_domain(self):
+         """
+         Return Public Hostname
+         """
+         domain=None
+         domain=socket.getfqdn().split('.',1)[1]
+         if domain is None:
+            domain="example.info"
+
+         return domain
    
+ ######### get the public IP ##############
+      def get_ip(self,hostname,domain):
+         """
+         Return the Ip based on hostname
+         """
+         if not domain:
+           domain=self.get_host_domain()
+ 
+         return socket.gethostbyname(hostname)
 
       def get_global_dbdomain(self,ohost,gdbname):
            """
