@@ -44,9 +44,10 @@ EOF
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
 ###################################
 
-
-if [ ${SHARD_SETUP,,} == "true" ]; then
- sh $ORACLE_BASE/scripts/sharding/runOraShardSetup.sh
+if [ ! -z ${SHARD_SETUP} ]; then
+ if [ ${SHARD_SETUP,,} == "true" ]; then
+   sh $ORACLE_BASE/scripts/sharding/runOraShardSetup.sh
+ fi
 fi
 
 if [ ! -z ${CLONE_DB} ]; then
