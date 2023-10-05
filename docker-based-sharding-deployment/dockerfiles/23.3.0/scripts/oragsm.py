@@ -83,8 +83,13 @@ class OraGSM:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
                 self.ocommon.prog_exit("127")
              else:
-                self.remove_gsm_shard()
+                status=self.remove_gsm_shard()
+                
+             if status:
                 sys.exit(0)
+             else:
+                sys.exit(1)
+
           elif self.ocommon.check_key("MOVE_CHUNKS",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -1305,19 +1310,36 @@ class OraGSM:
                 This function remove the shard in the GSM
                 """
                 self.ocommon.log_info_message("Inside remove_gsm_shard()",self.file_name)
+                catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars("CATALOG_PARAMS")
+                numOfShards=self.count_online_shards()
                 status=False
-                reg_exp= self.remove_shard_regex()
+                reg_exp=self.remove_shard_regex()
                 for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
                           shard_db_status=None
                           shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
+                          shardname_to_delete=shard_db + "_" + shard_pdb
+                          leaderCount=self.count_leader_shards(shardname_to_delete)
+                          if(repl_type.upper() == 'NATIVE'):
+                             if(numOfShards < 4 or leaderCount > 0):
+                                msg='''ruType=[{0}]. NumofShards=[{1}]. LeaderCount=[{2}]. Ignoring remove of shard [{3}]'''.format(repl_type,numOfShards,leaderCount,shardname_to_delete)
+                                self.ocommon.log_info_message(msg,self.file_name)
+                                break
+
+                             self.move_shard_rus(shardname_to_delete)
+                             while self.count_shard_rus(shardname_to_delete) > 0:
+                                 self.ocommon.log_info_message("Waiting for all the shard chunks to be moved.",self.file_name)
+                                 time.sleep(15)
 
                           shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
                           if shard_db_status == 'completed':
                              self.delete_gsm_shard(shard_host,shard_db,shard_pdb,shard_port,shard_group)
+                             status=True
                           else:
                              msg='''Shard db status must return completed but returned value is {0}'''.format(status)
                              self.ocommon.log_info_message(msg,self.file_name)
+
+                return status
 
       def move_shard_chunks(self):
                 """
@@ -1629,6 +1651,81 @@ class OraGSM:
                        online_shard = online_shard + 1          
 
           return online_shard
+
+      def move_shard_rus(self,shardname):
+                """
+                This function move the shard rus
+                """
+                self.ocommon.log_info_message("Inside move_shard_rus()",self.file_name)
+                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                cpasswd="HIDDEN_STRING"
+                gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                gsmcmd='''
+                       connect {1}/{2};
+                       MOVE RU -RU ALL -SOURCE {0};
+                       status RU -shard {0};
+                       exit;
+                '''.format(shardname,cadmin,cpasswd)
+                output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+                ### Unsetting the encrypt value to None
+                self.ocommon.unset_mask_str()
+
+      def count_shard_rus(self,shardname):
+          """
+            This function return the returns the count of online shard chunks
+          """   
+          self.ocommon.log_info_message("Inside count_shard_chunks()",self.file_name)
+          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+          cpasswd="HIDDEN_STRING"
+          gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+          self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+          gsmcmd='''
+            connect {0}/{1};
+            status ru -shard {2};
+          exit;
+          '''.format(cadmin,cpasswd,shardname)
+          output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+          ### Unsetting the encrypt value to None
+          self.ocommon.unset_mask_str()
+
+          ru_count = 0
+          lines = output.split("\n")
+          for line in lines:
+              if re.search(shardname, line, re.IGNORECASE):
+                       ru_count = ru_count + 1          
+
+          return ru_count
+
+      def count_leader_shards(self,shardName):
+          """
+            This function return the returns the count of online shard
+          """   
+          self.ocommon.log_info_message("Inside count_leader_shards()",self.file_name)
+          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+          cpasswd="HIDDEN_STRING"
+          gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+          self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+          gsmcmd='''
+            connect {0}/{1};
+            status ru -shard {2} -leaders;
+          exit;
+          '''.format(cadmin,cpasswd,shardName)
+          output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+          ### Unsetting the encrypt value to None
+          self.ocommon.unset_mask_str()
+
+          leader_shard = 0
+          lines = output.split("\n")
+          for line in lines:
+              if re.search('ok', line, re.IGNORECASE):
+                 if re.search('Leader', line, re.IGNORECASE):
+                       leader_shard = leader_shard + 1          
+
+          return leader_shard
 
       def validate_gsm_shard(self):
                 """
