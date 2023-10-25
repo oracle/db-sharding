@@ -11,7 +11,7 @@
 #
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------
-# (1) LINUX.X64_233000_gsm.zip
+# (1) LINUX.X64_234000_gsm.zip
 #     Download Oracle Database 23c GSM Software
 #     from http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
 #
@@ -37,7 +37,7 @@ LABEL "provider"="Oracle"                                          \
 
 # Argument to control removal of components not needed after db software installation
 ARG SLIMMING=false
-ARG INSTALL_FILE_1="LINUX.X64_233000_gsm.zip"
+ARG INSTALL_FILE_1="LINUX.X64_234000_gsm.zip"
 
 # Environment variables required for this build (do NOT change)
 # -------------------------------------------------------------
