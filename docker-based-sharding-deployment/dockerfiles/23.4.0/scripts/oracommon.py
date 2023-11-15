@@ -475,7 +475,7 @@ class OraCommon:
                     scope = 'memory'
                      
               sqlcmd="""
-                alter system set event='{0}' scope={1};
+                alter system set event='{0}';
               """.format(event,scope)
               output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
