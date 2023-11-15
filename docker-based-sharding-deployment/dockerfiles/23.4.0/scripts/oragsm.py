@@ -1320,16 +1320,17 @@ class OraGSM:
                           shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                           shardname_to_delete=shard_db + "_" + shard_pdb
                           leaderCount=self.count_leader_shards(shardname_to_delete)
-                          if(repl_type.upper() == 'NATIVE'):
-                             if(numOfShards < 4 or leaderCount > 0):
-                                msg='''ruType=[{0}]. NumofShards=[{1}]. LeaderCount=[{2}]. Ignoring remove of shard [{3}]'''.format(repl_type,numOfShards,leaderCount,shardname_to_delete)
-                                self.ocommon.log_info_message(msg,self.file_name)
-                                break
+                          if repl_type is not None:
+                            if(repl_type.upper() == 'NATIVE'):
+                               if(numOfShards < 4 or leaderCount > 0):
+                                  msg='''ruType=[{0}]. NumofShards=[{1}]. LeaderCount=[{2}]. Ignoring remove of shard [{3}]'''.format(repl_type,numOfShards,leaderCount,shardname_to_delete)
+                                  self.ocommon.log_info_message(msg,self.file_name)
+                                  break
 
-                             self.move_shard_rus(shardname_to_delete)
-                             while self.count_shard_rus(shardname_to_delete) > 0:
-                                 self.ocommon.log_info_message("Waiting for all the shard chunks to be moved.",self.file_name)
-                                 time.sleep(15)
+                               self.move_shard_rus(shardname_to_delete)
+                               while self.count_shard_rus(shardname_to_delete) > 0:
+                                   self.ocommon.log_info_message("Waiting for all the shard chunks to be moved.",self.file_name)
+                                   time.sleep(15)
 
                           shard_db_status=self.check_setup_status(shard_host,shard_db,shard_pdb,shard_port)
                           if shard_db_status == 'completed':
@@ -1664,6 +1665,7 @@ class OraGSM:
                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                 gsmcmd='''
                        connect {1}/{2};
+                       configure -verbose off -save_config;
                        MOVE RU -RU ALL -SOURCE {0};
                        status RU -shard {0};
                        exit;
