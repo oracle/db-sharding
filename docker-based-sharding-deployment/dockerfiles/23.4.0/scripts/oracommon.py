@@ -454,29 +454,31 @@ class OraCommon:
          """
          Seting events at DB level
          """
-         scope='memory'
-         
+         scope=''
+         accepted_scope = ['spfile', 'memory', 'both']
+ 
          if self.check_key("DB_EVENTS",self.ora_env_dict):
             events=str(self.ora_env_dict["DB_EVENTS"]).split(";")
 
             for event in events:
               msg='''Setting up event {0}'''.format(event)
               self.log_info_message(msg,self.file_name)
+              scope=''
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
               self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-              if source is not None:
-                 if source == 'spfile':
-                    scope='spfile'
-                 elif source == 'both':
-                    scope == 'both'
-                 else:
-                    scope = 'memory'
+              source=event.split(":")
+              if len(source) > 1:
+                 if source[1].split("=")[0] == "scope":
+                    scope=source[1].split("=")[1]
                      
-              sqlcmd="""
-                alter system set event='{0}';
-              """.format(event,scope)
+              if scope not in accepted_scope:
+                 sqlcmd="""
+                    alter system set events='{0}';""".format(source[0])
+              else:
+                 sqlcmd="""
+                    alter system set event='{0}' scope={1};""".format(source[0],scope)
               output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
               self.check_sql_err(output,error,retcode,True)
