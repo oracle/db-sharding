@@ -30,6 +30,10 @@ To deploy a Oracle Sharding topology, please execute the steps in the following 
     - [Create Oracle Global Service Manager Image](#create-oracle-global-service-manager-image)
     - [Create Oracle Database Image](#create-oracle-database-image)
     - [Create Extended Oracle Database Image with Sharding Feature](#create-extended-oracle-database-image-with-sharding-feature)
+  - [Create Containers using compose files](#create-containers-using-compose-files)
+    - [Create Containers using docker compose](#create-containers-using-docker-compose)
+    - [Create Containers using podman-compose](#create-containers-using-podman-compose)
+  - [Create Containers using manual steps](#create-containers-using-manual-steps)
     - [Create Network Bridge](#create-network-bridge)
       - [Macvlan Bridge](#macvlan-bridge)
       - [Ipvlan Bridge](#ipvlan-bridge)
@@ -51,8 +55,6 @@ To deploy a Oracle Sharding topology, please execute the steps in the following 
         - [Create Directory](#create-directory-2)
         - [Create Container](#create-container-1)
   - [Sample Container Files for Older Releases](#sample-container-files-for-older-releases)
-  - [Create Containers using docker compose](#create-containers-using-docker-compose)
-  - [Create Containers using podman-compose](#create-containers-using-podman-compose)
   - [Support](#support)
   - [License](#license)
   - [Copyright](#copyright)
@@ -585,4 +587,3 @@ All scripts and files hosted in this project and GitHub docker-images/OracleData
 ## Copyright
 
 Copyright (c) 2014-2022 Oracle and/or its affiliates.
-
