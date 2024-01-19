@@ -1319,10 +1319,10 @@ class OraGSM:
                           shard_db_status=None
                           shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
                           shardname_to_delete=shard_db + "_" + shard_pdb
-                          leaderCount=self.count_leader_shards(shardname_to_delete)
                           if repl_type is not None:
                             if(repl_type.upper() == 'NATIVE'):
                                self.move_shards_leader_rus(shardname_to_delete)
+                               leaderCount=self.count_leader_shards(shardname_to_delete)
                                if(numOfShards < 4 or leaderCount > 0):
                                   msg='''ruType=[{0}]. NumofShards=[{1}]. LeaderCount=[{2}]. Ignoring remove of shard [{3}]'''.format(repl_type,numOfShards,leaderCount,shardname_to_delete)
                                   self.ocommon.log_info_message(msg,self.file_name)
@@ -1363,7 +1363,7 @@ class OraGSM:
                 count += 1
                 cols=line.split()
                 if len(cols) > 0:
-                  if cols[0] == shardname_to_delete:
+                  if cols[0].lower() == shardname_to_delete.lower():
                     if cols[1].isdigit:
                        value = int(cols[1])
                     else:
@@ -1374,14 +1374,14 @@ class OraGSM:
                     cols1=line1.split()
                     print(cols1)
                     if len(cols1) > 5:
-                      if cols1[0] != shardname_to_delete and cols1[1].isdigit and cols1[2].lower() == 'follower':
+                      if cols1[0].lower() != shardname_to_delete.lower() and cols1[1].isdigit and cols1[2].lower() == 'follower':
                         if value is not None:
                           if int(cols1[1]) == value:
                              target_shards.append(cols1[0])
                              break
 
                   for shard in shards:
-                    if shard != shardname_to_delete:
+                    if shard.lower() != shardname_to_delete.lower():
                       if shard in target_shards:
                         msg="Shard_name= " + shard + " Status=True"  + "  Value = " + str(value)
                         self.ocommon.log_info_message(msg,self.file_name)
