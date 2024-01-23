@@ -2,9 +2,17 @@
 
 Below steps provide an example to docker compose to create the docker network and to create the containers for a Sharded Database on a single Oracle Linux 7 host. 
 
-This example uses 21c RDBMS and 21c GSM Docker Images.
+**IMPORTANT:** This example uses 21c RDBMS and 21c GSM Docker Images.
 
-### Step 1: Install Docker Compose
+- [Step 1: Install Docker Compose](#install-docker-compose)
+- [Step 2: Complete the prerequisite steps](#complete-the-prerequisite-steps)
+- [Step 3: Create Docker Compose file](#create-docker-compose-file)
+- [Step 4: Create services using "docker compose" command](#create-services-using-docker-compose-command)
+- [Step 5: Check the logs](#check-the-logs)
+- [Copyright](#copyright)
+
+
+## Install Docker Compose
 ```
 DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
 mkdir -p $DOCKER_CONFIG/cli-plugins
@@ -14,7 +22,7 @@ ls -lrt $DOCKER_CONFIG/cli-plugins
 chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 ```
 
-### Step 2: Complete the prerequisite steps
+## Complete the prerequisite steps
 ```
 # Export the variables:
 export PODMANVOLLOC='/oradata/PODMAN_TEST'
@@ -142,7 +150,9 @@ chmod 755 ${PODMANVOLLOC}/dbfiles/GSM1DATA
 chmod 755 ${PODMANVOLLOC}/dbfiles/GSM2DATA
 ```
 
-### Step 3: Create Compose file named "docker-compose.yaml"
+## Create Docker Compose file 
+
+In this step, create a Docker Compose file named "docker-compose.yaml":
 ```
 ---
 version: "3.8"
@@ -345,13 +355,18 @@ services:
         condition: service_healthy
 ```
 
-### Step 4: Create services using "docker compose" command
+## Create services using "docker compose" command
 Once you have completed the prerequisties, run below commands to create the services:
 ```
 # Switch to location with the "docker-compose.yaml" file and run:
  
 docker compose up -d
- 
+
+``` 
+
+## Check the logs
+
+```
 # You can monitor the logs for all the containers using below command:
  
 docker compose logs -f
@@ -368,3 +383,8 @@ Wait for all setup to be ready:
  ✔ Container gsm1      Healthy                                                                                                                                                                                                                                           0.0s
  ✔ Container gsm2      Started       
 ```
+
+
+## Copyright
+
+Copyright (c) 2014-2019 Oracle and/or its affiliates. All rights reserved.

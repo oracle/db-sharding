@@ -5,15 +5,23 @@ You can use Oracle 23c GSM and RDBMS Podman Images and can enable the SNR RAFT f
 
 Below steps provide an example to podman-compose to create the podman network and deploy containers for a Sharded Database on a single Oracle Linux 8 host. 
 
-This example uses 23c RDBMS and 23c GSM Docker Images. Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
+**IMPORTANT:** This example uses 23c RDBMS and 23c GSM Docker Images. Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
 
-### Step 1: Install "podman-compose"
+- [Step 1: Install Podman compose](#install-podman-compose)
+- [Step 2: Complete the prerequisite steps](#complete-the-prerequisite-steps)
+- [Step 3: Create Podman Compose file](#create-podman-compose-file)
+- [Step 4: Create services using "podman-compose" command](#create-services-using-podman-compose-command)
+- [Step 5: Check the logs](#check-the-logs)
+- [Copyright](#copyright)
+
+
+## Install Podman compose
 ```
 dnf config-manager --enable ol8_developer_EPEL
 dnf install podman-compose
 ```
 
-### Step 2: Complete the prerequisite steps
+## Complete the prerequisite steps
 ```
 # Export the variables:
 export PODMANVOLLOC='/oradata/PODMAN_TEST'
@@ -144,7 +152,9 @@ chmod 755 ${PODMANVOLLOC}/dbfiles/GSM1DATA
 chmod 755 ${PODMANVOLLOC}/dbfiles/GSM2DATA
 ```
 
-### Step 3: Create Compose file named "podman-compose.yaml"
+## Create Podman Compose file
+
+In this step, create a Podman Compose file named "podman-compose.yaml":
 ```
 ---
 version: "3.8"
@@ -310,13 +320,16 @@ services:
         ipv4_address: ${LOCAL_NETWORK}.154
 ```
 
-### Step 4: Create services using "podman-compose" command
+## Create services using "podman-compose" command
 Once you have completed the prerequisties, run below commands to create the services:
 ```
 # Switch to location with the "podman-compose.yaml" file and run:
  
 podman-compose up -d
- 
+```
+
+## Check the logs
+```
 # You can monitor the logs for all the containers using below command:
  
 podman-compose logs -f
@@ -327,3 +340,6 @@ Wait for all setup to be ready:
 podman-compose ps
 ```
 
+## Copyright
+
+Copyright (c) 2014-2019 Oracle and/or its affiliates. All rights reserved.
