@@ -104,12 +104,12 @@ Please check the below sections to use compose files to deploy containers for th
 
 ### Create Containers using docker compose
 
-[Compose](https://docs.docker.com/compose/) is a tool for defining and running multi-container Docker applications. With Compose, you use a YAML file to configure your application's services. Then, with a single command, you create and start all the services from your configuration. Please check [sample deployment using docker compose](./compose-files/docker-compose.md).
+[Compose](https://docs.docker.com/compose/) is a tool for defining and running multi-container Docker applications. With Compose, you use a YAML file to configure your application's services. Then, with a single command, you create and start all the services from your configuration. Please check [sample deployment using docker compose](./samples/compose-files/docker-compose.md).
 
 
 ### Create Containers using podman-compose
 
-For Oracle Linux 8 host machines,"podman-compose" can be used for deploying containers to create an Oracle Sharded database. You can use Oracle 23c GSM and RDBMS Podman Images and can enable the SNR RAFT feature while deploying the Oracle Sharded Database. Please check [sample deployment using podman-compose](./compose-files/podman-compose.md).
+For Oracle Linux 8 host machines,"podman-compose" can be used for deploying containers to create an Oracle Sharded database. You can use Oracle 23c GSM and RDBMS Podman Images and can enable the SNR RAFT feature while deploying the Oracle Sharded Database. Please check [sample deployment using podman-compose](./samples/compose-files/podman-compose.md).
 
 
 ## Create Containers using manual steps
