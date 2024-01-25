@@ -5,7 +5,9 @@ You can use Oracle 23c GSM and RDBMS Podman Images and can enable the SNR RAFT f
 
 Below steps provide an example to podman-compose to create the podman network and deploy containers for a Sharded Database on a single Oracle Linux 8 host. 
 
-**IMPORTANT:** This example uses 23c RDBMS and 23c GSM Docker Images. Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
+**IMPORTANT:** This example uses 23c RDBMS and 23c GSM Docker Images. 
+
+**IMPORTANT:** Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
 
 - [Step 1: Install Podman compose](#install-podman-compose)
 - [Step 2: Complete the prerequisite steps](#complete-the-prerequisite-steps)

@@ -1,6 +1,6 @@
 # Create Containers using docker compose
 
-Below steps provide an example to docker compose to create the docker network and to create the containers for a Sharded Database on a single Oracle Linux 7 host. 
+Below steps provide an example to use "docker-compose" to create the docker network and to create the containers for a Sharded Database Deployment on a single Oracle Linux 7 host using Docker Containers.
 
 **IMPORTANT:** This example uses 21c RDBMS and 21c GSM Docker Images.
 
