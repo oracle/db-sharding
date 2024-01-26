@@ -109,11 +109,11 @@ Refer to the relevant section depending on whether you want to deploy the Sharde
 
 ### Deploy Sharded Database with System Sharding
 
-Refer to [Sample Sharded Database with System Sharding deployed manually using Docker Containers](./docker-sharded-database-with-system-sharding.md) to deploy a sharded database with system sharding using docker containers.
+Refer to [Sample Sharded Database with System Sharding deployed manually using Docker Containers](./docker-sharded-database-with-system-sharding.md) to deploy a sample sharded database with system sharding using docker containers.
 
 ### Deploy Sharded Database with User Defined Sharding
 
-Refer to [Sample Sharded Database with User Defined Sharding deployed manually using Docker Containers](./docker-sharded-database-with-user-defined-sharding.md) to deploy a sharded database with User Defined sharding using docker containers.
+Refer to [Sample Sharded Database with User Defined Sharding deployed manually using Docker Containers](./docker-sharded-database-with-user-defined-sharding.md) to deploy a sample sharded database with User Defined sharding using docker containers.
 
 
 ## Support

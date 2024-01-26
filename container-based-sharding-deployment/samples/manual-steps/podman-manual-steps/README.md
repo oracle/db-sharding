@@ -110,17 +110,17 @@ Refer to the relevant section depending on whether you want to deploy the Sharde
 
 ### Deploy Sharded Database with System Sharding
 
-Refer to [Sample Sharded Database with System Sharding deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding.md) to deploy a sharded database with system sharding using podman containers.
+Refer to [Sample Sharded Database with System Sharding deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding.md) to deploy a sample sharded database with system sharding using podman containers.
 
 
 ### Deploy Sharded Database with System Sharding with SNR RAFT Enabled
 
-Refer to [Sample Sharded Database with System Sharding with SNR RAFT enabled deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding-with-snr-raft-enabled.md) to deploy a sharded database with system sharding with SNR RAFT enabled using podman containers.
+Refer to [Sample Sharded Database with System Sharding with SNR RAFT enabled deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample sharded database with system sharding with SNR RAFT enabled using podman containers.
 
 
 ### Deploy Sharded Database with User Defined Sharding
 
-Refer to [Sample Sharded Database with User Defined Sharding deployed manually using Podman Containers](./podman-sharded-database-with-user-defined-sharding.md) to deploy a sharded database with User Defined sharding using Podman containers.
+Refer to [Sample Sharded Database with User Defined Sharding deployed manually using Podman Containers](./podman-sharded-database-with-user-defined-sharding.md) to deploy a sample sharded database with User Defined sharding using Podman containers.
 
 
 ## Support

@@ -105,13 +105,13 @@ In case, you want to manually deploy the sharded database using Docker or Podman
 
 ### Create Containers manually using Docker
 
-Please refer to [Sample Sharded Database Deployed Manually Using Docker](./samples/manual-steps/docker-manual-steps/README.md) to deploy a sample sharded database. This document provides the commands to deploy a Sharded Database using Docker with System Sharding or with User Defined Sharding.
+Please refer to [Manually deploy a Sharded Database using Docker](./samples/manual-steps/docker-manual-steps/README.md) to deploy a  sharded database. This document provides the commands to deploy a Sharded Database using Docker with System Sharding or with User Defined Sharding.
 
 **NOTE:** If you want to use Oracle 19c or Oracle 21c version based container images with Docker, you need to deploy on an Oracle Linux 7 host.
 
 ### Create Containers manually using Podman
 
-Please refer to [Sample Sharded Database Deployed Manually Using Podman](./samples/manual-steps/podman-manual-steps/README.md) to deploy a sample sharded database. This document provides the commands to deploy a Sharded Database using Podman with System Sharding or with User Defined Sharding.
+Please refer to [Manually deploy a Sharded Database using Podman](./samples/manual-steps/podman-manual-steps/README.md) to deploy a  sharded database. This document provides the commands to deploy a Sharded Database using Podman with System Sharding or with User Defined Sharding.
 
 **NOTE:** If you want to use Oracle 21c or Oracle 23c version based container images with Podman, you need to deploy on an Oracle Linux 8 host.
 
