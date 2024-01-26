@@ -2,51 +2,38 @@
 
 Docker is used on Oracle Linux 7 Host Machines to create containers. This page provides the details to manually create the docker containers to deploy a Sharded Database.
 
-  - [Prerequisites](#prerequisites)
-    - [Create Network Bridge](#create-network-bridge)
-      - [Macvlan Bridge](#macvlan-bridge)
-      - [Ipvlan Bridge](#ipvlan-bridge)
-      - [Bridge](#bridge)
-    - [Setup Hostfile](#setup-hostfile)
-    - [Password Setup](#password-setup)
-    - [Create Containers](#create-containers)
-      - [Deploying Catalog Container](#deploying-catalog-container)
-        - [Create Directory](#create-directory)
-        - [Create Container](#create-container)
-      - [Deploying Shard Containers](#deploying-shard-containers)
-        - [Create Directories](#create-directories)
-        - [Shard1 Container](#shard1-container)
-        - [Shard2 Container](#shard2-container)
-      - [Deploying GSM Container](#deploying-gsm-container)
-        - [Create Directory](#create-directory-1)
-        - [Create GSM Master Container](#create-gsm-master-container)
-      - [Create GSM Standby Container](#create-gsm-standby-container)
-        - [Create Directory](#create-directory-2)
-        - [Create Container](#create-container-1)
-  - [Sample Container Files for Older Releases](#sample-container-files-for-older-releases)
-  - [Support](#support)
-  - [License](#license)
-  - [Copyright](#copyright)
+- [Prerequisites](#prerequisites)
+  - [Create Network Bridge](#create-network-bridge)
+    - [Macvlan Bridge](#macvlan-bridge)
+    - [Ipvlan Bridge](#ipvlan-bridge)
+    - [Bridge](#bridge)
+  - [Setup Hostfile](#setup-hostfile)
+  - [Password Setup](#password-setup)
+  - [Create Containers](#create-containers)
+    - [Deploy Sharded Database with System Sharding](#deploy-sharded-database-with-system-sharding)
+    - [Deploy Sharded Database with User Defined Sharding](#deploy-sharded-database-with-user-defined-sharding)
+- [Support](#support)
+- [License](#license)
+- [Copyright](#copyright)
 
 
 
-
-# Prerequisites
+## Prerequisites
 
 This section provides the prerequisite steps to be completed before deploying an Oracle Sharded Database using Docker Containers. In involves the docker network creation, creation of encrypted file with secrets etc. 
 
 
-## Create Network Bridge
+### Create Network Bridge
 
 Before creating a container, create the docker network by creating docker network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md then you can use the same IPs mentioned in [Create Containers](#create-containers) section.
 
-### Macvlan Bridge
+#### Macvlan Bridge
 
 ```
 # docker network create -d macvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=eth0 shard_pub1_nw
 ```
 
-### Ipvlan Bridge
+#### Ipvlan Bridge
 
 ```
 # docker network create -d ipvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=eth0 shard_pub1_nw
@@ -54,7 +41,7 @@ Before creating a container, create the docker network by creating docker networ
 
 If you are planning to create a test env within a single machine, you can use a docker bridge but these IPs will not be reachable on the user network.
 
-### Bridge
+#### Bridge
 
 ```
 # docker network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
@@ -62,7 +49,7 @@ If you are planning to create a test env within a single machine, you can use a 
 
 **Note:** You can change subnet and choose one of the above mentioned docker network bridge based on your environment.
 
-## Setup Hostfile
+### Setup Hostfile
 
 All containers will share a host file for name resolution.  The shared hostfile must be available to all containers. Create the shared host file (if it doesn't exist) at `/opt/containers/shard_host_file`:
 
@@ -86,7 +73,7 @@ Add the following host entries in /opt/containers/shard_host_file as Oracle data
 10.0.20.106     oshard4-0.example.com           oshard4-0
 ```
 
-## Password Setup
+### Password Setup
 
 Specify the secret volume for resetting database users password during catalog and shard setup. It can be a shared volume among all the containers
 
@@ -95,7 +82,7 @@ mkdir /opt/.secrets/
 openssl rand -hex 64 -out /opt/.secrets/pwd.key
 ```
 
-Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle and database. It will be a common password for all the database users. Execute following command:
+Edit the `/opt/.secrets/common_os_pwdfile` and seed the password. It will be a common password for all the database users. Execute following command:
 
 ```
 vi /opt/.secrets/common_os_pwdfile
@@ -106,7 +93,7 @@ vi /opt/.secrets/common_os_pwdfile
 After seeding password and saving the `/opt/.secrets/common_os_pwdfile` file, execute following command:
 
 ```
-openssl enc -aes-256-cbc -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
+openssl enc -aes-256-cbc -md md5 -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
 rm -f /opt/.secrets/common_os_pwdfile
 chown 54321:54321 /opt/.secrets/common_os_pwdfile.enc
 chown 54321:54321 /opt/.secrets/pwd.key
@@ -116,7 +103,7 @@ chmod 400 /opt/.secrets/pwd.key
 
 This password is being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
 
-### Create Containers
+## Create Containers
 
 Refer to the relevant section depending on whether you want to deploy the Sharded Database using System Sharding or User Defined Sharding.
 
@@ -129,16 +116,9 @@ Refer to [Sample Sharded Database with System Sharding deployed manually using D
 Refer to [Sample Sharded Database with User Defined Sharding deployed manually using Docker Containers](./docker-sharded-database-with-user-defined-sharding.md) to deploy a sharded database with User Defined sharding using docker containers.
 
 
-## Sample Container Files for Older Releases
-
- * Oracle Database 19c Global Service Manager (GSM/GDS) (19.3) for Linux x86-64
- * Oracle Database 21c Global Service Manager (GSM/GDS) (21.3) for Linux x86-64
-
-**Note:** The above version supported on Docker on Oracle Linux 7.
-
 ## Support
 
-Oracle GSM and Sharding Database is supported for Oracle Linux 7. Oracle 23c GSM is supported on Oracle Linux 8.
+Oracle 19c or Oracle 21c GSM and RDBMS is supported for Oracle Linux 7.
 
 ## License
 
