@@ -149,7 +149,7 @@ Before creating shard1 container, review the following notes carefully:
 
 ```
 docker run -d --hostname oshard1-0 \
-  --dns-search=example.com \
+ --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.103 \
  -e DOMAIN=example.com \
@@ -201,7 +201,7 @@ Before creating shard1 container, review the following notes carefully:
 
 ```
 docker run -d --hostname oshard2-0 \
-  --dns-search=example.com \
+ --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.104 \
  -e DOMAIN=example.com \
@@ -263,27 +263,27 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
 ### Create Master GSM Container
 
 ```
-  docker run -d --hostname oshard-gsm1 \
-   --dns-search=example.com \
-   --network=shard_pub1_nw \
-   --ip=10.0.20.100 \
-   -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
-   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
-   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
-   -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
-   -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
-   -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
-   -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
-   -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
-   -e PWD_KEY=pwd.key \
-   -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
-   -v /opt/containers/shard_host_file:/etc/hosts \
-   --volume /opt/.secrets:/run/secrets:ro \
-   -e OP_TYPE=gsm \
-   -e MASTER_GSM="TRUE" \
-   --privileged=false \
-   --name gsm1 oracle/database-gsm:21.3.0
+docker run -d --hostname oshard-gsm1 \
+ --dns-search=example.com \
+ --network=shard_pub1_nw \
+ --ip=10.0.20.100 \
+ -e DOMAIN=example.com \
+ -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
+ -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
+ -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
+ -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+ -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
+ -e PWD_KEY=pwd.key \
+ -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
+ -v /opt/containers/shard_host_file:/etc/hosts \
+ --volume /opt/.secrets:/run/secrets:ro \
+ -e OP_TYPE=gsm \
+ -e MASTER_GSM="TRUE" \
+ --privileged=false \
+ --name gsm1 oracle/database-gsm:21.3.0
 
    Mandatory Parameters:
       SHARD_DIRECTOR_PARAMS:     Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
@@ -361,23 +361,28 @@ chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
 ### Create Standby GSM Container
 
 ```
-  docker run -d --hostname oshard-gsm2 \
-   --dns-search=example.com \
-   --network=shard_pub1_nw \
-   --ip=10.0.20.101 \
-   -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region1;director_port=1522" \
-   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region1" \
-   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
-   -e CATALOG_SETUP="True" \
-   -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
-   -e PWD_KEY=pwd.key \
-   -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
-   -v /opt/containers/shard_host_file:/etc/hosts \
-   --volume /opt/.secrets:/run/secrets:ro \
-   -e OP_TYPE=gsm \
-   --privileged=false \
-   --name gsm2 oracle/database-gsm:21.3.0
+docker run -d --hostname oshard-gsm2 \
+ --dns-search=example.com \
+ --network=shard_pub1_nw \
+ --ip=10.0.20.101 \
+ -e DOMAIN=example.com \
+ -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=region2" \
+ -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
+ -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
+ -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+ -e CATALOG_SETUP="True" \
+ -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
+ -e PWD_KEY=pwd.key \
+ -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
+ -v /opt/containers/shard_host_file:/etc/hosts \
+ --volume /opt/.secrets:/run/secrets:ro \
+ -e OP_TYPE=gsm \
+ --privileged=false \
+ --name gsm2 oracle/database-gsm:21.3.0
+
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
    Mandatory Parameters:
