@@ -1,4 +1,4 @@
-# Deploy Sharded Database with User Defined Sharding
+# Deploy Sharded Database with User Defined Sharding using Docker Containers
 
 This page covers the steps to manually deploy a sample Sharded Database with User Defined Sharding using Docker Containers. 
 
@@ -25,7 +25,7 @@ This page covers the steps to manually deploy a sample Sharded Database with Use
 This setup involves deploying docker containers for:
 
 * Catalog Database
-* Two Shard Database
+* Two Shard Databases
 * Primary GSM 
 * Standby GSM
 
@@ -149,7 +149,7 @@ Before creating shard1 container, review the following notes carefully:
 
 ```
 docker run -d --hostname oshard1-0 \
-  --dns-search=example.com \
+ --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.103 \
  -e DOMAIN=example.com \
@@ -289,14 +289,6 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
                                  key=director_name,     value=shard director name
                                  key=director_region,   value=shard director region
                                  key=director_port,     value=shard director port
-
-      SHARD[1-9]_GROUP_PARAMS:   Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
-                                 key=group_name,        value=shard group name
-                                 key=deploy_as,         value=deploy shard group as primary or active_standby
-                                 key=group_region,      value=shard group region name
-         **Notes**:
-           SHARD[1-9]_GROUP_PARAMS is in regex form, you can specify env parameter based on your environment such SHARD1_GROUP_PARAMS, SHARD2_GROUP_PARAMS.
-           Each SHARD[1-9]_GROUP_PARAMS must have above key value pair.
 
       CATALOG_PARAMS:            Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=catalog_host,       value=catalog hostname

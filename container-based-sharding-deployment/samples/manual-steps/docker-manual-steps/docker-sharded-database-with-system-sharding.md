@@ -1,4 +1,4 @@
-# Deploy Sharded Database with System Sharding
+# Deploy Sharded Database with System Sharding using Docker Containers
 
 This page covers the steps to manually deploy a sample Sharded Database with System Sharding using Docker Containers. 
 
