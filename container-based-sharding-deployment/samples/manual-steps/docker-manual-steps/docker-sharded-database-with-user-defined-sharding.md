@@ -201,7 +201,7 @@ Before creating shard1 container, review the following notes carefully:
 
 ```
 docker run -d --hostname oshard2-0 \
-  --dns-search=example.com \
+ --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.104 \
  -e DOMAIN=example.com \
@@ -269,7 +269,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
    --ip=10.0.20.100 \
    -e DOMAIN=example.com \
    -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
-   -e CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardgroup1,shardgroup2" \
+   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardgroup1,shardgroup2" \
    -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_space=shardgroup1;shard_region=region1"  \
    -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardgroup2;shard_region=region1"  \
    -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
@@ -358,7 +358,7 @@ chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
    --ip=10.0.20.101 \
    -e DOMAIN=example.com \
    -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
-   -e CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardgroup1,shardgroup2" \
+   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardgroup1,shardgroup2" \
    -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_space=shardgroup1;"  \
    -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardgroup2;"  \
    -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
