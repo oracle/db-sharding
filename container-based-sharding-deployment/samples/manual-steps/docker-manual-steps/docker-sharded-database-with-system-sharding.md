@@ -126,8 +126,8 @@ A database shard is a horizontal partition of data in a database or search engin
 ```
 mkdir -p /oradata/dbfiles/ORCL1CDB
 mkdir -p /oradata/dbfiles/ORCL2CDB
-chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
+chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 ```
 
 **Notes**:
@@ -409,6 +409,120 @@ docker logs -f gsm2
          GSM Setup Completed
     ==============================================
 ```
+
+## Scale out an existing Sharded Database
+
+If you want to Scale Out an existing Sharded Database already deployed using the Docker Containers, then you will to complete the steps in below order:
+
+- Complete the prerequisite steps before creating the Docker Container for the new Shard to be added to the Sharded Database
+- Create the Docker Container for the new Shard
+- Add the new Shard Database to the existing Sharded Database
+- Deploy the new Shard
+
+The below example covers the steps to add a new Shard (Shard3) to an existing Sharded Database which was deployed earlier in this page with two shards (Shard1 and Shard2).
+
+### Complete the prerequisite steps before creating Docker Container for Shard3
+
+Create the required directories for the Shard3 container just like they were created for the earlier Shards (shard1 and shard2):
+
+```
+mkdir -p /oradata/dbfiles/ORCL3CDB
+chown -R 54321:54321 /oradata/dbfiles/ORCL3CDB
+```
+
+**Notes**:
+
+* Change the ownership for data volume `/oradata/dbfiles/ORCL3CDB` and `/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
+* If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
+
+### Create Docker Container for Shard3
+
+Before creating shard3 container, review the following notes carefully:
+
+**Notes**
+
+* Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
+* Change /oradata/dbfiles/ORCL1CDB based on your environment.
+* By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:21.3.0-ee` to `--name shard1 oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+  * In this case, `/oradata/dbfiles/ORCL3CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL3CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
+
+```
+docker run -d --hostname oshard3-0 \
+ --dns-search=example.com \
+ --network=shard_pub1_nw \
+ --ip=10.0.20.105 \
+ -e DOMAIN=example.com \
+ -e ORACLE_SID=ORCL3CDB \
+ -e ORACLE_PDB=ORCL3PDB \
+ -e OP_TYPE=primaryshard \
+ -e SHARD_SETUP="true" \
+ -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
+ -e PWD_KEY=pwd.key \
+ -v /oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
+ -v /opt/containers/shard_host_file:/etc/hosts \
+ --volume /opt/.secrets:/run/secrets:ro \
+ --privileged=false \
+ --name shard3 oracle/database:21.3.0-ee
+
+   Mandatory Parameters:
+      COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
+      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
+      DOMAIN:                   Specify the domain name
+      ORACLE_SID:               CDB name
+      ORACLE_PDB:               PDB name
+
+    Optional Parameters:
+      CUSTOM_SHARD_SCRIPT_DIR:  Specify the location of custom scripts which you want to run after setting up shard setup.
+      CUSTOM_SHARD_SCRIPT_FILE: Specify the file name that must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup.
+      CLONE_DB: Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata.
+      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed cloning using existing cold backup of Oracle DB.
+      OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
+```
+
+To check the shard3 container/services creation logs, please tail docker logs. It will take 20 minutes to create the shard1 container service.
+
+```
+docker logs -f shard3
+```
+
+**IMPORTANT:** Like the earlier shards (shard1 and shard2), wait for the following lines highlight when the Shard3 database is ready to be used:
+
+```
+    ==============================================
+         GSM Shard Setup Completed
+    ==============================================
+```
+
+### Add the new Shard Database to the existing Sharded Database
+
+Use the below command to add the new shard3:
+```
+docker exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --addshard="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"
+```
+
+Use the below command to check the status of the newly added shard:
+``` 
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
+```
+
+### Deploy the new shard
+
+Deploy the newly added shard (shard3):
+
+```
+docker exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --deployshard=true
+```
+
+Use the below command to check the status of the newly added shard and the chunks distribution:
+```
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
+
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
+```
+
+**NOTE:** The chunks redistribution after deploying the new shard may take some time to complete.
 
 
 ## Copyright

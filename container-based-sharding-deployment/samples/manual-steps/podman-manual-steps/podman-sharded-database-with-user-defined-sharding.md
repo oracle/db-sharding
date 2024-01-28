@@ -126,8 +126,8 @@ A database shard is a horizontal partition of data in a database or search engin
 ```
 mkdir -p /oradata/dbfiles/ORCL1CDB
 mkdir -p /oradata/dbfiles/ORCL2CDB
-chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
+chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 ```
 
 **Notes**:

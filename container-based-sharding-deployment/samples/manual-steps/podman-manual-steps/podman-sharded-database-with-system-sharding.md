@@ -126,8 +126,8 @@ A database shard is a horizontal partition of data in a database or search engin
 ```
 mkdir -p /oradata/dbfiles/ORCL1CDB
 mkdir -p /oradata/dbfiles/ORCL2CDB
-chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
+chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 ```
 
 **Notes**:
@@ -382,7 +382,7 @@ podman run -d --hostname oshard-gsm2 \
  -e OP_TYPE=gsm \
  --privileged=false \
  --name gsm2 oracle/database-gsm:23.3.0
-   
+
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
    Mandatory Parameters:
