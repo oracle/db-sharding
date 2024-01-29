@@ -27,7 +27,6 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
   - [Move the chunks out of the shard database which you want to delete](#move-the-chunks-out-of-the-shard-database-which-you-want-to-delete)
   - [Delete the shard database from the Sharded Database](#delete-the-shard-database-from-the-sharded-database)
   - [Confirm the shard has been successfully deleted from the Sharded database](#confirm-the-shard-has-been-successfully-deleted-from-the-sharded-database)
-
 - [Copyright](#copyright)
 
 
