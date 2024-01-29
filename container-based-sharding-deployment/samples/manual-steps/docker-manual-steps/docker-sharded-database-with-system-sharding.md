@@ -17,6 +17,17 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 - [Deploying Standby GSM Container](#deploying-standby-gsm-container)  
   - [Create Directory for Standby GSM Container](#create-directory-for-standby-gsm-container)
   - [Create Standby GSM Container](#create-standby-gsm-container)    
+- [Scale-out an existing Sharded Database](#scale-out-an-existing-sharded-database)
+  - [Complete the prerequisite steps before creating Docker Container for new shard](#complete-the-prerequisite-steps-before-creating-docker-container-for-new-shard) 
+  - [Create Docker Container for new shard](#create-docker-container-for-new-shard)
+  - [Add the new shard Database to the existing Sharded Database](#add-the-new-shard-database-to-the-existing-sharded-database)
+  - [Deploy the new shard](#deploy-the-new-shard)
+- [Scale-in an existing Sharded Database](#scale-in-an-existing-sharded-database)
+  - [Confirm the shard to be deleted is present in the list of shards in the Sharded Database](#confirm-the-shard-to-be-deleted-is-present-in-the-list-of-shards-in-the-sharded-database)
+  - [Move the chunks out of the shard database which you want to delete](#move-the-chunks-out-of-the-shard-database-which-you-want-to-delete)
+  - [Delete the shard database from the Sharded Database](#delete-the-shard-database-from-the-sharded-database)
+  - [Confirm the shard has been successfully deleted from the Sharded database](#confirm-the-shard-has-been-successfully-deleted-from-the-sharded-database)
+
 - [Copyright](#copyright)
 
 
@@ -410,20 +421,20 @@ docker logs -f gsm2
     ==============================================
 ```
 
-## Scale out an existing Sharded Database
+## Scale-out an existing Sharded Database
 
-If you want to Scale Out an existing Sharded Database already deployed using the Docker Containers, then you will to complete the steps in below order:
+If you want to Scale-Out an existing Sharded Database already deployed using the Docker Containers, then you will to complete the steps in below order:
 
-- Complete the prerequisite steps before creating the Docker Container for the new Shard to be added to the Sharded Database
-- Create the Docker Container for the new Shard
-- Add the new Shard Database to the existing Sharded Database
-- Deploy the new Shard
+- Complete the prerequisite steps before creating the Docker Container for the new shard to be added to the Sharded Database
+- Create the Docker Container for the new shard
+- Add the new shard Database to the existing Sharded Database
+- Deploy the new shard
 
 The below example covers the steps to add a new Shard (Shard3) to an existing Sharded Database which was deployed earlier in this page with two shards (Shard1 and Shard2).
 
-### Complete the prerequisite steps before creating Docker Container for Shard3
+### Complete the prerequisite steps before creating Docker Container for new shard
 
-Create the required directories for the Shard3 container just like they were created for the earlier Shards (shard1 and shard2):
+Create the required directories for the new shard (shard3 in this case) container just like they were created for the earlier Shards (shard1 and shard2):
 
 ```
 mkdir -p /oradata/dbfiles/ORCL3CDB
@@ -435,9 +446,9 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL3CDB
 * Change the ownership for data volume `/oradata/dbfiles/ORCL3CDB` and `/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
-### Create Docker Container for Shard3
+### Create Docker Container for new shard
 
-Before creating shard3 container, review the following notes carefully:
+Before creating new shard (shard3 in this case) container, review the following notes carefully:
 
 **Notes**
 
@@ -495,7 +506,7 @@ docker logs -f shard3
     ==============================================
 ```
 
-### Add the new Shard Database to the existing Sharded Database
+### Add the new shard Database to the existing Sharded Database
 
 Use the below command to add the new shard3:
 ```
@@ -524,6 +535,67 @@ docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 **NOTE:** The chunks redistribution after deploying the new shard may take some time to complete.
 
+
+
+## Scale-in an existing Sharded Database
+
+If you want to Scale-in an existing Sharded Database by removing a particular shard database out of the existing shard databases, then you will to complete the steps in below order:
+
+- Confirm the shard to be deleted is present in the list of shards in the Sharded Database
+- Move the chunks out of the shard database which you want to delete
+- Delete the shard database from the Sharded Database
+- Confirm the shard has been successfully deleted from the Sharded database
+
+
+### Confirm the shard to be deleted is present in the list of shards in the Sharded Database
+
+Use the below commands to check the status of the shard which you want to delete and status of chunks present in this shard:
+```
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
+
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
+```
+
+
+### Move the chunks out of the shard database which you want to delete
+
+In the current example, if you want to delete the shard3 database from the Sharded Database, then you need to use the below command to move the chunks out of shard3 database:
+
+```
+docker exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --movechunks="shard_db=ORCL3CDB;shard_pdb=ORCL3PDB"
+```
+
+**NOTE:** In this case, `ORCL3CDB` and `ORCL3PDB` are the names of CDB and PDB for the shard3 respectively.
+
+After moving the chunks out, use the below command to confirm there is no chunk present in the shard database which you want to delete:
+
+```
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
+```
+
+**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are moving out, you can rerun the above command to check the status after some time.
+
+
+### Delete the shard database from the Sharded Database
+
+Once you have confirmed that no chunk is present in the shard to be deleted in earlier step, you can use the below command to delete that shard:
+
+```
+docker exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py  --deleteshard="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"
+```
+
+**NOTE:** In this case, `oshard3-0`, `ORCL3CDB` and `ORCL3PDB` are the names of host, CDB and PDB for the shard3 respectively.
+
+
+### Confirm the shard has been successfully deleted from the Sharded database
+
+Once the shard is deleted from the Sharded Database, use the below commands to check the status of the shards and chunk distribution in the sharded database:
+
+```
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
+
+docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
+```
 
 ## Copyright
 
