@@ -429,7 +429,7 @@ If you want to Scale-Out an existing Sharded Database already deployed using the
 - Add the new shard Database to the existing Sharded Database
 - Deploy the new shard
 
-The below example covers the steps to add a new Shard (Shard3) to an existing Sharded Database which was deployed earlier in this page with two shards (Shard1 and Shard2).
+The below example covers the steps to add a new shard (shard3) to an existing Sharded Database which was deployed earlier in this page with two shards (shard1 and shard2).
 
 ### Complete the prerequisite steps before creating Docker Container for new shard
 
@@ -452,7 +452,7 @@ Before creating new shard (shard3 in this case) container, review the following 
 **Notes**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
-* Change /oradata/dbfiles/ORCL1CDB based on your environment.
+* Change /oradata/dbfiles/ORCL3CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
 * If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:21.3.0-ee` to `--name shard1 oracle/database:21.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL3CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL3CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
