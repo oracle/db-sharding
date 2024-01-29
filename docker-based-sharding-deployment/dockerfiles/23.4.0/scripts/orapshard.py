@@ -474,7 +474,7 @@ class OraPShard:
            ohome1=self.ora_env_dict["ORACLE_HOME"]
            version=self.ocommon.get_oraversion(ohome1).strip()
            self.ocommon.log_info_message(version,self.file_name)
-           if int(version) >= 21:
+           if int(version) > 21:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
@@ -482,6 +482,7 @@ class OraPShard:
               dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
               obase=self.ora_env_dict["ORACLE_BASE"]
               dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
+
 
               msg='''Setting up catalog CDB with spfile non modifiable parameters based on version'''
               self.ocommon.log_info_message(msg,self.file_name)
