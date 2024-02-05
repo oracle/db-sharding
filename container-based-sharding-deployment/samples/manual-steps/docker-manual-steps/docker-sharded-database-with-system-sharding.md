@@ -27,6 +27,7 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
   - [Move the chunks out of the shard database which you want to delete](#move-the-chunks-out-of-the-shard-database-which-you-want-to-delete)
   - [Delete the shard database from the Sharded Database](#delete-the-shard-database-from-the-sharded-database)
   - [Confirm the shard has been successfully deleted from the Sharded database](#confirm-the-shard-has-been-successfully-deleted-from-the-sharded-database)
+  - [Remove the Docker Container](#remove-the-docker-container)
 - [Copyright](#copyright)
 
 
@@ -62,7 +63,7 @@ mkdir -p /oradata/dbfiles/CATALOG
 chown -R 54321:54321 /oradata/dbfiles/CATALOG
 ```
 
-**Notes**:
+**Notes:**
 
 * Change the ownership for data volume `/oradata/dbfiles/CATALOG` exposed to catalog container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -71,7 +72,7 @@ chown -R 54321:54321 /oradata/dbfiles/CATALOG
 
 Before performing catalog container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/CATALOG based on your enviornment.
@@ -140,7 +141,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/ORCL1CDB` and `/oradata/dbfiles/ORCL2CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -149,7 +150,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL1CDB based on your environment.
@@ -201,7 +202,7 @@ docker logs -f shard1
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL2CDB based on your environment.
@@ -440,7 +441,7 @@ mkdir -p /oradata/dbfiles/ORCL3CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL3CDB
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/ORCL3CDB` and `/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -449,7 +450,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL3CDB
 
 Before creating new shard (shard3 in this case) container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL3CDB based on your environment.
@@ -572,7 +573,7 @@ After moving the chunks out, use the below command to confirm there is no chunk 
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
 
-**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are moving out, you can rerun the above command to check the status after some time.
+**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are still moving out, you can rerun the above command to check the status after some time.
 
 
 ### Delete the shard database from the Sharded Database
@@ -594,6 +595,23 @@ Once the shard is deleted from the Sharded Database, use the below commands to c
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
 
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
+```
+
+### Remove the Docker Container
+
+Once the shard is deleted from the Sharded Database, you can remove the Docker Container which was deployed earlier for the deleted shard database. 
+
+If the deleted shard was "shard3", to remove its Docker Container, please use the below steps:
+
+- Stop and remove the Docker Container for shard3:
+```
+docker stop shard3
+docker rm shard3
+```
+
+- Remove the directory containing the files for this deleted Docker Container:
+```
+rm -rf /oradata/dbfiles/ORCL3CDB
 ```
 
 ## Copyright

@@ -53,7 +53,7 @@ mkdir -p /oradata/dbfiles/CATALOG
 chown -R 54321:54321 /oradata/dbfiles/CATALOG
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/CATALOG` exposed to catalog container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -62,7 +62,7 @@ chown -R 54321:54321 /oradata/dbfiles/CATALOG
 
 Before performing catalog container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/CATALOG based on your enviornment.
@@ -133,7 +133,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL3CDB
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/ORCL1CDB`, `/oradata/dbfiles/ORCL2CDB` and `/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -142,7 +142,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL3CDB
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL1CDB based on your environment.
@@ -194,7 +194,7 @@ podman logs -f shard1
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL2CDB based on your environment.
@@ -256,7 +256,7 @@ podman logs -f shard2
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL3CDB based on your environment.
@@ -498,7 +498,7 @@ mkdir -p /oradata/dbfiles/ORCL4CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL4CDB
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/ORCL4CDB` and `/oradata/dbfiles/ORCL4CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -507,7 +507,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL4CDB
 
 Before creating new shard (shard4 in this case) container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL4CDB based on your environment.
@@ -613,24 +613,7 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
 
-
-### Move the chunks out of the shard database which you want to delete
-
-In the current example, if you want to delete the shard4 database from the Sharded Database, then you need to use the below command to move the chunks out of shard4 database:
-
-```
-podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --movechunks="shard_db=ORCL4CDB;shard_pdb=ORCL4PDB"
-```
-
-**NOTE:** In this case, `ORCL4CDB` and `ORCL4PDB` are the names of CDB and PDB for the shard4 respectively.
-
-After moving the chunks out, use the below command to confirm there is no chunk present in the shard database which you want to delete:
-
-```
-podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
-```
-
-**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are moving out, you can rerun the above command to check the status after some time.
+**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are still moving out, you can rerun the above command to check the status after some time.
 
 
 ### Delete the shard database from the Sharded Database

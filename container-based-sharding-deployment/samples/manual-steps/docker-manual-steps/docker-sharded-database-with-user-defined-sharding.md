@@ -52,7 +52,7 @@ mkdir -p /oradata/dbfiles/CATALOG
 chown -R 54321:54321 /oradata/dbfiles/CATALOG
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/CATALOG` exposed to catalog container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -61,7 +61,7 @@ chown -R 54321:54321 /oradata/dbfiles/CATALOG
 
 Before performing catalog container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/CATALOG based on your enviornment.
@@ -130,7 +130,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
 chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 ```
 
-**Notes**:
+**Notes:**:
 
 * Change the ownership for data volume `/oradata/dbfiles/ORCL1CDB` and `/oradata/dbfiles/ORCL2CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -139,7 +139,7 @@ chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL1CDB based on your environment.
@@ -191,7 +191,7 @@ docker logs -f shard1
 
 Before creating shard1 container, review the following notes carefully:
 
-**Notes**
+**Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL2CDB based on your environment.
