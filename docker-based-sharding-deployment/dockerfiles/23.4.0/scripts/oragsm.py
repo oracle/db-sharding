@@ -200,7 +200,7 @@ class OraGSM:
                      self.start_gsm_director()
                      self.status_gsm_director()
                      if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-                       if self.ora_env_dict["SHARDING_TYPE"] != 'USER':
+                       if self.ora_env_dict["SHARDING_TYPE"].upper() != 'USER':
                            self.setup_gsm_shardg("SHARD_GROUP")
                      else:
                         self.setup_gsm_shardg("SHARD_GROUP")
@@ -234,7 +234,7 @@ class OraGSM:
                    self.start_gsm_director()
                    self.status_gsm_director()
                    if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-                       if self.ora_env_dict["SHARDING_TYPE"] != 'USER':
+                       if self.ora_env_dict["SHARDING_TYPE"].upper() != 'USER':
                            self.setup_gsm_shardg("SHARD_GROUP")
                    else:
                       self.setup_gsm_shardg("SHARD_GROUP")
@@ -391,6 +391,13 @@ class OraGSM:
                      if(reg_exp.match(key)):
                         msg='''CATALOG PARAMS {0} is set to {1}'''.format(key,self.ora_env_dict[key])
                         self.ocommon.log_info_message(msg,self.file_name)
+                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
+                        if stype:
+                          if stype.lower() == 'user':
+                              if not self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
+                                 self.ora_env_dict=self.ocommon.add_key("SHARDING_TYPE","USER",self.ora_env_dict)
+                              if not self.ocommon.check_key("SHARD_SPACE",self.ora_env_dict):
+                                 self.ora_env_dict=self.ocommon.add_key("SHARD_SPACE",sspace,self.ora_env_dict)
                         status=True
 
                  if not status:
@@ -669,8 +676,10 @@ class OraGSM:
                         shardingtype="-sharding user"
                         #shardspace=""
                         shardspace=" -shardspace {0}".format(sspace)
-                        self.ora_env_dict=self.ocommon.add_key("SHARDING_TYPE","USER",self.ora_env_dict)
-                        self.ora_env_dict=self.ocommon.add_key("SHARD_SPACE",sspace,self.ora_env_dict)
+                        if not self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
+                           self.ora_env_dict=self.ocommon.add_key("SHARDING_TYPE","USER",self.ora_env_dict)
+                        if not self.ocommon.check_key("SHARD_SPACE",self.ora_env_dict):
+                           self.ora_env_dict=self.ocommon.add_key("SHARD_SPACE",sspace,self.ora_env_dict)
                     else:
                        shardspace=""
                        shardingtype=""
@@ -769,9 +778,9 @@ class OraGSM:
           if dtrname and dtrport and dtregion:
              return dtrname,dtrport,dtregion
           else:
-             msg1='''director_name={0},director_port={1}'''.format((director_name or "Missing Value"),(director_port or "Missing Value"))
-             msg2='''director_region={0}'''.format((director_region or "Missing Value"))
-             msg='''Director params {0} is not set correctly. One or more value is missing {1} {2}'''.format(SHARD_DIRECTOR_PARAMS,msg1,msg2)
+             msg1='''director_name={0},director_port={1}'''.format((dtrname or "Missing Value"),(dtrport or "Missing Value"))
+             msg2='''director_region={0}'''.format((dtregion or "Missing Value"))
+             msg='''Director params {0} is not set correctly. One or more value is missing {1} {2}'''.format(key,msg1,msg2)
              self.ocommon.log_error_message(msg,self.file_name)
              self.ocommon.prog_exit("Error occurred")
 
@@ -1118,6 +1127,7 @@ class OraGSM:
              self.ocommon.log_error_message(msg,self.file_name)
              self.ocommon.prog_exit("Error occurred")
 
+      
       def check_shardg_status(self,group_name,dname):
           """
            This function check the shard status in GSM
@@ -1147,6 +1157,38 @@ class OraGSM:
                      else:
                           status=False
           return(self.ocommon.check_status_value(status))
+
+############################################# Director Related Block ############
+      def get_director_name(self,region_name):
+          """
+          This function get the director name based on the region
+          """
+          self.ocommon.log_info_message("Inside get_director_name()",self.file_name)
+          status=False
+          director_name=None
+          reg_exp= self.director_regex()
+          for key in self.ora_env_dict.keys():
+              if(reg_exp.match(key)): 
+                 dtrname,dtrport,dtregion=self.process_director_vars(key)
+                 director_name=dtrname
+                 gsm_status = self.check_gsm_director(dtrname)
+                 if gsm_status == 'completed':
+                    status = True
+                 else:
+                    status = False
+                 if dtregion == region_name:
+                    break
+          if status:
+             if director_name:
+                return director_name
+             else:
+                self.ocommon.log_error_message("No director exist to match the region",self.file_name)
+                self.ocommon.prog_exit("127")
+          else:
+             self.ocommon.log_error_message("Shard Director is not running!",self.file_name)
+             self.ocommon.prog_exit("127")
+
+########
 
       def get_gsm_config_cmd(self,dname):
           """
@@ -1904,7 +1946,7 @@ class OraGSM:
              shard_port=1521
 
           if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-             if self.ora_env_dict["SHARDING_TYPE"] == 'USER':
+             if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
                 shard_group="nogrp"
                 if not shard_deploy_as:
                    self.ora_env_dict=self.ocommon.add_key("SHARD_DEPLOY_AS","primary",self.ora_env_dict) 
@@ -2092,7 +2134,7 @@ class OraGSM:
                     shard_space=""
          
                  if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-                    if self.ora_env_dict["SHARDING_TYPE"] == 'USER':
+                    if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
                       shard_group=""
                       if self.ocommon.check_key("SHARD_DEPLOY_AS",self.ora_env_dict):
                          deploy_as="-deploy_as {0}".format(self.ora_env_dict["SHARD_DEPLOY_AS"])
@@ -2264,7 +2306,7 @@ class OraGSM:
                 #for key in self.ora_env_dict.keys():
                 #   if(reg_exp.match(key)):
                 if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-                    if self.ora_env_dict["SHARDING_TYPE"] == 'USER':
+                    if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
                        shardg_shardspace="config shardspace"
                 else:
                     shardg_shardspace="config shardgroup"

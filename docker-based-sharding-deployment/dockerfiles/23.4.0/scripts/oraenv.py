@@ -129,6 +129,8 @@ class OraEnv:
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_gsm_shard.log"
       elif file_type == "INVITED_NODE_OP":
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/node_invited_op.log"
+      elif file_type == "RESET_PASSWD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/reset_passwd_file.log"
       else:
         pass
 

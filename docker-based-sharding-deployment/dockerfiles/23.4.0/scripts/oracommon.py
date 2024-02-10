@@ -21,6 +21,8 @@ import socket
 import re
 import os.path
 import socket
+import string
+import random
 
 class OraCommon:
       def __init__(self,oralogger,orahandler,oraenv):
@@ -346,7 +348,7 @@ class OraCommon:
                  msg='''Dir {0} already exist'''.format(dir)
                  self.log_info_message(msg,self.file_name)
 
-          if remote and node:
+          if remote:
              pass
 
       def create_file(self,file,local,remote,user):
@@ -366,7 +368,7 @@ class OraCommon:
                  output,error,retcode=self.execute_cmd(cmd,None,None)
                  self.check_os_err(output,error,retcode,True)
 
-          if remote and node:
+          if remote:
              pass
 
       def shutdown_db(self,env_dict):
@@ -710,6 +712,15 @@ class OraCommon:
                msg='''SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
                self.log_warn_message(msg,self.file_name)
 
+            if self.check_key("KEY_SECRET_VOLUME",self.ora_env_dict):
+               self.log_info_message("Secret_Volume set to : ",self.ora_env_dict["KEY_SECRET_VOLUME"])
+               msg='''KEY_SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["KEY_SECRET_VOLUME"])
+            else:
+                if self.check_key("SECRET_VOLUME",self.ora_env_dict):
+                   self.ora_env_dict=self.add_key("KEY_SECRET_VOLUME",self.ora_env_dict["SECRET_VOLUME"],self.ora_env_dict)
+                   msg='''KEY_SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["KEY_SECRET_VOLUME"])
+                   self.log_warn_message(msg,self.file_name)
+                  
             if self.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict):
                msg='''COMMON_OS_PWD_FILE passed as an env variable and set to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
             else:
@@ -732,34 +743,47 @@ class OraCommon:
                self.log_warn_message(msg,self.file_name)          
                     
             secret_volume = self.ora_env_dict["SECRET_VOLUME"]
+            key_secret_volume= self.ora_env_dict["KEY_SECRET_VOLUME"]
             common_os_pwd_file = self.ora_env_dict["COMMON_OS_PWD_FILE"]
+            pwd_volume=None
+            if self.check_key("PWD_VOLUME",self.ora_env_dict):
+               pwd_volume=self.ora_env_dict["PWD_VOLUME"]
+            else:
+               pwd_volume="/var/tmp"
             pwd_key = self.ora_env_dict["PWD_KEY"]
             passwd_file='''{0}/{1}'''.format(secret_volume,self.ora_env_dict["COMMON_OS_PWD_FILE"])
             dbpasswd_file='''{0}/{1}'''.format(secret_volume,self.ora_env_dict["PASSWORD_FILE"])
+            key_file='''{0}/{1}'''.format(self.ora_env_dict["KEY_SECRET_VOLUME"],self.ora_env_dict["PWD_KEY"])
             self.log_info_message("Password file set to : " + passwd_file,self.file_name)
-            p1='''{0}/{1}'''.format(secret_volume,common_os_pwd_file)
-            self.log_info_message("Secret Volume Location: " + p1,self.file_name)
+            self.log_info_message("key file set to : " + key_file,self.file_name)
+            self.log_info_message("dbpasswd file set to : " + dbpasswd_file,self.file_name)
             #print(passwd_file)
-            if os.path.isfile(passwd_file):
-               msg='''Passwd file {0} exist. Password file Check passed!'''.format(passwd_file)
+            if (os.path.isfile(passwd_file)) and (os.path.isfile(key_file)):
+               msg='''Passwd file {0} and key file {1} exist. Password file Check passed!'''.format(passwd_file,key_file)
                self.log_info_message(msg,self.file_name)
                msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
                self.log_info_message(msg,self.file_name)
-               cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
+               cmd=None
+               if self.check_key("ENCRYPTION_TYPE",self.ora_env_dict):
+                  if self.ora_env_dict["ENCRYPTION_TYPE"].lower() != "aes256":
+                     cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out {2}/{1} -pass file:\"{3}/{4}\"'''.formatformat(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,key_file)
+                  else:
+                     cmd ='''openssl rsautl -decrypt -in \"{0}/{1}\" -out {2}/{1} -inkey \"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,key_file)
+      
                output,error,retcode=self.execute_cmd(cmd,None,None)
                self.check_os_err(output,error,retcode,True)
                passwd_file_flag = True
-               password_file='''/tmp/{0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
+               password_file='''{0}/{1}'''.format(pwd_volume,self.ora_env_dict["COMMON_OS_PWD_FILE"])
             elif os.path.isfile(dbpasswd_file):
                msg='''Passwd file {0} exist. Password file Check passed!'''.format(dbpasswd_file)
                self.log_info_message(msg,self.file_name)
                msg='''Reading encrypted passwd from file {0}.'''.format(dbpasswd_file)
                self.log_info_message(msg,self.file_name)
-               cmd='''openssl base64 -d -in \"{0}\" -out \"/tmp/{1}\"'''.format(dbpasswd_file,self.ora_env_dict["PASSWORD_FILE"])
+               cmd='''openssl base64 -d -in \"{0}\" -out \"{2}/{1}\"'''.format(dbpasswd_file,self.ora_env_dict["PASSWORD_FILE"],pwd_volume)
                output,error,retcode=self.execute_cmd(cmd,None,None)
                self.check_os_err(output,error,retcode,True)
                passwd_file_flag = True
-               password_file='''/tmp/{0}'''.format(self.ora_env_dict["PASSWORD_FILE"])         
+               password_file='''{1}/{0}'''.format(self.ora_env_dict["PASSWORD_FILE"],pwd_volume)      
 
             if not passwd_file_flag:
                # get random password pf length 8 with letters, digits, and symbols
@@ -773,7 +797,6 @@ class OraCommon:
                password=fdata
                self.remove_file(fname)
                
-
             if self.check_key("ORACLE_PWD",self.ora_env_dict):
                msg="ORACLE_PWD is passed as an env variable. Check Passed!"
                self.log_info_message(msg,self.file_name)
@@ -781,9 +804,6 @@ class OraCommon:
                self.ora_env_dict=self.add_key("ORACLE_PWD",password,self.ora_env_dict)
                msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
                self.log_info_message(msg,self.file_name)
-
-               
-
 
 ######### Get Password ##############
       def get_oraversion(self,home):

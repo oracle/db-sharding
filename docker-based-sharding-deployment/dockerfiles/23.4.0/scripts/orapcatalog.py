@@ -70,6 +70,13 @@ class OraPCatalog:
             if not status:
                self.ocommon.log_info_message("Catalog readyness check completed sucessfully!",self.file_name)
                self.ocommon.prog_exit("127")
+          elif self.ocommon.check_key("RESET_PASSWORD",self.ora_env_dict):
+            exist_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+            if os.path.exists(exist_db_file_lck):
+               self.ocommon.log_info_message("Catalog database up and running. Resetting password...",self.file_name)
+            else:
+               self.ocommon.log_info_message("Catalog doesn't seems to be ready. Unable to reset password",self.file_name)
+               self.ocommon.prog_exit("127")
           else:
             self.setup_machine()
             self.db_checks()
@@ -442,7 +449,7 @@ class OraPCatalog:
            ohome1=self.ora_env_dict["ORACLE_HOME"]
            version=self.ocommon.get_oraversion(ohome1).strip()
            self.ocommon.log_info_message(version,self.file_name)
-           if int(version) >= 21:
+           if int(version) > 21:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
