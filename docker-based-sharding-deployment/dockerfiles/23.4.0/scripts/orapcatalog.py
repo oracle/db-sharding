@@ -45,8 +45,8 @@ class OraPCatalog:
            This function setup the catalog on Primary DB.
           """
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
-             create_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
-             exist_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+             create_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
+             exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
              self.ocommon.log_info_message("DB create lock file set to :" + create_db_file_lck ,self.file_name)
              self.ocommon.log_info_message("DB exist lock file set to :" + exist_db_file_lck ,self.file_name)
              if os.path.exists(create_db_file_lck):
@@ -71,11 +71,19 @@ class OraPCatalog:
                self.ocommon.log_info_message("Catalog readyness check completed sucessfully!",self.file_name)
                self.ocommon.prog_exit("127")
           elif self.ocommon.check_key("RESET_PASSWORD",self.ora_env_dict):
-            exist_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+            exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
             if os.path.exists(exist_db_file_lck):
                self.ocommon.log_info_message("Catalog database up and running. Resetting password...",self.file_name)
             else:
                self.ocommon.log_info_message("Catalog doesn't seems to be ready. Unable to reset password",self.file_name)
+               self.ocommon.prog_exit("127")
+          elif self.ocommon.check_key("EXPORT_TDE_KEY",self.ora_env_dict):
+            exist_db_file_lck=self.ocommon.get_db_lock_location()+ self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+            if os.path.exists(exist_db_file_lck):
+               self.ocommon.log_info_message("Catalog database up and running.",self.file_name)
+               self.ocommon.export_tde_key(self.ora_env_dict["EXPORT_TDE_KEY"])
+            else:
+               self.ocommon.log_info_message("Catalog doesn't seems to be ready. Unable to export the tde key",self.file_name)
                self.ocommon.prog_exit("127")
           else:
             self.setup_machine()
@@ -295,18 +303,7 @@ class OraPCatalog:
          """
            This function reset the password.
          """
-         password_script='''{0}/{1}'''.format(self.ora_env_dict["HOME"],"setPassword.sh")
-         self.ocommon.log_info_message("Executing password reset", self.file_name)
-         if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict) and self.ocommon.check_key("HOME",self.ora_env_dict) and os.path.isfile(password_script):
-            cmd='''{0} {1} '''.format(password_script,'HIDDEN_STRING')
-            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-            output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-            self.ocommon.check_os_err(output,error,retcode,True)
-            self.ocommon.unset_mask_str()
-         else:
-            msg='''Error Occurred! Either HOME DIR {0} does not exist, ORACLE_PWD {1} is not set or PASSWORD SCRIPT {2} does not exist'''.format(self.ora_env_dict["HOME"],self.ora_env_dict["ORACLE_PWD"],password_script)
-            self.ocommon.log_error_message(msg,self.file_name)
-            self.oracommon.prog_exit()
+         self.ocommon.reset_passwd()
 
        ########## RESET_PASSWORD function ENDS here #############################
 

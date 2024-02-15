@@ -74,7 +74,16 @@ class OraGSM:
                 self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
                 self.ocommon.prog_exit("127")
              else:
-                self.self.setup_gsm_shardg("ADD_SGROUP_PARAMS")
+                self.setup_gsm_shardg("ADD_SGROUP_PARAMS")
+                sys.exit(0)
+          elif self.ocommon.check_key("ADD_SSPACE_PARAMS",self.ora_env_dict):
+             self.catalog_checks()
+             status = self.catalog_setup_checks()
+             if not status:
+                self.ocommon.log_info_message("No existing catalog and GDS setup found on this system. Setting up GDS and will configure catalog on this machine.",self.file_name)
+                self.ocommon.prog_exit("127")
+             else:
+                self.setup_gsm_sspace("ADD_SSPACE_PARAMS")
                 sys.exit(0)
           elif self.ocommon.check_key("REMOVE_SHARD",self.ora_env_dict):
              self.catalog_checks()
@@ -99,6 +108,9 @@ class OraGSM:
              else:
                 self.move_shard_chunks()
                 sys.exit(0)
+          elif self.ocommon.check_key("TDE_KEY",self.ora_env_dict):
+               self.ocommon.get_tde_key()
+               sys.exit(0)
           elif self.ocommon.check_key("CANCEL_CHUNKS",self.ora_env_dict):
              self.catalog_checks()
              status = self.catalog_setup_checks()
@@ -236,6 +248,8 @@ class OraGSM:
                    if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
                        if self.ora_env_dict["SHARDING_TYPE"].upper() != 'USER':
                            self.setup_gsm_shardg("SHARD_GROUP")
+                       if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
+                           self.setup_gsm_sspace("SHARD_SPACE")
                    else:
                       self.setup_gsm_shardg("SHARD_GROUP")
                    self.setup_gsm_shard()
@@ -815,6 +829,38 @@ class OraGSM:
 
           return(self.ocommon.check_status_value(status))
 
+      def check_gsm_region(self,region):
+          """
+          This function check the GSM regions
+          """  
+          self.ocommon.log_info_message("Inside check_gsm_region()",self.file_name)
+          gsmcmd=self.get_gsm_config_cmd(None)
+          output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+          matched_output=re.findall("(?:Regions\n)(?:.+\n)+",output)
+          status=False
+          try:
+            if self.ocommon.check_substr_match(matched_output[0],region):
+              status=True   
+          except:
+             status=False 
+          return(self.ocommon.check_status_value(status))
+
+      def check_gsm_shardspace(self,sspace):
+          """
+          This function check the GSM shardspace
+          """  
+          self.ocommon.log_info_message("Inside check_gsm_shardspace()",self.file_name)
+          gsmcmd=self.get_gsm_config_cmd(None)
+          output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+          matched_output=re.findall("(?:Shard spaces\n)(?:.+\n)+",output)
+          status=False
+          try:
+            if self.ocommon.check_substr_match(matched_output[0],sspace):
+              status=True   
+          except:
+             status=False 
+          return(self.ocommon.check_status_value(status))
+       
       def check_gsm_director_status(self,dname):
           """
           This function check the GSM director status using 'gdsctl status'
@@ -919,6 +965,9 @@ class OraGSM:
                  for key in self.ora_env_dict.keys():
                      if(reg_exp.match(key)):
                         catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
+                 sregionFlag=self.check_gsm_region(dtregion)
+                 if sregionFlag != 'completed':
+                    self.configure_gsm_region(dtregion)
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmcmd='''
                   add gsm -gsm {0}  -listener {1} -pwd {2} -catalog {3}:{4}/{5}  -region {6};
@@ -1016,8 +1065,8 @@ class OraGSM:
                  elif restype == 'SHARD_GROUP':
                     reg_exp = self.shardg_regex()
                  else:
-                    self.ocommon.log_error_message("No Key Specified! You can only pass ADD_SGROUP_PARAMS or SHARD_GROUP key to create a shard group",self.file_name)
-                    self.ocommon.prog_exit("127")
+                    self.ocommon.log_warn_message("No Key Specified! You can only pass ADD_SGROUP_PARAMS or SHARD_GROUP key to create a shard group",self.file_name)
+                    self.ocommon.log_warn_message("Since no key specified for ADD_SGROUP_PARAMS and SHARD_GROUP, shardgroup will be created during shard creation",self.file_name)
                 
                  counter=1
                  end_counter=3
@@ -1029,8 +1078,8 @@ class OraGSM:
                               dtrname=self.get_director_name(group_region)
                               shard_group_status=self.check_shardg_status(group_name,dtrname)
                               if shard_group_status != 'completed':
-                                 self.configure_gsm_shardg(group_name,deploy_as,group_region)
-
+                                 self.configure_gsm_shardg(group_name,deploy_as,group_region,'add')
+                                 
                        status = self.check_shardg_status(None,None)
                        if status == 'completed':
                           break
@@ -1129,19 +1178,21 @@ class OraGSM:
 
       
       def check_shardg_status(self,group_name,dname):
-          """
-           This function check the shard status in GSM
-          """
-          self.ocommon.log_info_message("Inside check_shardg_status()",self.file_name)
-          status=False
-          if dname:
-             gsmcmd=self.get_gsm_config_cmd(dname)
-             output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-             matched_output=re.findall("(?:Shard Groups\n)(?:.+\n)+",output)
-             if self.ocommon.check_substr_match(matched_output[0],group_name):
-                status=True
-             else:
-                status=False
+         """
+         This function check the shard status in GSM
+         """
+         self.ocommon.log_info_message("Inside check_shardg_status()",self.file_name)
+         status=False
+
+         gsmcmd=self.get_gsm_config_cmd(dname)
+         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         matched_output=re.findall("(?:Shard Groups\n)(?:.+\n)+",output)
+         if self.ocommon.check_substr_match(matched_output[0],group_name):
+            status=True
+         else:
+            status=False
+            
+         '''
           else:   
              reg_exp= self.shardg_regex()
              for key in self.ora_env_dict.keys():
@@ -1156,7 +1207,9 @@ class OraGSM:
                           status=True
                      else:
                           status=False
-          return(self.ocommon.check_status_value(status))
+         '''
+         
+         return(self.ocommon.check_status_value(status))
 
 ############################################# Director Related Block ############
       def get_director_name(self,region_name):
@@ -1222,7 +1275,7 @@ class OraGSM:
           self.ocommon.log_info_message("Inside shardg_regex()",self.file_name)
           return re.compile('ADD_SGROUP_PARAMS')
 
-      def configure_gsm_shardg(self,group_name,deploy_as,group_region):
+      def configure_gsm_shardg(self,group_name,deploy_as,group_region,type):
                  """
                   This function configure the Shard Group.
                  """
@@ -1233,26 +1286,162 @@ class OraGSM:
                  cpasswd="HIDDEN_STRING"
                  dtrname=self.get_director_name(group_region)
                  reg_exp= self.catalog_regex()
+                 if type == 'modify':
+                    cmd=''' modify shardgroup -shardgroup {0} '''.format(group_name)
+                 else:
+                    cmd=''' add shardgroup -shardgroup {0} '''.format(group_name)
+
                  for key in self.ora_env_dict.keys():
                     if(reg_exp.match(key)):
                        catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars(key)
                        if repl_type:
-                         cmd=" -region {0} ".format(group_region)
+                         cmd=cmd + " -region {0} ".format(group_region)
                        else:
-                         cmd=" -deploy_as {0} -region {1} ".format(deploy_as,group_region)
+                         cmd=cmd + " -deploy_as {0} -region {1} ".format(deploy_as,group_region)
 
                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
                  gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
                  gsmcmd='''
                    connect {1}/{2};
-                   add shardgroup -shardgroup {3} {4}
+                   {3};
                  exit;
-                  '''.format("NA",cadmin,cpasswd,group_name,cmd)
+                  '''.format("NA",cadmin,cpasswd,cmd)
                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)                 
 
                  ### Unsetting the encrypt value to None
                  self.ocommon.unset_mask_str()
 
+############# Adding Shard Regions ###############
+      def configure_gsm_region(self,region):
+                 """
+                  This function configure the Shard region.
+                 """
+                 self.ocommon.log_info_message("Inside configure_gsm_region()",self.file_name)
+                 cmd=None
+                 gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                 cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                 cpasswd="HIDDEN_STRING"
+                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                 gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+                 gsmcmd='''
+                   connect {1}/{2};
+                   add region -region {3};
+                 exit;
+                  '''.format("NA",cadmin,cpasswd,region)
+                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)                 
+
+                 ### Unsetting the encrypt value to None
+                 self.ocommon.unset_mask_str()
+                 
+##################### Adding Shard Space ###############
+      def process_sspace_vars(self,key):
+          """
+          This function process shardG vars based on key and return values to configure the GSM
+          """
+          sspace=None
+          chunks=None
+          repfactor=None
+          repunits=None
+          protectedmode=None
+          self.ocommon.log_info_message("Inside process_sspace_vars()",self.file_name)
+          cvar_str=self.ora_env_dict[key]
+          cvar_dict=dict(item.split("=") for item in cvar_str.split(";"))
+          for ckey in cvar_dict.keys():
+              if ckey == 'sspace_name':
+                 sspace = cvar_dict[ckey]
+              if ckey == 'chunks':
+                 chunks = cvar_dict[ckey]
+              if ckey == 'repfactor':
+                 repfactor = cvar_dict[ckey]
+              if ckey == 'repunits':
+                 repunits = cvar_dict[ckey]
+              if ckey == 'protectedmode':
+                 protectedmode = cvar_dict[ckey]
+                 
+              ### Check values must be set
+          if sspace:
+             return sspace,chunks,repfactor,repunits,protectedmode
+          else:
+             msg1='''sspace={0}'''.format((sspace or "Missing Value"))
+             msg='''Shard space params {0} is not set correctly. One or more value is missing {1}'''.format(key,msg1)
+             self.ocommon.log_error_message(msg,self.file_name)
+             self.ocommon.prog_exit("Error occurred")
+             
+      def setup_gsm_sspace(self,restype):
+                 """
+                  This function setup the shard sspace.
+                 """
+                 self.ocommon.log_info_message("Inside setup_gsm_sspace()",self.file_name)
+                 status=False
+                 if restype == 'ADD_SSPACE_PARAMS':
+                    reg_exp = self.add_shardg_regex()
+                 elif restype == 'SHARD_SPACE':
+                    reg_exp = self.shardg_regex()
+                 else:
+                    self.ocommon.log_warn_message("No Key Specified! You can only pass ADD_SSPACE_PARAMS or SHARD_SPACE key to create a shard space",self.file_name)
+                    self.ocommon.log_warn_message("Since no ADD_SSPACE_PARAMS or SHARD_SPACE defined, shardspace will be created during shard creation",self.file_name)
+                 counter=1
+                 end_counter=3
+                 while counter < end_counter:
+                       for key in self.ora_env_dict.keys():
+                           if(reg_exp.match(key)):
+                              shard_group_status=None
+                              sspace,chunks,repfactor,repuntis,protectedmode=self.process_sspace_vars(key)
+                              shard_sspace_status=self.check_gsm_shardspace(sspace)
+                              if shard_group_status != 'completed':
+                                 self.configure_gsm_sspace(sspace,chunks,repfactor,repuntis,protectedmode,'add')
+
+                       status = self.check_sspace_status(sspace)
+                       if status == 'completed':
+                          break
+                       else:
+                         msg='''GSM shard space setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
+                       time.sleep(60)
+                       counter=counter+1
+
+                 status = self.check_sspace_status(None,None)
+                 if status == 'completed':
+                    msg='''Shard space setup completed in GSM'''
+                    self.ocommon.log_info_message(msg,self.file_name)
+                 else:
+                    msg='''Waited 2 minute to complete catalog setup in GSM but setup did not complete or failed. Exiting...'''
+                    self.ocommon.log_error_message(msg,self.file_name)
+                    self.ocommon.prog_exit("127")
+
+
+      def configure_gsm_sspace(self,sspace,chunks,repfactor,repunits,protectedmode,type):
+                 """
+                  This function configure the Shard Group.
+                 """
+                 self.ocommon.log_info_message("Inside configure_gsm_sspace()",self.file_name)
+                 cmd=None
+                 gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+                 cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+                 cpasswd="HIDDEN_STRING"
+                 if type == 'MODIFY':
+                  cmd=''' modify shardpsace -shardspace {0} '''.format(sspace)
+                 else:
+                   cmd=''' add shardpsace -shardspace {0} '''.format(sspace)
+                 if chunks is not None:
+                    cmd = cmd + ''' -chunks {0}'''.format(chunks)
+                 if repfactor:
+                    cmd = cmd + ''' -repfactor {0}'''.format(repfactor)
+                 if repunits is not None:
+                    cmd = cmd + ''' -repunits {0}'''.format(repfactor)
+                 if protectedmode is not None:
+                    cmd = cmd + ''' -protectedmode {0}'''.format(protectedmode)
+
+                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                 gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+                 gsmcmd='''
+                   connect {1}/{2};
+                   {3};
+                 exit;
+                  '''.format("NA",cadmin,cpasswd,cmd)
+                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)                 
+                 ### Unsetting the encrypt value to None
+                 self.ocommon.unset_mask_str()
+                 
         #########################################Shard Function Begins Here ##############################
       def setup_gsm_shard(self):
                 """
@@ -1934,12 +2123,13 @@ class OraGSM:
               if ckey == 'shard_host':
                  shard_host = cvar_dict[ckey]
               if ckey == 'shard_region':
-                shard_region = self.validate_shard_param("region",cvar_dict[ckey])
+                #shard_region = self.validate_shard_param("region",cvar_dict[ckey])
+                shard_region=cvar_dict[ckey]
               if ckey == 'deploy_as':
                  shard_deploy_as=cvar_dict[ckey] 
               if ckey == 'shard_space':
-                 shard_space = self.validate_shard_param("shardspace",cvar_dict[ckey])
-                 
+                 #shard_space = self.validate_shard_param("shardspace",cvar_dict[ckey])
+                  shard_space=cvar_dict[ckey]
               # #  self.ocommon.log_info_message("shard_host: " + shard_host, self.file_name)
               ## Set the values if not set in above block
           if not shard_port:
@@ -2110,78 +2300,111 @@ class OraGSM:
           return re.compile('VALIDATE_SHARD')
 
       def configure_gsm_shard(self,shost,scdb,spdb,sdbport,sgroup,sregion,sspace):
-                 """
-                  This function configure the shard db.
-                 """
-                 spasswd="HIDDEN_STRING"
-                 admuser= self.ora_env_dict["SHARD_ADMIN_USER"]
-                 #dtrname,dtrport,dtregion=self.process_director_vars()
-                 #group_region=self.get_shardg_region_name(sgroup)
-                 #dtrname=self.get_director_name(group_region)
-                 shard_name='''{0}_{1}'''.format(scdb,spdb)
-                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                 shard_region=None
-                 shard_space=None
-                 shard_group=None
-                 deploy_as=None
-                 if sregion:
-                    shard_region=" -region {0}".format(sregion)
-                 else:
-                    shard_region=""
-                 if sspace:
-                    shard_space=" -shardspace {0}".format(sspace)
-                 else:
-                    shard_space=""
+         """
+         This function configure the shard db.
+         """
+         spasswd="HIDDEN_STRING"
+         admuser= self.ora_env_dict["SHARD_ADMIN_USER"]
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         #group_region=self.get_shardg_region_name(sgroup)
+         #dtrname=self.get_director_name(group_region)
+         shard_name='''{0}_{1}'''.format(scdb,spdb)
+         shard_region=None
+         shard_space=None
+         shard_group=None
+         deploy_as=None
+
+         if sregion:
+            regionFlag=self.check_gsm_region(sregion)
+            if regionFlag != 'completed':
+               self.configure_gsm_region(sregion)
+            shard_region=" -region {0}".format(sregion)
+         else:
+            shard_region=""
+         if sspace:
+            shard_space=" -shardspace {0}".format(sspace)
+         else:
+            shard_space=""
+
+         if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
+            if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
+               sspaceFlag=self.check_gsm_shardspace(sspace)
+               if not sspaceFlag:
+                  self.configure_gsm_sspace(sspace,None,None,None,None,'add')
+               shard_group=""
+               deploy_as,deploy_type=self.get_shard_deploy()
+            else:
+               shard_group,deploy_as=self.get_shardg_cmd(sgroup,sregion)
+               shard_region=""
+         else:
+            shard_group,deploy_as=self.get_shardg_cmd(sgroup,sregion)
+            shard_region=""
+               
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         gsmcmd='''
+         connect {1}/{2};
+         add cdb -connect {3}:{4}/{5} -pwd {2};
+         add shard -cdb {5} -connect "(DESCRIPTION = (ADDRESS = (PROTOCOL = tcp)(HOST = {3})(PORT = {4})) (CONNECT_DATA = (SERVICE_NAME = {6}) (SERVER = DEDICATED)))" {7} -pwd {2} {9} {10} {11};
+         config vncr;
+         exit;
+         '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,shard_group,shard_name,shard_region,shard_space,deploy_as)
+         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         ### Unsetting the encrypt value to None
+         self.ocommon.unset_mask_str()
+
+      def get_shard_deploy(self):
+         """
+         get the shard deploy
+         """
+         deploy_as=None
+         deploy_type=None
+         if self.ocommon.check_key("SHARD_DEPLOY_AS",self.ora_env_dict):
+            deploy_as="-deploy_as {0}".format(self.ora_env_dict["SHARD_DEPLOY_AS"])
+            deploy_type=self.ora_env_dict["SHARD_DEPLOY_AS"]
+         else:
+            deploy_as="-deploy_as primary"
+            deploy_type='primary'
+            
+         return deploy_as,deploy_type
+      
+      def get_shardg_cmd(self,sgroup,sregion):
+         """
+         Getting shard group cmd
+         """
+         sgFlag=self.check_shardg_status(sgroup,None)
+         deploy_as,deploy_type=self.get_shard_deploy()
+         if sgFlag != 'completed':
+            self.configure_gsm_shardg(sgroup,deploy_type,sregion,'add')
+         else:
+            self.ocommon.log_info_message("Shardgroup exist " + sgroup, self.file_name)
          
-                 if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-                    if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
-                      shard_group=""
-                      if self.ocommon.check_key("SHARD_DEPLOY_AS",self.ora_env_dict):
-                         deploy_as="-deploy_as {0}".format(self.ora_env_dict["SHARD_DEPLOY_AS"])
-                      else:
-                         deploy_as="-deploy_as primary"
-                    else:
-                      shard_group=" -shardgroup {0}".format(sgroup)
-                      deploy_as=""
-                 else:
-                      shard_group=" -shardgroup {0}".format(sgroup)
-                      deploy_as=""
-
-
-                 gsmcmd='''
-                  connect {1}/{2};
-                  add cdb -connect {3}:{4}/{5} -pwd {2};
-                  add shard -cdb {5} -connect "(DESCRIPTION = (ADDRESS = (PROTOCOL = tcp)(HOST = {3})(PORT = {4})) (CONNECT_DATA = (SERVICE_NAME = {6}) (SERVER = DEDICATED)))" {7} -pwd {2} {9} {10} {11};
-                  config vncr;
-                  exit;
-                  '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,shard_group,shard_name,shard_region,shard_space,deploy_as)
-                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-                 ### Unsetting the encrypt value to None
-                 self.ocommon.unset_mask_str()
-
+         deploy_as=""
+         cmd=''' -shardgroup {0}'''.format(sgroup)
+         return cmd,deploy_as
+         
       def delete_gsm_shard(self,shost,scdb,spdb,sdbport,sgroup):
-                 """
-                  This function delete the shard db.
-                 """
-                 spasswd="HIDDEN_STRING"
-                 admuser= self.ora_env_dict["SHARD_ADMIN_USER"]
-                 #dtrname,dtrport,dtregion=self.process_director_vars()
-                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                 shard_name='''{0}_{1}'''.format(scdb,spdb)
-                 #group_region=self.get_shardg_region_name(sgroup)
-                 #dtrname=self.get_director_name(group_region)
-                 gsmcmd='''
-                  connect {1}/{2};
-                  remove shard -shard {8};
-                  remove cdb -cdb {5};
-                  remove invitednode {3};
-                  config vncr;
-                  exit;
-                  '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
+         """
+         This function delete the shard db.
+         """
+         spasswd="HIDDEN_STRING"
+         admuser= self.ora_env_dict["SHARD_ADMIN_USER"]
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         shard_name='''{0}_{1}'''.format(scdb,spdb)
+         #group_region=self.get_shardg_region_name(sgroup)
+         #dtrname=self.get_director_name(group_region)
+         gsmcmd='''
+         connect {1}/{2};
+         remove shard -shard {8};
+         remove cdb -cdb {5};
+         remove invitednode {3};
+         config vncr;
+         exit;
+         '''.format("NA",admuser,spasswd,shost,sdbport,scdb,spdb,sgroup,shard_name)
 
-                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-                 ### Unsetting the encrypt value to None
-                 self.ocommon.unset_mask_str()
+         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         ### Unsetting the encrypt value to None
+         self.ocommon.unset_mask_str()
 
       def set_hostid_null(self):
           """
@@ -2209,238 +2432,238 @@ class OraGSM:
                  self.ocommon.unset_mask_str()
 
       def invited_node_op(self):
-                """
-                This function perform the invitedaddition and deletion
-                """
-                self.ocommon.log_info_message("Inside invited_node_op()",self.file_name)
-                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
-                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
-                cpasswd="HIDDEN_STRING"
-                #dtrname,dtrport,dtregion=self.process_director_vars()
-                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                shard_host=self.ora_env_dict["INVITED_NODE_OP"]
-                gsmcmd='''
-                   connect {1}/{2};
-                   remove invitednode {3}; 
-                   add invitednode {3};
-                   exit;
-                '''.format("NA",cadmin,cpasswd,shard_host)
-                output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         """
+         This function perform the invitedaddition and deletion
+         """
+         self.ocommon.log_info_message("Inside invited_node_op()",self.file_name)
+         gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+         cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+         cpasswd="HIDDEN_STRING"
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         shard_host=self.ora_env_dict["INVITED_NODE_OP"]
+         gsmcmd='''
+            connect {1}/{2};
+            remove invitednode {3}; 
+            add invitednode {3};
+            exit;
+         '''.format("NA",cadmin,cpasswd,shard_host)
+         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
       def add_invited_node(self,op_str):
-                """
-                This function add the invited in the GSM configuration
-                """
-                self.ocommon.log_info_message("Inside add_invited_node()",self.file_name)
-                if op_str == "SHARD":
-                   reg_exp = self.shard_regex()
-                else:
-                   reg_exp = self.add_shard_regex()
+         """
+         This function add the invited in the GSM configuration
+         """
+         self.ocommon.log_info_message("Inside add_invited_node()",self.file_name)
+         if op_str == "SHARD":
+            reg_exp = self.shard_regex()
+         else:
+            reg_exp = self.add_shard_regex()
 
-                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
-                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
-                cpasswd="HIDDEN_STRING"
-                #dtrname,dtrport,dtregion=self.process_director_vars()
-                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                for key in self.ora_env_dict.keys():
-                    if(reg_exp.match(key)):
-                        shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
-                        #group_region=self.get_shardg_region_name(shard_group)
-                        #dtrname=self.get_director_name(group_region)
-                        gsmcmd='''
-                         connect {1}/{2};
-                         add invitednode {3};
-                         exit;
-                        '''.format("NA",cadmin,cpasswd,shard_host)
-                        output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+         cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+         cpasswd="HIDDEN_STRING"
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         for key in self.ora_env_dict.keys():
+            if(reg_exp.match(key)):
+               shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
+               #group_region=self.get_shardg_region_name(shard_group)
+               #dtrname=self.get_director_name(group_region)
+               gsmcmd='''
+                  connect {1}/{2};
+                  add invitednode {3};
+                  exit;
+               '''.format("NA",cadmin,cpasswd,shard_host)
+               output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
       def remove_invited_node(self,op_str):
-                """
-                This function remove the invited in the GSM configuration
-                """
-                self.ocommon.log_info_message("Inside remove_invited_node()",self.file_name)
-                if op_str == "SHARD":
-                   reg_exp = self.shard_regex()
-                else:
-                   reg_exp = self.add_shard_regex()
+         """
+         This function remove the invited in the GSM configuration
+         """
+         self.ocommon.log_info_message("Inside remove_invited_node()",self.file_name)
+         if op_str == "SHARD":
+            reg_exp = self.shard_regex()
+         else:
+            reg_exp = self.add_shard_regex()
 
-                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
-                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
-                cpasswd="HIDDEN_STRING"
-                #dtrname,dtrport,dtregion=self.process_director_vars()
-                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+         cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+         cpasswd="HIDDEN_STRING"
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
 
-                if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
-                   for key in self.ora_env_dict.keys():
-                       if(reg_exp.match(key)):
-                           shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
-                           temp_host= shard_host.split('.',1)[0] 
-                           #group_region=self.get_shardg_region_name(shard_group)
-                           #dtrname=self.get_director_name(group_region)
-                           gsmcmd='''
-                            connect {1}/{2};
-                            remove invitednode {3};
-                            exit;
-                           '''.format("NA",cadmin,cpasswd,temp_host)
-                           output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-                else:
-                   self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!",self.file_name)  
+         if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
+            for key in self.ora_env_dict.keys():
+               if(reg_exp.match(key)):
+                  shard_db,shard_pdb,shard_port,shard_group,shard_host,shard_region,shard_space=self.process_shard_vars(key)
+                  temp_host= shard_host.split('.',1)[0] 
+                  #group_region=self.get_shardg_region_name(shard_group)
+                  #dtrname=self.get_director_name(group_region)
+                  gsmcmd='''
+                     connect {1}/{2};
+                     remove invitednode {3};
+                     exit;
+                  '''.format("NA",cadmin,cpasswd,temp_host)
+                  output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         else:
+            self.ocommon.log_info_message("KUBE_SVC is not set. No need to remove invited node!",self.file_name)  
 
 
       def deploy_shard(self):
-                """
-                This function deploy shard
-                """
-                self.ocommon.log_info_message("Inside deploy_shard()",self.file_name)
-                gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
-                cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
-                cpasswd="HIDDEN_STRING"
-                gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
-                shrdg_sspace=None
-                #dtrname,dtrport,dtregion=self.process_director_vars()
-                #if op_str == "SHARD":
-                #   reg_exp = self.shard_regex()
-                #else:
-                #   reg_exp = self.add_shard_regex()
+         """
+         This function deploy shard
+         """
+         self.ocommon.log_info_message("Inside deploy_shard()",self.file_name)
+         gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+         cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+         cpasswd="HIDDEN_STRING"
+         gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+         shrdg_sspace=None
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         #if op_str == "SHARD":
+         #   reg_exp = self.shard_regex()
+         #else:
+         #   reg_exp = self.add_shard_regex()
 
-                #for key in self.ora_env_dict.keys():
-                #   if(reg_exp.match(key)):
-                if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
-                    if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
-                       shardg_shardspace="config shardspace"
-                else:
-                    shardg_shardspace="config shardgroup"
-                    
-                self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                gsmcmd='''
-                    connect {1}/{2};
-                    {3};
-                    config vncr;
-                    deploy;
-                    config shard; 
-                   exit;
-                '''.format("test",cadmin,cpasswd,shardg_shardspace)
-                output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
-                 ### Unsetting the encrypt value to None
-                self.ocommon.unset_mask_str()
+         #for key in self.ora_env_dict.keys():
+         #   if(reg_exp.match(key)):
+         if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
+            if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
+               shardg_shardspace="config shardspace"
+         else:
+            shardg_shardspace="config shardgroup"
+            
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         gsmcmd='''
+            connect {1}/{2};
+            {3};
+            config vncr;
+            deploy;
+            config shard; 
+            exit;
+         '''.format("test",cadmin,cpasswd,shardg_shardspace)
+         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         ### Unsetting the encrypt value to None
+         self.ocommon.unset_mask_str()
 
       def check_setup_status(self,host,ccdb,svc,port):
-            """
-             This function check the shard status.
-            """
-            systemStr='''{0}/bin/sqlplus "system/HIDDEN_STRING@{1}:{2}/{3}"'''.format(self.ora_env_dict["ORACLE_HOME"],host,port,ccdb)
-            
-            fname='''/tmp/{0}'''.format("shard_setup.txt") 
-            self.ocommon.remove_file(fname)
-            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-            msg='''Checking shardsetup table in CDB'''
-            self.ocommon.log_info_message(msg,self.file_name)
-            sqlcmd='''
-            set heading off
-            set feedback off
-            set  term off
-            SET NEWPAGE NONE
-            spool {0}
-            select * from shardsetup WHERE ROWNUM = 1;
-            spool off
-            exit;
-            '''.format(fname)
-            output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
-            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-            self.ocommon.check_sql_err(output,error,retcode,None)
+         """
+            This function check the shard status.
+         """
+         systemStr='''{0}/bin/sqlplus "system/HIDDEN_STRING@{1}:{2}/{3}"'''.format(self.ora_env_dict["ORACLE_HOME"],host,port,ccdb)
+         
+         fname='''/tmp/{0}'''.format("shard_setup.txt") 
+         self.ocommon.remove_file(fname)
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         msg='''Checking shardsetup table in CDB'''
+         self.ocommon.log_info_message(msg,self.file_name)
+         sqlcmd='''
+         set heading off
+         set feedback off
+         set  term off
+         SET NEWPAGE NONE
+         spool {0}
+         select * from shardsetup WHERE ROWNUM = 1;
+         spool off
+         exit;
+         '''.format(fname)
+         output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
+         self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.ocommon.check_sql_err(output,error,retcode,None)
 
-            if os.path.isfile(fname): 
-              fdata=self.ocommon.read_file(fname)
+         if os.path.isfile(fname): 
+            fdata=self.ocommon.read_file(fname)
+         else:
+            fdata='nosetup'
+
+         ### Unsetting the encrypt value to None
+         self.ocommon.unset_mask_str()
+
+         if re.search('completed',fdata):
+            status = self.catalog_pdb_setup_check(host,ccdb,svc,port)
+            if status == 'completed':
+               return 'completed'
             else:
-              fdata='nosetup'
-
-           ### Unsetting the encrypt value to None
-            self.ocommon.unset_mask_str()
-
-            if re.search('completed',fdata):
-               status = self.catalog_pdb_setup_check(host,ccdb,svc,port)
-               if status == 'completed':
-                  return 'completed'
-               else:
-                  return 'notcompleted'
-            else:
-              return 'notcompleted'
+               return 'notcompleted'
+         else:
+            return 'notcompleted'
 
 
       def catalog_pdb_setup_check(self,host,ccdb,svc,port):
-            """
-             This function check the shard status.
-            """
-            systemStr='''{0}/bin/sqlplus "pdbadmin/HIDDEN_STRING@{1}:{2}/{3}"'''.format(self.ora_env_dict["ORACLE_HOME"],host,port,svc)
+         """
+            This function check the shard status.
+         """
+         systemStr='''{0}/bin/sqlplus "pdbadmin/HIDDEN_STRING@{1}:{2}/{3}"'''.format(self.ora_env_dict["ORACLE_HOME"],host,port,svc)
 
-            fname='''/tmp/{0}'''.format("pdb_setup_check.txt")
-            self.ocommon.remove_file(fname)
-            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-            msg='''Checking setup status in PDB'''
-            self.ocommon.log_info_message(msg,self.file_name)
-            sqlcmd='''
-            set heading off
-            set feedback off
-            set  term off
-            SET NEWPAGE NONE
-            spool {0}
-            select count(*) from dual;
-            spool off
-            exit;
-            '''.format(fname)
-            output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
-            self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-            self.ocommon.check_sql_err(output,error,retcode,None)
+         fname='''/tmp/{0}'''.format("pdb_setup_check.txt")
+         self.ocommon.remove_file(fname)
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         msg='''Checking setup status in PDB'''
+         self.ocommon.log_info_message(msg,self.file_name)
+         sqlcmd='''
+         set heading off
+         set feedback off
+         set  term off
+         SET NEWPAGE NONE
+         spool {0}
+         select count(*) from dual;
+         spool off
+         exit;
+         '''.format(fname)
+         output,error,retcode=self.ocommon.run_sqlplus(systemStr,sqlcmd,None)
+         self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.ocommon.check_sql_err(output,error,retcode,None)
 
-            if os.path.isfile(fname):
-              fdata=self.ocommon.read_file(fname)
-            else:
-              fdata='nosetup'
+         if os.path.isfile(fname):
+            fdata=self.ocommon.read_file(fname)
+         else:
+            fdata='nosetup'
 
-           ### Unsetting the encrypt value to None
-            self.ocommon.unset_mask_str()
+         ### Unsetting the encrypt value to None
+         self.ocommon.unset_mask_str()
 
-            if re.search('1',fdata):
-              return 'completed'
-            else:
-              return 'notcompleted'
+         if re.search('1',fdata):
+            return 'completed'
+         else:
+            return 'notcompleted'
 
       ############################# Setup GSM Service ###############################################
       def setup_gsm_service(self):
-                 """
-                  This function setup the shard service.
-                 """
-                 self.ocommon.log_info_message("Inside setup_gsm_service()",self.file_name)
-                 status=False
-                 service_value="service_name=oltp_rw_svc;service_role=primary"
-            #     self.ora_env_dict=self.ocommon.add_key("SERVICE1_PARAMS",service_value,self.ora_env_dict)
-                 reg_exp= self.service_regex()
-                 counter=1
-                 end_counter=3
-                 while counter < end_counter:
-                       for key in self.ora_env_dict.keys():
-                           if(reg_exp.match(key)):
-                              shard_service_status=None
-                              service_name,service_role=self.process_service_vars(key)
-                              shard_service_status=self.check_service_status(service_name)
-                              if shard_service_status != 'completed':
-                                 self.configure_gsm_service(service_name,service_role)
-                       status = self.check_service_status(None)
-                       if status == 'completed':
-                          break
-                       else:
-                         msg='''GSM service setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
-                       time.sleep(60)
-                       counter=counter+1
+         """
+         This function setup the shard service.
+         """
+         self.ocommon.log_info_message("Inside setup_gsm_service()",self.file_name)
+         status=False
+         service_value="service_name=oltp_rw_svc;service_role=primary"
+   #     self.ora_env_dict=self.ocommon.add_key("SERVICE1_PARAMS",service_value,self.ora_env_dict)
+         reg_exp= self.service_regex()
+         counter=1
+         end_counter=3
+         while counter < end_counter:
+               for key in self.ora_env_dict.keys():
+                  if(reg_exp.match(key)):
+                     shard_service_status=None
+                     service_name,service_role=self.process_service_vars(key)
+                     shard_service_status=self.check_service_status(service_name)
+                     if shard_service_status != 'completed':
+                        self.configure_gsm_service(service_name,service_role)
+               status = self.check_service_status(None)
+               if status == 'completed':
+                  break
+               else:
+                  msg='''GSM service setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
+               time.sleep(60)
+               counter=counter+1
 
-                 status = self.check_service_status(None)
-                 if status == 'completed':
-                    msg='''Shard service setup completed in GSM'''
-                    self.ocommon.log_info_message(msg,self.file_name)
-                 else:
-                    msg='''Waited 2 minute to complete catalog setup in GSM but setup did not complete or failed. Exiting...'''
-                    self.ocommon.log_error_message(msg,self.file_name)
-                    self.ocommon.prog_exit("127")
+         status = self.check_service_status(None)
+         if status == 'completed':
+            msg='''Shard service setup completed in GSM'''
+            self.ocommon.log_info_message(msg,self.file_name)
+         else:
+            msg='''Waited 2 minute to complete catalog setup in GSM but setup did not complete or failed. Exiting...'''
+            self.ocommon.log_error_message(msg,self.file_name)
+            self.ocommon.prog_exit("127")
 
       def process_service_vars(self,key):
           """
@@ -2512,27 +2735,27 @@ class OraGSM:
           return re.compile('SERVICE[0-9]+_PARAMS')
 		  
       def configure_gsm_service(self,service_name,service_role):
-                 """
-                  This function configure the service creation.
-                 """
-                 self.ocommon.log_info_message("Inside configure_gsm_service()",self.file_name)
-                 gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
-                 cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
-                 cpasswd="HIDDEN_STRING"
+         """
+         This function configure the service creation.
+         """
+         self.ocommon.log_info_message("Inside configure_gsm_service()",self.file_name)
+         gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
+         cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
+         cpasswd="HIDDEN_STRING"
 
-                 #dtrname,dtrport,dtregion=self.process_director_vars()
-                 self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-                 gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
-                 gsmcmd='''
-                   connect {1}/{2};
-                   add service -service {3} -role {4};
-                   start service -service {3};
-                 exit;
-                  '''.format("test",cadmin,cpasswd,service_name,service_role)
-                 output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
+         #dtrname,dtrport,dtregion=self.process_director_vars()
+         self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         gsmlogin='''{0}/bin/gdsctl'''.format(self.ora_env_dict["ORACLE_HOME"])
+         gsmcmd='''
+            connect {1}/{2};
+            add service -service {3} -role {4};
+            start service -service {3};
+         exit;
+         '''.format("test",cadmin,cpasswd,service_name,service_role)
+         output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
-                 ### Unsetting the encrypt value to None
-                 self.ocommon.unset_mask_str()
+         ### Unsetting the encrypt value to None
+         self.ocommon.unset_mask_str()
 
       ############################## GSM backup fIle function Begins Here #############################
       def gsm_backup_file(self):

@@ -754,9 +754,12 @@ class OraCommon:
             passwd_file='''{0}/{1}'''.format(secret_volume,self.ora_env_dict["COMMON_OS_PWD_FILE"])
             dbpasswd_file='''{0}/{1}'''.format(secret_volume,self.ora_env_dict["PASSWORD_FILE"])
             key_file='''{0}/{1}'''.format(self.ora_env_dict["KEY_SECRET_VOLUME"],self.ora_env_dict["PWD_KEY"])
+            key_secret_volume='''{0}'''.format(self.ora_env_dict["KEY_SECRET_VOLUME"])
             self.log_info_message("Password file set to : " + passwd_file,self.file_name)
             self.log_info_message("key file set to : " + key_file,self.file_name)
             self.log_info_message("dbpasswd file set to : " + dbpasswd_file,self.file_name)
+            self.log_info_message("key secret voluem set to  file set to : " + key_secret_volume,self.file_name)
+            self.log_info_message("pwd volume set : " + pwd_volume,self.file_name)
             #print(passwd_file)
             if (os.path.isfile(passwd_file)) and (os.path.isfile(key_file)):
                msg='''Passwd file {0} and key file {1} exist. Password file Check passed!'''.format(passwd_file,key_file)
@@ -766,9 +769,9 @@ class OraCommon:
                cmd=None
                if self.check_key("ENCRYPTION_TYPE",self.ora_env_dict):
                   if self.ora_env_dict["ENCRYPTION_TYPE"].lower() != "aes256":
-                     cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out {2}/{1} -pass file:\"{3}/{4}\"'''.formatformat(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,key_file)
-                  else:
-                     cmd ='''openssl rsautl -decrypt -in \"{0}/{1}\" -out {2}/{1} -inkey \"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,key_file)
+                     cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out {2}/{1} -pass file:\"{3}/{4}\"'''.formatformat(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,pwd_key)
+               else:
+                  cmd ='''openssl rsautl -decrypt -in \"{0}/{1}\" -out {2}/{1} -inkey \"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,pwd_key)
       
                output,error,retcode=self.execute_cmd(cmd,None,None)
                self.check_os_err(output,error,retcode,True)
@@ -805,7 +808,7 @@ class OraCommon:
                msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
                self.log_info_message(msg,self.file_name)
 
-######### Get Password ##############
+######### Get oraversion ##############
       def get_oraversion(self,home):
          """
          get the software version
@@ -815,3 +818,65 @@ class OraCommon:
          self.check_os_err(output,error,retcode,True)
 
          return output 
+      
+####### Get db lock file location #######
+      def get_db_lock_location(self):
+         """
+         get the db location
+         """
+         if self.check_key("DB_LOCK_FILE_LOCATION",self.ora_env_dict):
+            return self.ora_env_dict["DB_LOCK_FILE_LOCATION"]
+         else:
+            ### Please note that you should not change following path as SIDB team is maintaining lock files under following location
+            return "/tmp/."
+
+####### Get the TDE Key ###############
+      def export_tde_key(self,filename):
+         """
+         This function export the tde.
+         """
+         self.log_info_message("Inside gettdekey()",self.file_name)
+         sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         sqlcmd='''
+           ALTER SESSION DISABLE SHARD DDL;
+           ADMINISTER KEY MANAGEMENT EXPORT ENCRYPTION KEYS WITH SECRET {0} TO {1} IDENTIFIED BY {0};
+         '''.format('HIDDEN_STRING',filename)
+         self.log_info_message("Running the sqlplus command to export the tde: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.check_sql_err(output,error,retcode,True)
+
+####### Get the TDE Key ###############
+      def import_tde_key(self,filename):
+         """
+         This function import the TDE key.
+         """
+         self.log_info_message("Inside importtdekey()",self.file_name)
+         sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         sqlcmd='''
+         ADMINISTER KEY MANAGEMENT SET KEYSTORE OPEN IDENTIFIED BY {0};
+         ADMINISTER KEY MANAGEMENT IMPORT ENCRYPTION KEYS WITH SECRET {0} FROM {1} IDENTIFIED BY {0} WITH BACKUP
+         '''.format('HIDDEN_STRING',filename)
+         self.log_info_message("Running the sqlplus command to import the tde key: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.check_sql_err(output,error,retcode,True)         
+######## Reset the DB Password in database ########
+      def reset_passwd(self):
+         """
+         This function reset the password.
+         """ 
+         password_script='''{0}/{1}'''.format(self.ora_env_dict["HOME"],"setPassword.sh")
+         self.log_info_message("Executing password reset", self.file_name)
+         if self.check_key("ORACLE_PWD",self.ora_env_dict) and self.check_key("HOME",self.ora_env_dict) and os.path.isfile(password_script):
+            cmd='''{0} {1} '''.format(password_script,'HIDDEN_STRING')
+            self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+            output,error,retcode=self.execute_cmd(cmd,None,None)
+            self.check_os_err(output,error,retcode,True)
+            self.unset_mask_str()
+         else:
+            msg='''Error Occurred! Either HOME DIR {0} does not exist, ORACLE_PWD {1} is not set or PASSWORD SCRIPT {2} does not exist'''.format(self.ora_env_dict["HOME"],self.ora_env_dict["ORACLE_PWD"],password_script)  
+            self.log_error_message(msg,self.file_name)
+            self.oracommon.prog_exit()
