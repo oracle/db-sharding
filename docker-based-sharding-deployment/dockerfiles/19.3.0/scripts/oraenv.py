@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 """
  This file read the env variables from a file or using env command and populate them in  variable 
@@ -15,6 +15,7 @@ import os
 class OraEnv:
    __instance                                  = None
    __env_var_file                              = '/etc/rac_env_vars'
+   
    __env_var_file_flag                         = None
    __env_var_dict                              = {}
    __ora_asm_diskgroup_name                    = '+DATA'
@@ -60,6 +61,8 @@ class OraEnv:
    @staticmethod
    def add_variable():
       """ Add more variable ased on enviornment with default values in __env_var_dict"""
+      OraEnv.__env_var_dict["GSM_LOCK_STATUS_FILE"] = "/tmp/.gsm_status_lock_file"
+      OraEnv.__env_var_dict["SHARD_LOCK_STATUS_FILE"] = "/tmp/.shard_status_lock_file"
       if "ORA_ASM_DISKGROUP_NAME" not in OraEnv.__env_var_dict:
          OraEnv.__env_var_dict["ORA_ASM_DISKGROUP_NAME"] = "+DATA"
  
@@ -102,6 +105,8 @@ class OraEnv:
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_remove.log"
       elif file_type == "CHECK_LIVENESS":
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_checkliveness.log"
+      elif file_type == "CHECK_READYNESS":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/shard_checkreadyness.log"
       elif file_type == "RESET_LISTENER":
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/reset_listener.log"
       elif file_type == "RESTART_DB":
@@ -122,6 +127,12 @@ class OraEnv:
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_online_shard.log"
       elif file_type == "CHECK_GSM_SHARD":
          OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/check_gsm_shard.log"
+      elif file_type == "INVITED_NODE_OP":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/node_invited_op.log"
+      elif file_type == "RESET_PASSWD":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/reset_passwd_file.log"
+      elif file_type == "TDE_KEY":
+         OraEnv.__env_var_dict["LOG_FILE_NAME"] = OraEnv.logdir__ + "/tde_key.log"
       else:
         pass
 

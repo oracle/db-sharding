@@ -1,10 +1,10 @@
 #!/usr/bin/python
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 """
  This file provides the functionality to log the event in console and file
@@ -159,7 +159,7 @@ class StdHandler(Handler):
           """
           request.stdout_ =  request.getStdOutValue()
           if request.stdout_ == LoggingType.STDOUT:
-            st = logging.FileHandler(request.stdoutfile_)
+            st = logging.FileHandler(request.stdoutfile_,mode="w")
             request.root.addHandler(st)
             st.setFormatter(request.formatter)
             self.print_message(request,st)

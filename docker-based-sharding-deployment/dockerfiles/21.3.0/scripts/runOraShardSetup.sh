@@ -1,10 +1,10 @@
 #!/bin/bash
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 export CLONED_FILE="status_completed"
 export STANDBY_STATUS="status_completed"
@@ -19,7 +19,7 @@ sqlplus / as sysdba << EOF
    exit;
 EOF
 
-echo 'Y' | nid target=/ dbname=$NEW_ORACLE_SID
+echo 'Y' | nid target=/ dbname="$NEW_ORACLE_SID"
 
 if [ $? -eq 0 ]; then
  echo "DB name changed sucessfully"
@@ -36,6 +36,7 @@ if [ -z ${DB_UNIQUE_NAME} ]; then
    export DB_UNIQUE_NAME=$NEW_ORACLE_SID
 fi
 
+export ORACLE_HOSTNAME=$( hostname -f )
 
 echo "Changing DB name"
 export ORACLE_SID=$NEW_ORACLE_SID
@@ -46,11 +47,28 @@ sqlplus / as sysdba << EOF
    alter system set open_links_per_instance=16 scope=spfile;
    alter system set dg_broker_config_file1="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr2$DB_UNIQUE_NAME.dat" scope=spfile;
    alter system set dg_broker_config_file2="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr1$DB_UNIQUE_NAME.dat" scope=spfile;
-   alter system set db_file_name_convert='*','/' scope=spfile; 
+   alter system set db_file_name_convert='*','$ORACLE_BASE/oradata/$DB_UNIQUE_NAME/' scope=spfile; 
+   alter system set local_listener='$ORACLE_HOSTNAME'  scope=spfile;
+   alter system set standby_file_management='auto' scope=spfile;
    shutdown immediate
    exit;
 EOF
 
+## Get the version
+ dbversion=$( $ORACLE_HOME/bin/oraversion -majorVersion )
+ if [ ! -z ${dbversion} ]; then
+   if [ ${dbversion} -ge 21 ]; then
+     echo "Setting DB Parameter based on the vserion"
+     export ORACLE_SID=$NEW_ORACLE_SID
+     sqlplus / as sysdba << EOF
+      startup nomount
+      alter system set wallet_root="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME" scope=spfile;
+      shutdown immediate
+      exit;
+EOF
+    fi
+  fi
+ 
 echo "Changing OLD SID string to new string"
 sed -i "s/$OLD_ORACLE_SID/$ORACLE_SID/g" $ORACLE_HOME/network/admin/tnsnames.ora
 sed -i "s/$OLD_ORACLE_PDB/$ORACLE_PDB/g" $ORACLE_HOME/network/admin/tnsnames.ora
@@ -338,6 +356,15 @@ if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
    else
        echo "Performing Cloning as cloned status file does not exist"
        cloneDB;
+       $ORACLE_BASE/checkDBStatus.sh
+       if [ $? -eq 0 ]; then
+         echo "DB is in READ WRITE State"
+         touch "$ORACLE_BASE/oradata/.${ORACLE_SID}.exist_lck"
+         $ORACLE_BASE/$LOCKING_SCRIPT --acquire --file "$ORACLE_BASE/oradata/.${ORACLE_SID}.exist_lck"
+       else
+         echo "DB is not in READ WRITE state"
+         exit 1;
+        fi
    fi
 else
      echo "Error: The $ORACLE_BASE/oradata/$OLD_ORACLE_SID (ORACLE_BASE/oradata/OLD_ORACLE_SID) dir does not exist. Error exiting ."

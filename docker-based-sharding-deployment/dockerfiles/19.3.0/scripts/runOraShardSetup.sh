@@ -1,10 +1,10 @@
 #!/bin/bash
-
-#############################
-# Copyright 2020, Oracle Corporation and/or affiliates.  All rights reserved.
-# Licensed under the Universal Permissive License v 1.0 as shown at http://oss.oracle.com/licenses/upl
-# Author: paramdeep.saini@oracle.com
-############################
+# LICENSE UPL 1.0
+#
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
+#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 export CLONED_FILE="status_completed"
 export STANDBY_STATUS="status_completed"
@@ -19,7 +19,7 @@ sqlplus / as sysdba << EOF
    exit;
 EOF
 
-echo 'Y' | nid target=/ dbname=$NEW_ORACLE_SID
+echo 'Y' | nid target=/ dbname="$NEW_ORACLE_SID"
 
 if [ $? -eq 0 ]; then
  echo "DB name changed sucessfully"
@@ -28,15 +28,47 @@ else
  exit 1;
 fi
 
+if [ -z ${DB_RECOVERY_FILE_DEST} ]; then
+   export DB_RECOVERY_FILE_DEST=$ORACLE_BASE/oradata/fast_recovery_area/$NEW_ORACLE_SID
+fi
+
+if [ -z ${DB_UNIQUE_NAME} ]; then
+   export DB_UNIQUE_NAME=$NEW_ORACLE_SID
+fi
+
+export ORACLE_HOSTNAME=$( hostname -f )
+
 echo "Changing DB name"
 export ORACLE_SID=$NEW_ORACLE_SID
 sqlplus / as sysdba << EOF
    STARTUP nomount;
    alter system set db_name=$ORACLE_SID scope=spfile;
+   alter system set open_links=16 scope=spfile;
+   alter system set open_links_per_instance=16 scope=spfile;
+   alter system set dg_broker_config_file1="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr2$DB_UNIQUE_NAME.dat" scope=spfile;
+   alter system set dg_broker_config_file2="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr1$DB_UNIQUE_NAME.dat" scope=spfile;
+   alter system set db_file_name_convert='*','$ORACLE_BASE/oradata/$DB_UNIQUE_NAME/' scope=spfile; 
+   alter system set local_listener='$ORACLE_HOSTNAME'  scope=spfile;
+   alter system set standby_file_management='auto' scope=spfile;
    shutdown immediate
    exit;
 EOF
 
+## Get the version
+ dbversion=$( $ORACLE_HOME/bin/oraversion -majorVersion )
+ if [ ! -z ${dbversion} ]; then
+   if [ ${dbversion} -ge 21 ]; then
+     echo "Setting DB Parameter based on the vserion"
+     export ORACLE_SID=$NEW_ORACLE_SID
+     sqlplus / as sysdba << EOF
+      startup nomount
+      alter system set wallet_root="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME" scope=spfile;
+      shutdown immediate
+      exit;
+EOF
+    fi
+  fi
+ 
 echo "Changing OLD SID string to new string"
 sed -i "s/$OLD_ORACLE_SID/$ORACLE_SID/g" $ORACLE_HOME/network/admin/tnsnames.ora
 sed -i "s/$OLD_ORACLE_PDB/$ORACLE_PDB/g" $ORACLE_HOME/network/admin/tnsnames.ora
@@ -49,6 +81,7 @@ echo "Starting new cloned DB"
 
 sqlplus / as sysdba << EOF
    STARTUP mount;
+   alter database archivelog; 
    alter database open resetlogs;
    exit;
 EOF
@@ -62,7 +95,7 @@ sqlplus / as sysdba << EOF
    exit;
 EOF
 
-echo " CLosing and Opening PDB"
+echo " Closing and Opening PDB"
 
 sqlplus / as sysdba << EOF
    alter pluggable database $ORACLE_PDB close immediate; 
@@ -83,6 +116,16 @@ touch $ORACLE_BASE/oradata/dbconfig/$OLD_ORACLE_SID/$CLONED_FILE
 ########### Symbolic link DB files ############
 function symLinkFiles {
 
+   if [ -z ${ORACLE_BASE_HOME} ]; then
+    # 
+    export ORACLE_BASE_HOME=$ORACLE_HOME
+   fi
+
+   # Make sure audit file destination exists
+   if [ ! -d $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID ]; then
+      mkdir -p $ORACLE_BASE/oradata/dbconfig/$ORACLE_SID
+   fi;
+
    # Make sure audit file destination exists
    if [ ! -d $ORACLE_BASE/admin/$ORACLE_SID/adump ]; then
       mkdir -p $ORACLE_BASE/admin/$ORACLE_SID/adump
@@ -100,19 +143,19 @@ function symLinkFiles {
    if [ -L $ORACLE_HOME/dbs/orapw$ORACLE_SID ]; then
      unlink $ORACLE_HOME/dbs/orapw$ORACLE_SID
    fi;
-   if [ -L $ORACLE_HOME/network/admin/sqlnet.ora ]; then
-      unlink $ORACLE_HOME/network/admin/sqlnet.ora
+   if [ -L $ORACLE_BASE_HOME/network/admin/sqlnet.ora ]; then
+      unlink $ORACLE_BASE_HOME/network/admin/sqlnet.ora
    fi;
    if [ -L $ORACLE_HOME/network/admin/listener.ora ]; then
-     unlink $ORACLE_HOME/network/admin/listener.ora 
+     unlink $ORACLE_BASE_HOME/network/admin/listener.ora 
    fi;
-   if [ -L $ORACLE_HOME/network/admin/tnsnames.ora ]; then
-      unlink $ORACLE_HOME/network/admin/tnsnames.ora
+   if [ -L $ORACLE_BASE_HOME/network/admin/tnsnames.ora ]; then
+      unlink $ORACLE_BASE_HOME/network/admin/tnsnames.ora
    fi
-   if [ -L $ORACLE_HOME/dbs/dr1$ORACLE_SID ]; then
-     unlink $ORACLE_HOME/dbs/dr1$ORACLE_SID
+   if [ -L $ORACLE_BASE_HOME/dbs/dr1$ORACLE_SID ]; then
+     unlink $ORACLE_BASE_HOME/dbs/dr1$ORACLE_SID
    fi;
-   if [ -L $ORACLE_HOME/dbs/dr2$ORACLE_SID ]; then
+   if [ -L $ORACLE_BASE_HOME/dbs/dr2$ORACLE_SID ]; then
       unlink $ORACLE_HOME/dbs/dr2$ORACLE_SID 
    fi;
  
@@ -211,38 +254,6 @@ fi
 
 }
 
-########### SIGINT handler ############
-function _int() {
-   echo "Stopping container."
-   echo "SIGINT received, shutting down database!"
-   sqlplus / as sysdba <<EOF
-   shutdown immediate;
-   exit;
-EOF
-   lsnrctl stop
-}
-
-########### SIGTERM handler ############
-function _term() {
-   echo "Stopping container."
-   echo "SIGTERM received, shutting down database!"
-   sqlplus / as sysdba <<EOF
-   shutdown immediate;
-   exit;
-EOF
-   lsnrctl stop
-}
-
-########### SIGKILL handler ############
-function _kill() {
-   echo "SIGKILL received, shutting down database!"
-   sqlplus / as sysdba <<EOF
-   shutdown abort;
-   exit;
-EOF
-   lsnrctl stop
-}
-
 ###################################
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
 ############# MAIN ################
@@ -268,15 +279,6 @@ if hostname | grep -q "_"; then
    echo "Error: The hostname must not container any '_'".
    echo "Your current hostname is '$(hostname)'"
 fi;
-
-# Set SIGINT handler
-trap _int SIGINT
-
-# Set SIGTERM handler
-trap _term SIGTERM
-
-# Set SIGKILL handler
-trap _kill SIGKILL
 
 # Default for ORACLE SID
 if [ "$OLD_ORACLE_SID" == "" ]; then
@@ -354,6 +356,15 @@ if [ -d $ORACLE_BASE/oradata/$OLD_ORACLE_SID ]; then
    else
        echo "Performing Cloning as cloned status file does not exist"
        cloneDB;
+       $ORACLE_BASE/checkDBStatus.sh
+       if [ $? -eq 0 ]; then
+         echo "DB is in READ WRITE State"
+         touch "$ORACLE_BASE/oradata/.${ORACLE_SID}.exist_lck"
+         $ORACLE_BASE/$LOCKING_SCRIPT --acquire --file "$ORACLE_BASE/oradata/.${ORACLE_SID}.exist_lck"
+       else
+         echo "DB is not in READ WRITE state"
+         exit 1;
+        fi
    fi
 else
      echo "Error: The $ORACLE_BASE/oradata/$OLD_ORACLE_SID (ORACLE_BASE/oradata/OLD_ORACLE_SID) dir does not exist. Error exiting ."
@@ -374,7 +385,7 @@ fi
 
 #This is the main file which calls other file to setup the sharding.
 if [ -z ${BASE_DIR} ]; then
-    BASE_DIR=/opt/oracle/scripts/setup
+    BASE_DIR=/opt/oracle/scripts/sharding
 fi
 
 if [ -z ${MAIN_SCRIPT} ]; then
@@ -387,9 +398,3 @@ fi
 
 cd $BASE_DIR
 $EXECUTOR $SCRIPT_NAME
-
-echo "The following output is now a tail of the alert.log:"
-tail -f $ORACLE_BASE/diag/rdbms/*/*/trace/alert*.log &
-# tail -f /etc/passwd &
-childPID=$!
-wait $childPID

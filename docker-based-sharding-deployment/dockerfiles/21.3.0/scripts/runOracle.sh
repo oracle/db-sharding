@@ -1,14 +1,10 @@
 #!/bin/bash
 # LICENSE UPL 1.0
 #
-# Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2020,2021 Oracle and/or its affiliates.
 #
-# Since: Mar, 2021
-# Author: Paramdeep.saini@oracle.com
-# Description: Runs the Oracle Database inside the container
-#
-# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-#
+# Since: January, 2020
+# Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
 ########### SIGINT handler ############
 function _int() {
@@ -48,9 +44,10 @@ EOF
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
 ###################################
 
-
-if [ ${SHARD_SETUP,,} == "true" ]; then
- sh $ORACLE_BASE/scripts/sharding/runOraShardSetup.sh
+if [ ! -z ${SHARD_SETUP} ]; then
+  if [ ${SHARD_SETUP,,} == "true" ]; then
+   sh $ORACLE_BASE/scripts/sharding/runOraShardSetup.sh
+ fi
 fi
 
 if [ ! -z ${CLONE_DB} ]; then
