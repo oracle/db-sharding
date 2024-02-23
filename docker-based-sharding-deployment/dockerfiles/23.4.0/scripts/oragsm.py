@@ -1068,28 +1068,34 @@ class OraGSM:
                     self.ocommon.log_warn_message("No Key Specified! You can only pass ADD_SGROUP_PARAMS or SHARD_GROUP key to create a shard group",self.file_name)
                     self.ocommon.log_warn_message("Since no key specified for ADD_SGROUP_PARAMS and SHARD_GROUP, shardgroup will be created during shard creation",self.file_name)
                 
+                 sgListC=[]
+                 sgListP=[]
                  counter=1
                  end_counter=3
                  while counter < end_counter:
                        for key in self.ora_env_dict.keys():
                            if(reg_exp.match(key)):
                               shard_group_status=None
+                              self.ocommon.log_info_message("Key is set to : " + key,self.file_name)
                               group_name,deploy_as,group_region=self.process_shardg_vars(key)
-                              dtrname=self.get_director_name(group_region)
-                              shard_group_status=self.check_shardg_status(group_name,dtrname)
-                              if shard_group_status != 'completed':
-                                 self.configure_gsm_shardg(group_name,deploy_as,group_region,'add')
-                                 
-                       status = self.check_shardg_status(None,None)
-                       if status == 'completed':
-                          break
-                       else:
-                         msg='''GSM shard group setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
-                       time.sleep(60)
-                       counter=counter+1
-
-                 status = self.check_shardg_status(None,None)
-                 if status == 'completed':
+                              self.ocommon.log_info_message("Name: " + group_name + "deploy_as" + deploy_as + "group_region" + group_region,self.file_name)
+                              if group_name is not None:
+                                 if group_name not in sgListC:
+                                    dtrname=self.get_director_name(group_region)
+                                    shard_group_status=self.check_shardg_status(group_name,dtrname)
+                                    if shard_group_status != 'completed':
+                                       self.configure_gsm_shardg(group_name,deploy_as,group_region,'add')
+                                       shard_group_status = self.check_shardg_status(group_name,None)
+                                       if shard_group_status == 'completed':
+                                          sgListC.append(group_name)
+                                          if group_name in sgListP: 
+                                             sgListP.remove(group_name)
+                                       else:
+                                          sgListP=sgListP.append(group_name)
+                                          time.sleep(30)
+                           counter=counter + 1
+                           
+                 if sgListP == []:
                     msg='''Shard group setup completed in GSM'''
                     self.ocommon.log_info_message(msg,self.file_name)
                  else:
