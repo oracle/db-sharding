@@ -45,7 +45,7 @@ EOF
 ###################################
 
 if [ ! -z ${SHARD_SETUP} ]; then
- if [ ${SHARD_SETUP,,} == "true" ]; then
+  if [ ${SHARD_SETUP,,} == "true" ]; then
    sh $ORACLE_BASE/scripts/sharding/runOraShardSetup.sh
  fi
 fi
