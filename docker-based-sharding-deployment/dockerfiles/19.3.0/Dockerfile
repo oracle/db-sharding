@@ -85,7 +85,7 @@ EXPOSE 1521
 VOLUME ["$GSM_BASE/oradata"]
 
 HEALTHCHECK --interval=2m --start-period=25m \
-   CMD "$SCRIPT_DIR/$CHECKLIVENESS" >/dev/null || exit 1
+   CMD "$SCRIPT_DIR/scripts/$CHECKLIVENESS" >/dev/null || exit 1
 
 # Define default command to start Oracle Database.
 CMD exec $SCRIPT_DIR/$RUN_FILE

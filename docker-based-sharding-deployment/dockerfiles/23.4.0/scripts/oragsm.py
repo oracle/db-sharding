@@ -1425,9 +1425,9 @@ class OraGSM:
                  cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
                  cpasswd="HIDDEN_STRING"
                  if type == 'MODIFY':
-                  cmd=''' modify shardpsace -shardspace {0} '''.format(sspace)
+                  cmd=''' modify shardspace -shardspace {0} '''.format(sspace)
                  else:
-                   cmd=''' add shardpsace -shardspace {0} '''.format(sspace)
+                   cmd=''' add shardspace -shardspace {0} '''.format(sspace)
                  if chunks is not None:
                     cmd = cmd + ''' -chunks {0}'''.format(chunks)
                  if repfactor:
@@ -2335,7 +2335,7 @@ class OraGSM:
          if self.ocommon.check_key("SHARDING_TYPE",self.ora_env_dict):
             if self.ora_env_dict["SHARDING_TYPE"].upper() == 'USER':
                sspaceFlag=self.check_gsm_shardspace(sspace)
-               if not sspaceFlag:
+               if sspaceFlag != 'completed':
                   self.configure_gsm_sspace(sspace,None,None,None,None,'add')
                shard_group=""
                deploy_as,deploy_type=self.get_shard_deploy()
