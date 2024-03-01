@@ -770,8 +770,12 @@ class OraCommon:
                if self.check_key("ENCRYPTION_TYPE",self.ora_env_dict):
                   if self.ora_env_dict["ENCRYPTION_TYPE"].lower() != "aes256":
                      cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out {2}/{1} -pass file:\"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,pwd_key)
+                  elif self.ora_env_dict["ENCRYPTION_TYPE"].lower() != "rsautl":
+                     cmd ='''openssl rsautl -decrypt -in \"{0}/{1}\" -out {2}/{1} -inkey \"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,pwd_key)
+                  else:
+                     pass
                else:
-                  cmd ='''openssl rsautl -decrypt -in \"{0}/{1}\" -out {2}/{1} -inkey \"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,pwd_key)
+                  cmd ='''openssl pkeyutl -decrypt -in \"{0}/{1}\" -out {2}/{1} -inkey \"{3}/{4}\"'''.format(secret_volume,common_os_pwd_file,pwd_volume,key_secret_volume,pwd_key)
       
                output,error,retcode=self.execute_cmd(cmd,None,None)
                self.check_os_err(output,error,retcode,True)
