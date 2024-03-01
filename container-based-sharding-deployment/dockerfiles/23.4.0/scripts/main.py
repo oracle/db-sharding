@@ -20,7 +20,7 @@ def main():
 
    # Checking Comand line Args
    try:
-      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','checkreadyness=','validatenochunks=','invitednode=','help'])
+      opts, args = getopt.getopt(sys.argv[1:], '', ['addshard=','deleteshard=','validateshard=','checkliveness=','resetlistener=','restartdb=','createdir=','optype=','addshardgroup=','deployshard=','movechunks=','checkonlineshard=','cancelchunks=','checkchunks=','checkgsmshard=','checkreadyness=','validatenochunks=','invitednode=','resetpassword=','exporttdekey=','importtdekey=','help'])
    except getopt.GetoptError:
       pass
   
@@ -45,7 +45,7 @@ def main():
 
    for opt, arg in opts:
       if opt in ('--help'):
-         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', '--checkreadyness','--invitednode', or --help'''
+         oralogger.msg_ = '''{:^17}-{:^17} : You can pass parameter --addshard, --deleteshard, --validateshard, --checkliveness, --resetlistener, --restartdb, --createdir, --optype, --addshardgroup, --deployshard, '--checkonlineshard', '--cancelchunks', '--movechunks', '--checkchunks', '--checkgsmshard','--validatenochunks', '--checkreadyness','--invitednode', '--resetpassword','--exporttdekey','--importtdekey',or --help'''
          stdout_handler.handle(oralogger)
       elif opt in ('--addshard'):
            file_name = oenv.logfile_name("ADD_SHARD")   
@@ -89,8 +89,6 @@ def main():
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("CREATE_DIR",arg)
-      elif opt in ('--optype'):
-          oenv.add_custom_variable("OP_TYPE",arg)
       elif opt in ('--addshardgroup'):
            file_name = oenv.logfile_name("ADD_SGROUP_PARAMS")
            oralogger.filename_ =  file_name
@@ -136,6 +134,23 @@ def main():
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("INVITED_NODE_OP",arg)
+      elif opt in ('--resetpassword'):
+           file_name = oenv.logfile_name("RESET_PASSWD")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("RESET_PASSWORD",arg)
+      elif opt in ('--exporttdekey'):
+           file_name = oenv.logfile_name("EXPORT_TDE_KEY")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("EXPORT_TDE_KEY",arg)
+      elif opt in ('--importtdekey'):
+           file_name = oenv.logfile_name("IMPORT_TDE_KEY")
+           oralogger.filename_ =  file_name
+           ocommon.log_info_message("=======================================================================",file_name)
+           oenv.add_custom_variable("IMPORT_TDE_KEY",arg)
+      elif opt in ('--optype'):
+          oenv.add_custom_variable("OP_TYPE",arg)
       else:
          pass
 
