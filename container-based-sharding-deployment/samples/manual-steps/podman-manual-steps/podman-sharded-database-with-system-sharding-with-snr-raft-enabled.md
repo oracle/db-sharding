@@ -79,8 +79,8 @@ podman run -d --hostname oshard-catalog-0 \
  -e ORACLE_SID=CATCDB \
  -e ORACLE_PDB=CAT1PDB \
  -e OP_TYPE=catalog \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
@@ -90,8 +90,8 @@ podman run -d --hostname oshard-catalog-0 \
 
     Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
-      OP_TYPE:                  Specify the operation type. For Shards it has to be set to catalog.
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
+      OP_TYPE:                  Specify the operation type. For catalog database podman container, it has to be set to "catalog".
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
       ORACLE_PDB:               PDB name
@@ -160,8 +160,8 @@ podman run -d --hostname oshard1-0 \
  -e ORACLE_PDB=ORCL1PDB \
  -e OP_TYPE=primaryshard \
  -e SHARD_SETUP="true" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
@@ -170,7 +170,7 @@ podman run -d --hostname oshard1-0 \
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -211,8 +211,8 @@ podman run -d --hostname oshard2-0 \
  -e ORACLE_SID=ORCL2CDB \
  -e ORACLE_PDB=ORCL2PDB \
  -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
@@ -222,7 +222,7 @@ podman run -d --hostname oshard2-0 \
 
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -273,8 +273,8 @@ podman run -d --hostname oshard3-0 \
  -e ORACLE_SID=ORCL3CDB \
  -e ORACLE_PDB=ORCL3PDB \
  -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
@@ -284,7 +284,7 @@ podman run -d --hostname oshard3-0 \
 
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -341,8 +341,8 @@ podman run -d --hostname oshard-gsm1 \
  -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"  \
  -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
  -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
  -v /opt/containers/shard_host_file:/etc/hosts \
@@ -373,6 +373,8 @@ podman run -d --hostname oshard-gsm1 \
                                  key=catalog_port,       value=catalog db port name
                                  key=catalog_name,       value=catalog name in GSM
                                  key=catalog_region,     value=specify comma separated region name for catalog db deployment
+                                 key=catalog_chunks,     value=number of unique chunks
+                                 key=repl_type,          value=the replication type
 
       SHARD[1-9]_PARAMS:         Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=shard_host,         value=shard hostname
@@ -392,7 +394,7 @@ podman run -d --hostname oshard-gsm1 \
            Each SERVICE[1-9]_PARAMS must have above key value pair.
 
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For GSM it has to be set to gsm.
       DOMAIN:                   Domain of the container.
       MASTER_GSM:               Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.
@@ -442,8 +444,8 @@ podman run -d --hostname oshard-gsm2 \
  -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
  -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
  -e CATALOG_SETUP="True" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
@@ -454,7 +456,7 @@ podman run -d --hostname oshard-gsm2 \
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
    Mandatory Parameters:
-      CATALOG_SETUP:             Accept True. if set then , it will only restrict till catalog connection and setup.
+      CATALOG_SETUP:             Accept True. If set then, it will only restrict till catalog connection and setup.
       CATALOG_PARAMS:            Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=catalog_host,       value=catalog hostname
                                  key=catalog_db,         value=catalog cdb name
@@ -462,6 +464,8 @@ podman run -d --hostname oshard-gsm2 \
                                  key=catalog_port,       value=catalog db port name
                                  key=catalog_name,       value=catalog name in GSM
                                  key=catalog_region,     value=specify comma separated region name for catalog db deployment
+                                 key=catalog_chunks,     value=number of unique chunks
+                                 key=repl_type,          value=the replication type
 ```
 
 To check the gsm2 container/services creation logs, please tail podman logs. It will take 2 minutes to create the gsm container service.
@@ -512,7 +516,7 @@ Before creating new shard (shard4 in this case) container, review the following 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL4CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard4 oracle/database:23.3.0-ee` to `--name shard4 oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard4 oracle/database:23.4.0-ee` to `--name shard4 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL4CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL4CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -525,17 +529,17 @@ podman run -d --hostname oshard4-0 \
  -e ORACLE_PDB=ORCL4PDB \
  -e OP_TYPE=primaryshard \
  -e SHARD_SETUP="true" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -v /oradata/dbfiles/ORCL4CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard4 oracle/database:23.3.0-ee
+ --name shard4 oracle/database:23.4.0-ee
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -613,9 +617,6 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
 
-**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are still moving out, you can rerun the above command to check the status after some time.
-
-
 ### Delete the shard database from the Sharded Database
 
 Once you have confirmed that no chunk is present in the shard to be deleted in earlier step, you can use the below command to delete that shard(shard4 in this case):
@@ -626,6 +627,7 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py  --dele
 
 **NOTE:** In this case, `oshard4-0`, `ORCL4CDB` and `ORCL4PDB` are the names of host, CDB and PDB for the shard4 respectively.
 
+**NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are still moving out, you can rerun the above command to check the status after some time.
 
 ### Confirm the shard has been successfully deleted from the Sharded database
 
