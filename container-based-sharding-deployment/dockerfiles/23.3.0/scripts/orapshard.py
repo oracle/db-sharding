@@ -72,8 +72,8 @@ class OraPShard:
                self.ocommon.shutdown_db(self.ora_env_dict)
                self.ocommon.start_db(self.ora_env_dict) 
           elif self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
-             create_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
-             exist_db_file_lck="/tmp/." + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+             create_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
+             exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
              self.ocommon.log_info_message("DB create lock file set to :" + create_db_file_lck ,self.file_name)
              self.ocommon.log_info_message("DB exist lock file set to :" + exist_db_file_lck ,self.file_name)
              if os.path.exists(create_db_file_lck):
@@ -314,18 +314,7 @@ class OraPShard:
          """
            This function reset the password.
          """ 
-         password_script='''{0}/{1}'''.format(self.ora_env_dict["HOME"],"setPassword.sh")
-         self.ocommon.log_info_message("Executing password reset", self.file_name)
-         if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict) and self.ocommon.check_key("HOME",self.ora_env_dict) and os.path.isfile(password_script):
-            cmd='''{0} {1} '''.format(password_script,'HIDDEN_STRING')
-            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-            output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-            self.ocommon.check_os_err(output,error,retcode,True)
-            self.ocommon.unset_mask_str()
-         else:
-            msg='''Error Occurred! Either HOME DIR {0} does not exist, ORACLE_PWD {1} is not set or PASSWORD SCRIPT {2} does not exist'''.format(self.ora_env_dict["HOME"],self.ora_env_dict["ORACLE_PWD"],password_script)  
-            self.ocommon.log_error_message(msg,self.file_name)
-            self.oracommon.prog_exit()
+         self.ocommon.reset_passwd()
 
        ########## RESET_PASSWORD function ENDS here #############################
 
@@ -474,7 +463,7 @@ class OraPShard:
            ohome1=self.ora_env_dict["ORACLE_HOME"]
            version=self.ocommon.get_oraversion(ohome1).strip()
            self.ocommon.log_info_message(version,self.file_name)
-           if int(version) >= 21:
+           if int(version) > 21:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
@@ -483,10 +472,11 @@ class OraPShard:
               obase=self.ora_env_dict["ORACLE_BASE"]
               dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
 
+
               msg='''Setting up catalog CDB with spfile non modifiable parameters based on version'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
-                alter system set wallet_root=\"{1}/oradata/{2}/{3}/admin\" scope=spfile;
+                alter system set wallet_root=\"{1}/oradata/{2}/{3}/\" scope=spfile;
               '''.format(dbf_dest,obase,"dbconfig",dbuname)
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
@@ -615,7 +605,7 @@ class OraPShard:
         
        ########## SETUP_CDB_SHARD FUNCTION ENDS HERE ###############################
           ###################################### Run custom scripts ##################################################
-      def run_custom_scripts():
+      def run_custom_scripts(self):
           """
            Custom script to be excuted on every restart of enviornment
           """

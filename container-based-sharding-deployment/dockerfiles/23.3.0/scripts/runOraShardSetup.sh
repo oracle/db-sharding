@@ -36,6 +36,7 @@ if [ -z ${DB_UNIQUE_NAME} ]; then
    export DB_UNIQUE_NAME=$NEW_ORACLE_SID
 fi
 
+export ORACLE_HOSTNAME=$( hostname -f )
 
 echo "Changing DB name"
 export ORACLE_SID=$NEW_ORACLE_SID
@@ -46,7 +47,8 @@ sqlplus / as sysdba << EOF
    alter system set open_links_per_instance=16 scope=spfile;
    alter system set dg_broker_config_file1="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr2$DB_UNIQUE_NAME.dat" scope=spfile;
    alter system set dg_broker_config_file2="$ORACLE_BASE/oradata/dbconfig/$DB_UNIQUE_NAME/dr1$DB_UNIQUE_NAME.dat" scope=spfile;
-   alter system set db_file_name_convert='*','$ORACLE_BASE/oradata/' scope=spfile; 
+   alter system set db_file_name_convert='*','$ORACLE_BASE/oradata/$DB_UNIQUE_NAME/' scope=spfile; 
+   alter system set local_listener='$ORACLE_HOSTNAME'  scope=spfile;
    alter system set standby_file_management='auto' scope=spfile;
    shutdown immediate
    exit;

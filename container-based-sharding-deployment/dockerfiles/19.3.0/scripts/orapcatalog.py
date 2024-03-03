@@ -45,11 +45,46 @@ class OraPCatalog:
            This function setup the catalog on Primary DB.
           """
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
+             create_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
+             exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+             self.ocommon.log_info_message("DB create lock file set to :" + create_db_file_lck ,self.file_name)
+             self.ocommon.log_info_message("DB exist lock file set to :" + exist_db_file_lck ,self.file_name)
+             if os.path.exists(create_db_file_lck):
+                self.ocommon.log_info_message("provisioning is still in progress as file " + create_db_file_lck + " still exist!",self.file_name)
+                sys.exit(127)
+             elif os.path.exists(exist_db_file_lck):
+                self.ocommon.log_info_message("Database is up and running as file " + exist_db_file_lck + " exist!",self.file_name)
+                status = self.catalog_setup_check()
+                if not status:
+                  self.ocommon.prog_exit("127")
+                self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
+                sys.exit(0)
+             else:
+                status = self.catalog_setup_check()
+                if not status:
+                  self.ocommon.prog_exit("127")
+                self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
+                sys.exit(0)
+          elif self.ocommon.check_key("CHECK_READYNESS",self.ora_env_dict):
             status = self.catalog_setup_check()
             if not status:
+               self.ocommon.log_info_message("Catalog readyness check completed sucessfully!",self.file_name)
                self.ocommon.prog_exit("127")
-            self.ocommon.log_info_message("Catalog liveness check completed sucessfully!",self.file_name)
-            sys.exit(0)
+          elif self.ocommon.check_key("RESET_PASSWORD",self.ora_env_dict):
+            exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+            if os.path.exists(exist_db_file_lck):
+               self.ocommon.log_info_message("Catalog database up and running. Resetting password...",self.file_name)
+            else:
+               self.ocommon.log_info_message("Catalog doesn't seems to be ready. Unable to reset password",self.file_name)
+               self.ocommon.prog_exit("127")
+          elif self.ocommon.check_key("EXPORT_TDE_KEY",self.ora_env_dict):
+            exist_db_file_lck=self.ocommon.get_db_lock_location()+ self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
+            if os.path.exists(exist_db_file_lck):
+               self.ocommon.log_info_message("Catalog database up and running.",self.file_name)
+               self.ocommon.export_tde_key(self.ora_env_dict["EXPORT_TDE_KEY"])
+            else:
+               self.ocommon.log_info_message("Catalog doesn't seems to be ready. Unable to export the tde key",self.file_name)
+               self.ocommon.prog_exit("127")
           else:
             self.setup_machine()
             self.db_checks()
@@ -61,6 +96,8 @@ class OraPCatalog:
                self.reset_passwd()
                self.setup_cdb_catalog()
                self.set_spfile_nonm_params()
+               self.ocommon.set_events("spfile")
+               self.set_dbparams_version()
                self.restart_db()
                self.alter_db()
                self.setup_pdb_catalog()
@@ -118,65 +155,13 @@ class OraPCatalog:
 
       def passwd_check(self):
            """
-           This funnction perform password related checks
+           Function to set the password
            """
-           passwd_file_flag = False
-           if self.ocommon.check_key("SECRET_VOLUME",self.ora_env_dict) and self.ocommon.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict) and self.ocommon.check_key("PWD_KEY",self.ora_env_dict):
-              msg='''SECRET_VOLUME passed as an env variable and set to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
-           else:
-              self.ora_env_dict=self.ocommon.add_key("SECRET_VOLUME","/run/secrets",self.ora_env_dict)
-              msg='''SECRET_VOLUME not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["SECRET_VOLUME"])
-
-           self.ocommon.log_warn_message(msg,self.file_name)
-
-           if self.ocommon.check_key("COMMON_OS_PWD_FILE",self.ora_env_dict):
-              msg='''COMMON_OS_PWD_FILE passed as an env variable and set to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
-           else:
-              self.ora_env_dict=self.ocommon.add_key("COMMON_OS_PWD_FILE","common_os_pwdfile.enc",self.ora_env_dict)
-              msg='''COMMON_OS_PWD_FILE not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["COMMON_OS_PWD_FILE"])
-
-           self.ocommon.log_warn_message(msg,self.file_name)
-
-           if self.ocommon.check_key("PWD_KEY",self.ora_env_dict):
-              msg='''PWD_KEY passed as an env variable and set to {0}'''.format(self.ora_env_dict["PWD_KEY"])
-           else:
-              self.ora_env_dict=self.ocommon.add_key("PWD_KEY","pwd.key",self.ora_env_dict)
-              msg='''PWD_KEY not passed as an env variable. Setting default to {0}'''.format(self.ora_env_dict["PWD_KEY"])
-
-           self.ocommon.log_warn_message(msg,self.file_name)
-
-           secret_volume = self.ora_env_dict["SECRET_VOLUME"]
-           common_os_pwd_file = self.ora_env_dict["COMMON_OS_PWD_FILE"]
-           pwd_key = self.ora_env_dict["PWD_KEY"]
-           passwd_file='''{0}/{1}'''.format(self.ora_env_dict["SECRET_VOLUME"],self.ora_env_dict["COMMON_OS_PWD_FILE"])
-           if os.path.isfile(passwd_file):
-              msg='''Passwd file {0} exist. Password file Check passed!'''.format(passwd_file)
-              self.ocommon.log_info_message(msg,self.file_name)
-              msg='''Reading encrypted passwd from file {0}.'''.format(passwd_file)
-              self.ocommon.log_info_message(msg,self.file_name)
-              cmd='''openssl enc -d -aes-256-cbc -in \"{0}/{1}\" -out /tmp/{1} -pass file:\"{0}/{2}\"'''.format(secret_volume,common_os_pwd_file,pwd_key)
-              output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-              self.ocommon.check_os_err(output,error,retcode,True)
-              passwd_file_flag = True
-
-           if not passwd_file_flag:
-              s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
-              passlen = 8
-              password  =  "".join(random.sample(s,passlen ))
-           else:
-              fname='''/tmp/{0}'''.format(common_os_pwd_file)
-              fdata=self.ocommon.read_file(fname)
-              password=fdata
-              self.ocommon.remove_file(fname)
-
+           self.ocommon.get_password(None)
            if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict):
-              msg="ORACLE_PWD is passed as an env variable. Check Passed!"
-              self.ocommon.log_info_message(msg,self.file_name)
-           else:
-              self.ora_env_dict=self.ocommon.add_key("ORACLE_PWD",password,self.ora_env_dict)
-              msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
-              self.ocommon.log_info_message(msg,self.file_name)
-
+               msg='''ORACLE_PWD key is set. Check Passed!'''
+               self.ocommon.log_info_message(msg,self.file_name)
+               
       def set_user(self):
            """
            This funnction set the user for pdb and cdb.
@@ -232,7 +217,8 @@ class OraPCatalog:
               self.ocommon.log_info_message(msg,self.file_name)
            else:
               if self.ocommon.check_key("KUBE_SVC",self.ora_env_dict):
-                 hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                # hostname='''{0}.{1}'''.format(socket.gethostname(),self.ora_env_dict["KUBE_SVC"])
+                 hostname='''{0}'''.format(socket.getfqdn())
               else:
                  hostname='''{0}'''.format(socket.gethostname())
               msg='''ORACLE_HOSTNAME is not set, setting it to hostname {0} of the compute!'''.format(hostname)
@@ -317,18 +303,7 @@ class OraPCatalog:
          """
            This function reset the password.
          """
-         password_script='''{0}/{1}'''.format(self.ora_env_dict["HOME"],"setPassword.sh")
-         self.ocommon.log_info_message("Executing password reset", self.file_name)
-         if self.ocommon.check_key("ORACLE_PWD",self.ora_env_dict) and self.ocommon.check_key("HOME",self.ora_env_dict) and os.path.isfile(password_script):
-            cmd='''{0} {1} '''.format(password_script,'HIDDEN_STRING')
-            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-            output,error,retcode=self.ocommon.execute_cmd(cmd,None,None)
-            self.ocommon.check_os_err(output,error,retcode,True)
-            self.ocommon.unset_mask_str()
-         else:
-            msg='''Error Occurred! Either HOME DIR {0} does not exist, ORACLE_PWD {1} is not set or PASSWORD SCRIPT {2} does not exist'''.format(self.ora_env_dict["HOME"],self.ora_env_dict["ORACLE_PWD"],password_script)
-            self.ocommon.log_error_message(msg,self.file_name)
-            self.oracommon.prog_exit()
+         self.ocommon.reset_passwd()
 
        ########## RESET_PASSWORD function ENDS here #############################
 
@@ -424,7 +399,6 @@ class OraPCatalog:
              alter system set db_recovery_file_dest=\"{2}\" scope=both;
              alter user gsmcatuser account unlock;
              alter user gsmcatuser identified by HIDDEN_STRING;
-             alter system set dg_broker_start=true scope=both;
              alter system set local_listener='{4}:{5}' scope=both;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname)
 
@@ -440,29 +414,31 @@ class OraPCatalog:
             This function setup the catalog.
            """
            #sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-           if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
-              ohome=self.ora_env_dict["ORACLE_HOME"]
-              inst_sid=self.ora_env_dict["ORACLE_SID"]
-              sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
-              self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
-              dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
-              obase=self.ora_env_dict["ORACLE_BASE"]
-              dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
-                
-              msg='''Setting up catalog CDB with spfile non modifiable parameters'''
-              self.ocommon.log_info_message(msg,self.file_name)
-              sqlcmd='''
-               alter system set open_links_per_instance=16 scope=spfile;
-               alter system set db_file_name_convert='*','{0}/' scope=spfile;
-               alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
-               alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
-               alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
-              '''.format(dbf_dest,obase,"dbconfig",dbuname)
+           if self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+              if self.ora_env_dict["CLONE_DB"] != 'true':
+                  ohome=self.ora_env_dict["ORACLE_HOME"]
+                  inst_sid=self.ora_env_dict["ORACLE_SID"]
+                  sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+                  self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+                  dbf_dest=self.ora_env_dict["DB_CREATE_FILE_DEST"]
+                  obase=self.ora_env_dict["ORACLE_BASE"]
+                  dbuname=self.ora_env_dict["DB_UNIQUE_NAME"]
+                     
+                  msg='''Setting up catalog CDB with spfile non modifiable parameters'''
+                  self.ocommon.log_info_message(msg,self.file_name)
+                  sqlcmd='''
+                     alter system set open_links_per_instance=16 scope=spfile;
+                     alter system set db_file_name_convert='*','{0}/' scope=spfile;
+                     alter system set standby_file_management='AUTO' scope=spfile;
+                     alter system set dg_broker_config_file1=\"{1}/oradata/{2}/{3}/dr2{3}.dat\" scope=spfile;
+                     alter system set dg_broker_config_file2=\"{1}/oradata/{2}/{3}/dr1{3}.dat\" scope=spfile;
+                  '''.format(dbf_dest,obase,"dbconfig",dbuname)
 
-              output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
-              self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-              self.ocommon.check_sql_err(output,error,retcode,True)
+                  output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+                  self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+                  self.ocommon.check_sql_err(output,error,retcode,True)
 
+         
       def set_dbparams_version(self):
            """
             This function setup the shard parameter based on db version.
@@ -470,7 +446,7 @@ class OraPCatalog:
            ohome1=self.ora_env_dict["ORACLE_HOME"]
            version=self.ocommon.get_oraversion(ohome1).strip()
            self.ocommon.log_info_message(version,self.file_name)
-           if int(version) >= 21:
+           if int(version) > 21:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
@@ -482,7 +458,7 @@ class OraPCatalog:
               msg='''Setting up catalog CDB with spfile non modifiable parameters based on version'''
               self.ocommon.log_info_message(msg,self.file_name)
               sqlcmd='''
-                alter system set wallet_root=\"{1}/oradata/{2}/{3}/admin\" scope=spfile;
+                alter system set wallet_root=\"{1}/oradata/{2}/{3}\" scope=spfile;
               '''.format(dbf_dest,obase,"dbconfig",dbuname)
               output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
               self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
@@ -492,14 +468,15 @@ class OraPCatalog:
           """
           restarting the db 
           """ 
-          if not self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
-            ohome=self.ora_env_dict["ORACLE_HOME"]
-            inst_sid=self.ora_env_dict["ORACLE_SID"]
-            sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
-            self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
-            self.ocommon.shutdown_db(self.ora_env_dict)
-            self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
-            self.ocommon.start_db(self.ora_env_dict)
+          if self.ocommon.check_key("CLONE_DB",self.ora_env_dict):
+            if self.ora_env_dict["CLONE_DB"] != 'true':
+               ohome=self.ora_env_dict["ORACLE_HOME"]
+               inst_sid=self.ora_env_dict["ORACLE_SID"]
+               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+               self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
+               self.ocommon.shutdown_db(self.ora_env_dict)
+               self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
+               self.ocommon.start_db(self.ora_env_dict)
 
             #self.ocommon.log_info_message("Enabling archivelog at DB level",self.file_name)
             #sqlcmd='''
@@ -546,6 +523,7 @@ class OraPCatalog:
               alter system register;
               alter session set container={0};
               create user {1} identified by HIDDEN_STRING;
+              alter user {1} account unlock;
               grant connect, create session, gsmadmin_role to {1};
               grant inherit privileges on user SYS to GSMADMIN_INTERNAL;
               execute dbms_xdb.sethttpport(8080);
@@ -570,7 +548,7 @@ class OraPCatalog:
 
            ohome=self.ora_env_dict["ORACLE_HOME"]
            inst_sid=self.ora_env_dict["ORACLE_SID"]
-	   systemStr=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+           systemStr=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
            msg='''Updating shardsetup table'''
            self.ocommon.log_info_message(msg,self.file_name)
            sqlcmd='''
@@ -694,7 +672,7 @@ class OraPCatalog:
            # Assigning variable
            ohome=self.ora_env_dict["ORACLE_HOME"]
            inst_sid=self.ora_env_dict["ORACLE_SID"]
-	   sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+           sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
            self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
            if self.ocommon.check_key("ORACLE_PDB",self.ora_env_dict):
               msg='''Setting up catalog PDB'''
@@ -738,7 +716,7 @@ class OraPCatalog:
           wallet_backup_cmd='''ls -ltr /bin'''
           self.ocommon.log_info_message("Check Version " + version,self.file_name)
           if int(version) >= 21:
-             obase1=self.ora_env_dict["ORACLE_BASE_HOME"]
+             obase1=self.ora_env_dict["ORACLE_BASE"]
              wallet_backup_cmd='''cp -r {3}/admin/ {0}/oradata/{1}/{2}/'''.format(obase,"dbconfig",dbuname,ohome)
           cmd_names='''
                mkdir -p {0}/oradata/{1}/{2}
