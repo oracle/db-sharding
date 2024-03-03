@@ -79,29 +79,32 @@ Specify the secret volume for resetting database users password during catalog a
 
 ```
 mkdir /opt/.secrets/
-openssl rand -hex 64 -out /opt/.secrets/pwd.key
+openssl genrsa -out ${PKDIR}/key.pem
+openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
 ```
 
-Edit the `/opt/.secrets/common_os_pwdfile` and seed the password. It will be a common password for all the database users. Execute following command:
+Edit the `/opt/.secrets/pwdfile.txt` and seed the password. It will be a common password for all the database users. Execute following command:
 
 ```
-vi /opt/.secrets/common_os_pwdfile
+vi /opt/.secrets/pwdfile.txt
 ```
 
 **Note**: Enter your secure password in the above file and save the file.
 
-After seeding password and saving the `/opt/.secrets/common_os_pwdfile` file, execute following command:
+After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, execute following command:
 
 ```
-openssl enc -aes-256-cbc -md md5 -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
-rm -f /opt/.secrets/common_os_pwdfile
-chown 54321:54321 /opt/.secrets/common_os_pwdfile.enc
-chown 54321:54321 /opt/.secrets/pwd.key
-chmod 400 /opt/.secrets/common_os_pwdfile.enc
-chmod 400 /opt/.secrets/pwd.key
+openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
+rm -f /opt/.secrets/pwdfile.txt
+chown 54321:54321 /opt/.secrets/pwdfile.enc
+chown 54321:54321 /opt/.secrets/key.pem
+chown 54321:54321 /opt/.secrets/key.pub
+chmod 400 /opt/.secrets/pwdfile.enc
+chmod 400 /opt/.secrets/key.pem
+chmod 400 /opt/.secrets/key.pub
 ```
 
-This password is being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
+This password key is being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
 
 ## Create Containers
 

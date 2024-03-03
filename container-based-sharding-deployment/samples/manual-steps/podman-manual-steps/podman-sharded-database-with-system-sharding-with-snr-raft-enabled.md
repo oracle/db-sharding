@@ -86,7 +86,7 @@ podman run -d --hostname oshard-catalog-0 \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name catalog oracle/database:23.4.0-ee
+ --name oracle/database-ext-sharding:23.4.0-ee
 
     Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
@@ -159,14 +159,14 @@ podman run -d --hostname oshard1-0 \
  -e ORACLE_SID=ORCL1CDB \
  -e ORACLE_PDB=ORCL1PDB \
  -e OP_TYPE=primaryshard \
- -e SHARD_SETUP="true" \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
+ -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard1 oracle/database:23.4.0-ee
+ --name shard1 oracle/database-ext-sharding:23.4.0-ee
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
@@ -218,7 +218,7 @@ podman run -d --hostname oshard2-0 \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard2 oracle/database:23.4.0-ee
+ --name shard2 oracle/database-ext-sharding:23.4.0-ee
 
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
@@ -280,7 +280,7 @@ podman run -d --hostname oshard3-0 \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard3 oracle/database:23.4.0-ee
+ --name shard3 oracle/database-ext-sharding:23.4.0-ee
 
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
@@ -528,14 +528,14 @@ podman run -d --hostname oshard4-0 \
  -e ORACLE_SID=ORCL4CDB \
  -e ORACLE_PDB=ORCL4PDB \
  -e OP_TYPE=primaryshard \
- -e SHARD_SETUP="true" \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
+ -e SHARD_SETUP="true" \ 
  -v /oradata/dbfiles/ORCL4CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard4 oracle/database:23.4.0-ee
+ --name shard4 oracle/database-ext-sharding:23.4.0-ee
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
@@ -637,6 +637,23 @@ Once the shard is deleted from the Sharded Database, use the below commands to c
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
 
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
+```
+
+### Remove the Podman Container
+
+Once the shard is deleted from the Sharded Database, you can remove the Podman Container which was deployed earlier for the deleted shard database. 
+
+If the deleted shard was "shard4", to remove its Podman Container, please use the below steps:
+
+- Stop and remove the Docker Container for shard4:
+```
+podman stop shard4
+podman rm shard4
+```
+
+- Remove the directory containing the files for this deleted Podman Container:
+```
+rm -rf /oradata/dbfiles/ORCL4CDB
 ```
 
 ## Copyright

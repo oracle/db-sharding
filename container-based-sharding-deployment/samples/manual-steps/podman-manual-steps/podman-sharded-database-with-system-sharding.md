@@ -77,7 +77,7 @@ Before performing catalog container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/CATALOG based on your enviornment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:23.3.0-ee` to `--name catalog oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:23.4.0-ee` to `--name catalog oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, /oradata/dbfiles/CATALOG must contain the DB backup and it must not be in zipped format. E.g. /oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.
 
 ```
@@ -89,18 +89,18 @@ podman run -d --hostname oshard-catalog-0 \
  -e ORACLE_SID=CATCDB \
  -e ORACLE_PDB=CAT1PDB \
  -e OP_TYPE=catalog \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name catalog oracle/database:23.3.0-ee
+ --name catalog oracle/database-ext-sharding:23.4.0-ee
 
     Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to catalog.
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -155,7 +155,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL1CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:23.3.0-ee` to `--name shard1 oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:23.4.0-ee` to `--name shard1 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -167,18 +167,18 @@ podman run -d --hostname oshard1-0 \
  -e ORACLE_SID=ORCL1CDB \
  -e ORACLE_PDB=ORCL1PDB \
  -e OP_TYPE=primaryshard \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
  -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard1 oracle/database:23.3.0-ee
+ --name shard1 oracle/database-ext-sharding:23.4.0-ee
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -207,7 +207,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL2CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:23.3.0-ee` to `--name shard2 oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:23.4.0-ee` to `--name shard2 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -219,18 +219,18 @@ podman run -d --hostname oshard2-0 \
  -e ORACLE_SID=ORCL2CDB \
  -e ORACLE_PDB=ORCL2PDB \
  -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
  -v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard2 oracle/database:23.3.0-ee
+ --name shard2 oracle/database-ext-sharding:23.4.0-ee
 
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -286,15 +286,15 @@ podman run -d --hostname oshard-gsm1 \
  -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
  -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
  -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  -e OP_TYPE=gsm \
  -e MASTER_GSM="TRUE" \
  --privileged=false \
- --name gsm1 oracle/database-gsm:23.3.0
+ --name gsm1 oracle/database-gsm:23.4.0
 
    Mandatory Parameters:
       SHARD_DIRECTOR_PARAMS:     Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
@@ -336,7 +336,7 @@ podman run -d --hostname oshard-gsm1 \
            Each SERVICE[1-9]_PARAMS must have above key value pair.
 
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For GSM it has to be set to gsm.
       DOMAIN:                   Domain of the container.
       MASTER_GSM:               Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.
@@ -385,14 +385,14 @@ podman run -d --hostname oshard-gsm2 \
  -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
  -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
  -e CATALOG_SETUP="True" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  -e OP_TYPE=gsm \
  --privileged=false \
- --name gsm2 oracle/database-gsm:23.3.0
+ --name gsm2 oracle/database-gsm:23.4.0
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
@@ -455,7 +455,7 @@ Before creating new shard (shard3 in this case) container, review the following 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /oradata/dbfiles/ORCL3CDB based on your environment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard3 oracle/database:23.3.0-ee` to `--name shard3 oracle/database:23.3.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard3 oracle/database:23.4.0-ee` to `--name shard3 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/oradata/dbfiles/ORCL3CDB` must contain the DB backup and it must not be zipped. E.g. `/oradata/dbfiles/ORCL3CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```
@@ -467,18 +467,18 @@ podman run -d --hostname oshard3-0 \
  -e ORACLE_SID=ORCL3CDB \
  -e ORACLE_PDB=ORCL3PDB \
  -e OP_TYPE=primaryshard \
- -e SHARD_SETUP="true" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
+ -e SHARD_SETUP="true" \ 
  -v /oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard3 oracle/database:23.3.0-ee
+ --name shard3 oracle/database-ext-sharding:23.4.0-ee
 
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -559,13 +559,13 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 ### Move the chunks out of the shard database which you want to delete
 
-In the current example, if you want to delete the shard4 database from the Sharded Database, then you need to use the below command to move the chunks out of shard4 database:
+In the current example, if you want to delete the shard3 database from the Sharded Database, then you need to use the below command to move the chunks out of shard3 database:
 
 ```
-podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --movechunks="shard_db=ORCL4CDB;shard_pdb=ORCL4PDB"
+podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --movechunks="shard_db=ORCL3CDB;shard_pdb=ORCL3PDB"
 ```
 
-**NOTE:** In this case, `ORCL4CDB` and `ORCL4PDB` are the names of CDB and PDB for the shard4 respectively.
+**NOTE:** In this case, `ORCL3CDB` and `ORCL3PDB` are the names of CDB and PDB for the shard3 respectively.
 
 After moving the chunks out, use the below command to confirm there is no chunk present in the shard database which you want to delete:
 
@@ -581,10 +581,10 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 Once you have confirmed that no chunk is present in the shard to be deleted in earlier step, you can use the below command to delete that shard(shard4 in this case):
 
 ```
-podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py  --deleteshard="shard_host=oshard4-0;shard_db=ORCL4CDB;shard_pdb=ORCL4PDB;shard_port=1521;shard_group=shardgroup1"
+podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py  --deleteshard="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"
 ```
 
-**NOTE:** In this case, `oshard4-0`, `ORCL4CDB` and `ORCL4PDB` are the names of host, CDB and PDB for the shard4 respectively.
+**NOTE:** In this case, `oshard3-0`, `ORCL3CDB` and `ORCL3PDB` are the names of host, CDB and PDB for the shard3 respectively.
 
 
 ### Confirm the shard has been successfully deleted from the Sharded database
@@ -601,17 +601,17 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 Once the shard is deleted from the Sharded Database, you can remove the Podman Container which was deployed earlier for the deleted shard database. 
 
-If the deleted shard was "shard4", to remove its Podman Container, please use the below steps:
+If the deleted shard was "shard3", to remove its Podman Container, please use the below steps:
 
 - Stop and remove the Docker Container for shard3:
 ```
-podman stop shard4
-podman rm shard4
+podman stop shard3
+podman rm shard3
 ```
 
 - Remove the directory containing the files for this deleted Podman Container:
 ```
-rm -rf /oradata/dbfiles/ORCL4CDB
+rm -rf /oradata/dbfiles/ORCL3CDB
 ```
 
 ## Copyright

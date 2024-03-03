@@ -120,6 +120,7 @@ Refer to [Sample Sharded Database with System Sharding deployed manually using P
 
 Refer to [Sample Sharded Database with System Sharding with SNR RAFT enabled deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample sharded database with system sharding with SNR RAFT enabled using podman containers.
 
+**NOTE:** SNR RAFT Feature is available only for Oracle 23c RDBMS and Oracle 23c GSM version.
 
 ### Deploy Sharded Database with User Defined Sharding
 
