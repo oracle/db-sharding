@@ -1397,7 +1397,7 @@ class OraGSM:
                               if shard_group_status != 'completed':
                                  self.configure_gsm_sspace(sspace,chunks,repfactor,repuntis,protectedmode,'add')
 
-                       status = self.check_sspace_status(sspace)
+                       status = self.check_gsm_shardspace(sspace)
                        if status == 'completed':
                           break
                        else:
@@ -1405,7 +1405,7 @@ class OraGSM:
                        time.sleep(60)
                        counter=counter+1
 
-                 status = self.check_sspace_status(None,None)
+                 status = self.check_gsm_shardspace(None,None)
                  if status == 'completed':
                     msg='''Shard space setup completed in GSM'''
                     self.ocommon.log_info_message(msg,self.file_name)
