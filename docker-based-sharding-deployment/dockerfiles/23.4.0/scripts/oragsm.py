@@ -1387,34 +1387,38 @@ class OraGSM:
                     self.ocommon.log_warn_message("No Key Specified! You can only pass ADD_SSPACE_PARAMS or SHARD_SPACE key to create a shard space",self.file_name)
                     self.ocommon.log_warn_message("Since no ADD_SSPACE_PARAMS or SHARD_SPACE defined, shardspace will be created during shard creation",self.file_name)
                  counter=1
+                 ssListC=[]
+                 ssListP=[]
+                 counter=1
                  end_counter=3
                  while counter < end_counter:
                        for key in self.ora_env_dict.keys():
                            if(reg_exp.match(key)):
-                              shard_group_status=None
+                              shard_space_status=None
                               sspace,chunks,repfactor,repuntis,protectedmode=self.process_sspace_vars(key)
-                              shard_sspace_status=self.check_gsm_shardspace(sspace)
-                              if shard_group_status != 'completed':
-                                 self.configure_gsm_sspace(sspace,chunks,repfactor,repuntis,protectedmode,'add')
+                              if sspace is not None:
+                                 if sspace not in ssListC:
+                                   shard_sspace_status=self.check_gsm_shardspace(sspace)
+                                   if shard_sspace_status != 'completed':
+                                      self.configure_gsm_sspace(sspace,chunks,repfactor,repuntis,protectedmode,'add')
+                                      shard_space_status = self.check_gsm_shardspace(sspace)
+                                      if shard_sspace_status == 'completed':
+                                          ssListC.append(sspace)
+                                          if sspace in sgListP: 
+                                             sgListP.remove(sspace)
+                                      else:
+                                          sgListP=sgListP.append(sspace)
+                                          time.sleep(30)
+                           counter=counter + 1
 
-                       status = self.check_gsm_shardspace(sspace)
-                       if status == 'completed':
-                          break
-                       else:
-                         msg='''GSM shard space setup is still not completed in GSM. Sleeping for 60 seconds and sleeping count is {0}'''.format(counter)
-                       time.sleep(60)
-                       counter=counter+1
-
-                 status = self.check_gsm_shardspace(None,None)
-                 if status == 'completed':
+                 if ssListP == []:
                     msg='''Shard space setup completed in GSM'''
                     self.ocommon.log_info_message(msg,self.file_name)
                  else:
-                    msg='''Waited 2 minute to complete catalog setup in GSM but setup did not complete or failed. Exiting...'''
+                    msg='''Waited 2 minute to complete shard space setup in GSM but setup did not complete or failed. Exiting...'''
                     self.ocommon.log_error_message(msg,self.file_name)
                     self.ocommon.prog_exit("127")
-
-
+                    
       def configure_gsm_sspace(self,sspace,chunks,repfactor,repunits,protectedmode,type):
                  """
                   This function configure the Shard Group.
