@@ -82,6 +82,7 @@ podman run -d --hostname oshard-catalog-0 \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
+ -e ENABLE_ARCHIVELOG=true \
  -v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
@@ -162,6 +163,7 @@ podman run -d --hostname oshard1-0 \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
+ -e ENABLE_ARCHIVELOG=true \
  -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
@@ -214,6 +216,7 @@ podman run -d --hostname oshard2-0 \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
+ -e ENABLE_ARCHIVELOG=true \
  -v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
@@ -276,6 +279,7 @@ podman run -d --hostname oshard3-0 \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
+ -e ENABLE_ARCHIVELOG=true \
  -v /oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
@@ -531,6 +535,7 @@ podman run -d --hostname oshard4-0 \
  -e COMMON_OS_PWD_FILE=pwdfile.enc \
  -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \ 
+ -e ENABLE_ARCHIVELOG=true \
  -v /oradata/dbfiles/ORCL4CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
