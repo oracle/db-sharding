@@ -544,7 +544,7 @@ In case you want to move some chunks to the newly added Shard from an existing S
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl MOVE CHUNK -CHUNK $CHUNK_ID -SOURCE $SOURCE_SHARD -TARGET $TARGET_SHARD
 ```
 
-Example: If you want to move the chunk with chunk id "3" from source shard "ORCL1CDB_ORCL1PDB" to target shard "ORCL3CDB_ORCL3PDB", then you can use the below command:
+Example: If you want to move the chunk with chunk id `3` from source shard `ORCL1CDB_ORCL1PDB` to target shard `ORCL3CDB_ORCL3PDB`, then you can use the below command:
 ```
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl MOVE CHUNK -CHUNK 3 -SOURCE ORCL1CDB_ORCL1PDB -TARGET ORCL3CDB_ORCL3PDB
 ```
@@ -582,7 +582,7 @@ In the current example, if you want to delete the shard3 database from the Shard
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl MOVE CHUNK -CHUNK $CHUNK_ID -SOURCE $SOURCE_SHARD -TARGET $TARGET_SHARD
 ```
 
-Example: If you want to move the chunk with chunk id "3" from source shard "ORCL3CDB_ORCL3PDB" to target shard "ORCL1CDB_ORCL1PDB", then you can use the below command:
+Example: If you want to move the chunk with chunk id `3` from source shard `ORCL3CDB_ORCL3PDB` to target shard `ORCL1CDB_ORCL1PDB`, then you can use the below command:
 ```
 docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl MOVE CHUNK -CHUNK 3 -SOURCE ORCL3CDB_ORCL3PDB -TARGET ORCL1CDB_ORCL1PDB
 ```
@@ -621,7 +621,7 @@ docker exec -it gsm1 $(docker exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 Once the shard is deleted from the Sharded Database, you can remove the Docker Container which was deployed earlier for the deleted shard database. 
 
-If the deleted shard was "shard3", to remove its Docker Container, please use the below steps:
+If the deleted shard was `shard3`, to remove its Docker Container, please use the below steps:
 
 - Stop and remove the Docker Container for shard3:
 ```
