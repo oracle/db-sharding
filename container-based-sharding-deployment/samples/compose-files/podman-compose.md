@@ -5,6 +5,8 @@ You can use Oracle 23c GSM and RDBMS Podman Images and can enable the SNR RAFT f
 
 Below steps provide an example to podman-compose to create the podman network and deploy containers for a Sharded Database on a single Oracle Linux 8 host. 
 
+This example deploys an Oracle Sharded Database with SNR RAFT using Oracle 23c GSM and RDBMS Images with `4` shard containers, a Catalog Container, a Primary GSM container and a Standby GSM Container.
+
 **IMPORTANT:** This example uses 23c RDBMS and 23c GSM Docker Images. 
 
 **IMPORTANT:** Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
@@ -14,6 +16,7 @@ Below steps provide an example to podman-compose to create the podman network an
 - [Step 3: Create Podman Compose file](#create-podman-compose-file)
 - [Step 4: Create services using "podman-compose" command](#create-services-using-podman-compose-command)
 - [Step 5: Check the logs](#check-the-logs)
+- [Step 6: Remove the deployment](#remove-the-deployment)
 - [Copyright](#copyright)
 
 
@@ -24,6 +27,8 @@ dnf install podman-compose
 ```
 
 ## Complete the prerequisite steps
+
+Run the below set of commands to export variables and also to complete the prerequisites:
 ```
 # Export the variables:
 export PODMANVOLLOC='/oradata/PODMAN_TEST'
@@ -41,15 +46,16 @@ export healthcheck_retries=40
 export CATALOG_OP_TYPE="catalog"
 export ALLSHARD_OP_TYPE="primaryshard"
 export GSM_OP_TYPE="gsm"
-export COMMON_OS_PWD_FILE="common_os_pwdfile.enc"
-export PWD_KEY="pwd.key"
+export COMMON_OS_PWD_FILE="pwdfile.enc"
+export PWD_KEY="key.pem"
 export CAT_SHARD_SETUP="true"
 export SHARD1_SHARD_SETUP="true"
 export SHARD2_SHARD_SETUP="true"
 export SHARD3_SHARD_SETUP="true"
+export SHARD4_SHARD_SETUP="true"
 export PRIMARY_GSM_SHARD_SETUP="true"
 export STANDBY_GSM_SHARD_SETUP="true"
- 
+
 export CONTAINER_RESTART_POLICY="always"
 export CONTAINER_PRIVILEGED_FLAG="false"
 export DOMAIN="example.com"
@@ -58,28 +64,32 @@ export CAT_CDB="PCATCDB"
 export CAT_PDB="PCAT1PDB"
 export CAT_HOSTNAME="pshard-catalog-0"
 export CAT_CONTAINER_NAME="pcatalog"
- 
+
 export SHARD1_CONTAINER_NAME="shard1"
 export SHARD1_HOSTNAME="pshard1-0"
 export SHARD1_CDB="PORCL1CDB"
 export SHARD1_PDB="PORCL1PDB"
- 
+
 export SHARD2_CONTAINER_NAME="shard2"
 export SHARD2_HOSTNAME="pshard2-0"
 export SHARD2_CDB="PORCL2CDB"
 export SHARD2_PDB="PORCL2PDB"
- 
+
 export SHARD3_CONTAINER_NAME="shard3"
 export SHARD3_HOSTNAME="pshard3-0"
 export SHARD3_CDB="PORCL3CDB"
 export SHARD3_PDB="PORCL3PDB"
- 
- 
+
+export SHARD4_CONTAINER_NAME="shard4"
+export SHARD4_HOSTNAME="pshard4-0"
+export SHARD4_CDB="PORCL4CDB"
+export SHARD4_PDB="PORCL4PDB"
+
 export PRIMARY_GSM_CONTAINER_NAME="gsm1"
 export PRIMARY_GSM_HOSTNAME="oshard-gsm1"
 export STANDBY_GSM_CONTAINER_NAME="gsm2"
 export STANDBY_GSM_HOSTNAME="oshard-gsm2"
- 
+
 
 export PRIMARY_SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=primary;director_port=1522"
 export PRIMARY_SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=primary"
@@ -87,19 +97,20 @@ export PRIMARY_CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=PCATCDB;
 export PRIMARY_SHARD1_PARAMS="shard_host=pshard1-0;shard_db=PORCL1CDB;shard_pdb=PORCL1PDB;shard_port=1521;shard_group=shardgroup1"
 export PRIMARY_SHARD2_PARAMS="shard_host=pshard2-0;shard_db=PORCL2CDB;shard_pdb=PORCL2PDB;shard_port=1521;shard_group=shardgroup1"
 export PRIMARY_SHARD3_PARAMS="shard_host=pshard3-0;shard_db=PORCL3CDB;shard_pdb=PORCL3PDB;shard_port=1521;shard_group=shardgroup1"
+export PRIMARY_SHARD4_PARAMS="shard_host=pshard4-0;shard_db=PORCL4CDB;shard_pdb=PORCL4PDB;shard_port=1521;shard_group=shardgroup1"
 export PRIMARY_SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary"
 export PRIMARY_SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary"
-  
+
 export STANDBY_SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=standby;director_port=1522"
 export STANDBY_SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=standby"
 export STANDBY_CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=PCATCDB;catalog_pdb=PCAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=primary,standby;catalog_chunks=30;repl_type=Native"
 export STANDBY_SHARD1_PARAMS="shard_host=pshard1-0;shard_db=PORCL1CDB;shard_pdb=PORCL1PDB;shard_port=1521;shard_group=shardgroup1"
 export STANDBY_SHARD2_PARAMS="shard_host=pshard2-0;shard_db=PORCL2CDB;shard_pdb=PORCL2PDB;shard_port=1521;shard_group=shardgroup1"
 export STANDBY_SHARD3_PARAMS="shard_host=pshard3-0;shard_db=PORCL3CDB;shard_pdb=PORCL3PDB;shard_port=1521;shard_group=shardgroup1"
+export STANDBY_SHARD4_PARAMS="shard_host=pshard4-0;shard_db=PORCL4CDB;shard_pdb=PORCL4PDB;shard_port=1521;shard_group=shardgroup1"
 export STANDBY_SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby"
 export STANDBY_SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby"
 
-# Create file with Host IPs for containers
 mkdir -p  /opt/containers
 touch /opt/containers/shard_host_file
   sh -c "cat << EOF > /opt/containers/shard_host_file
@@ -109,47 +120,72 @@ touch /opt/containers/shard_host_file
     ${LOCAL_NETWORK}.151     pshard1-0.example.com           pshard1-0
     ${LOCAL_NETWORK}.152     pshard2-0.example.com           pshard2-0
     ${LOCAL_NETWORK}.155     pshard3-0.example.com           pshard3-0
+    ${LOCAL_NETWORK}.156     pshard4-0.example.com           pshard4-0
     ${LOCAL_NETWORK}.154     oshard-gsm2.example.com         oshard-gsm2
+
+    ## Standby Enteries
+    ${LOCAL_NETWORK}.157     sshard-catalog-0.example.com    sshard-catalog-0
+    ${LOCAL_NETWORK}.158     sshard1-0.example.com           sshard1-0
+    ${LOCAL_NETWORK}.159     sshard2-0.example.com           sshard2-0
+    ${LOCAL_NETWORK}.160     sshard3-0.example.com           sshard3-0
+    ${LOCAL_NETWORK}.161     sshard4-0.example.com           sshard4-0
 EOF
 "
 
+podman-compose down
+sleep 30
 
-# Create an encrypted password file. We have used password "Oracle_23c" here. 
-# Also, note the encryption command here is different from that used on Oracle Linux 7 host 
+PDIR="/opt/.secrets/"
+PKDIR="${PDIR}"
+rm -rf "${PKDIR}"
+mkdir -p "${PKDIR}"
+PRIVKEY="${PKDIR}"/"key.pem"
+PUBKEY="${PKDIR}"/"key.pub"
+PWDFILE="${PKDIR}"/"pwdfile.txt"
+PWDFILE_ENC="${PKDIR}"/"pwdfile.enc"
+openssl genrsa -out ${PKDIR}/key.pem
+openssl rsa -in ${PKDIR}/key.pem -out ${PKDIR}/key.pub -pubout
+rm -f $PWDFILE_ENC
+echo Oracle_23c > ${PKDIR}/pwdfile.txt
+openssl pkeyutl -in $PWDFILE -out $PWDFILE_ENC -pubin -inkey $PUBKEY -encrypt
 
-rm -rf /opt/.secrets/
-mkdir /opt/.secrets/
-openssl rand -out /opt/.secrets/pwd.key -hex 64
-echo "Oracle_23c" > /opt/.secrets/common_os_pwdfile
-openssl enc -aes-256-cbc -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
-rm -f /opt/.secrets/common_os_pwdfile
+rm -f ${PKDIR}/pwdfile.txt
+chown 54321:54321 $PWDFILE_ENC
+chown 54321:54321 $PUBKEY
+chown 54321:54321 $PRIVKEY
+chmod 400 $PWDFILE_ENC
+chmod 400 $PUBKEY
+chmod 400 $PRIVKEY
 
- 
-
-# Create required directories
+rm -rf ${PODMANVOLLOC}
 mkdir -p ${PODMANVOLLOC}/scripts
 chown -R 54321:54321 ${PODMANVOLLOC}/scripts
 chmod 755 ${PODMANVOLLOC}/scripts
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/PCATALOG
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PCATALOG
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL1CDB
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL1CDB
 mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL2CDB
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL2CDB
 mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL3CDB
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL3CDB
- 
+mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL4CDB
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL4CDB
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/GSM1DATA
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM1DATA
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/GSM2DATA
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM2DATA
- 
+
+
 chmod 755 ${PODMANVOLLOC}/dbfiles/PCATALOG
 chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL1CDB
 chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL2CDB
+chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL3CDB
+chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL4CDB
 chmod 755 ${PODMANVOLLOC}/dbfiles/GSM1DATA
 chmod 755 ${PODMANVOLLOC}/dbfiles/GSM2DATA
 ```
@@ -263,6 +299,30 @@ services:
     networks:
       shard_pub1_nw:
         ipv4_address: ${LOCAL_NETWORK}.155
+  shard4_db:
+    container_name: ${SHARD4_CONTAINER_NAME}
+    privileged: ${CONTAINER_PRIVILEGED_FLAG}
+    hostname: ${SHARD4_HOSTNAME}
+    image: ${SIDB_IMAGE}
+    dns_search: ${DNS_SEARCH}
+    restart: ${CONTAINER_RESTART_POLICY}
+    volumes:
+      - ${PODMANVOLLOC}/dbfiles/PORCL4CDB:/opt/oracle/oradata
+      - /opt/.secrets:/run/secrets:ro
+      - /opt/containers/shard_host_file:/etc/hosts
+    environment:
+      SHARD_SETUP: ${SHARD4_SHARD_SETUP}
+      DOMAIN: ${DOMAIN}
+      ORACLE_SID: ${SHARD4_CDB}
+      ORACLE_PDB: ${SHARD4_PDB}
+      OP_TYPE: ${ALLSHARD_OP_TYPE}
+      COMMON_OS_PWD_FILE: ${COMMON_OS_PWD_FILE}
+      PWD_KEY: ${PWD_KEY}
+      INIT_SGA_SIZE: ${ALLSHARD_INIT_SGA_SIZE}
+      INIT_PGA_SIZE: ${ALLSHARD_INIT_PGA_SIZE}
+    networks:
+      shard_pub1_nw:
+        ipv4_address: ${LOCAL_NETWORK}.156
   primary_gsm:
     container_name: ${PRIMARY_GSM_CONTAINER_NAME}
     privileged: ${CONTAINER_PRIVILEGED_FLAG}
@@ -283,6 +343,7 @@ services:
       SHARD1_PARAMS: ${PRIMARY_SHARD1_PARAMS}
       SHARD2_PARAMS: ${PRIMARY_SHARD2_PARAMS}
       SHARD3_PARAMS: ${PRIMARY_SHARD3_PARAMS}
+      SHARD4_PARAMS: ${PRIMARY_SHARD4_PARAMS}
       SERVICE1_PARAMS: ${PRIMARY_SERVICE1_PARAMS}
       SERVICE2_PARAMS: ${PRIMARY_SERVICE2_PARAMS}
       COMMON_OS_PWD_FILE: ${COMMON_OS_PWD_FILE}
@@ -312,6 +373,7 @@ services:
       SHARD1_PARAMS: ${STANDBY_SHARD1_PARAMS}
       SHARD2_PARAMS: ${STANDBY_SHARD2_PARAMS}
       SHARD3_PARAMS: ${STANDBY_SHARD3_PARAMS}
+      SHARD4_PARAMS: ${STANDBY_SHARD4_PARAMS}
       SERVICE1_PARAMS: ${STANDBY_SERVICE1_PARAMS}
       SERVICE2_PARAMS: ${STANDBY_SERVICE2_PARAMS}
       COMMON_OS_PWD_FILE: ${COMMON_OS_PWD_FILE}
@@ -342,6 +404,18 @@ Wait for all setup to be ready:
 podman-compose ps
 ```
 
+## Remove the deployment
+
+You can also use the `podman-compose` command to remove the deployment. To remove the deployment:
+
+- First export all the variables from the Prerequisites Sesion.
+- Use the below command to remove the deployment:
+
+```
+podman-compose down
+```
+
 ## Copyright
 
-Copyright (c) 2014-2019 Oracle and/or its affiliates. All rights reserved.
+Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+Released under the Universal Permissive License v1.0 as shown at https://oss.oracle.com/licenses/upl/

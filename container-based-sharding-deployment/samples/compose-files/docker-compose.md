@@ -9,6 +9,7 @@ Below steps provide an example to use "docker-compose" to create the docker netw
 - [Step 3: Create Docker Compose file](#create-docker-compose-file)
 - [Step 4: Create services using "docker compose" command](#create-services-using-docker-compose-command)
 - [Step 5: Check the logs](#check-the-logs)
+- [Step 6: Remove the deployment](#remove-the-deployment)
 - [Copyright](#copyright)
 
 
@@ -25,10 +26,6 @@ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 ## Complete the prerequisite steps
 ```
 # Export the variables:
-export PODMANVOLLOC='/oradata/PODMAN_TEST'
-export NETWORK_INTERFACE='ens3'
-export SIDB_IMAGE='oracle/database-ext-sharding:21.3.0-ee'
-export GSM_IMAGE='oracle/database-gsm:21.3.0'
 export LOCAL_NETWORK=10.0.20
 export CATALOG_INIT_SGA_SIZE=2048M
 export CATALOG_INIT_PGA_SIZE=800M
@@ -40,15 +37,15 @@ export healthcheck_retries=40
 export CATALOG_OP_TYPE="catalog"
 export ALLSHARD_OP_TYPE="primaryshard"
 export GSM_OP_TYPE="gsm"
-export COMMON_OS_PWD_FILE="common_os_pwdfile.enc"
-export PWD_KEY="pwd.key"
+export COMMON_OS_PWD_FILE="pwdfile.enc"
+export PWD_KEY="key.pem"
 export CAT_SHARD_SETUP="true"
 export SHARD1_SHARD_SETUP="true"
 export SHARD2_SHARD_SETUP="true"
 export SHARD3_SHARD_SETUP="true"
 export PRIMARY_GSM_SHARD_SETUP="true"
 export STANDBY_GSM_SHARD_SETUP="true"
- 
+
 export CONTAINER_RESTART_POLICY="always"
 export CONTAINER_PRIVILEGED_FLAG="false"
 export DOMAIN="example.com"
@@ -57,29 +54,29 @@ export CAT_CDB="PCATCDB"
 export CAT_PDB="PCAT1PDB"
 export CAT_HOSTNAME="pshard-catalog-0"
 export CAT_CONTAINER_NAME="pcatalog"
- 
+
 export SHARD1_CONTAINER_NAME="shard1"
 export SHARD1_HOSTNAME="pshard1-0"
 export SHARD1_CDB="PORCL1CDB"
 export SHARD1_PDB="PORCL1PDB"
- 
+
 export SHARD2_CONTAINER_NAME="shard2"
 export SHARD2_HOSTNAME="pshard2-0"
 export SHARD2_CDB="PORCL2CDB"
 export SHARD2_PDB="PORCL2PDB"
- 
+
 export SHARD3_CONTAINER_NAME="shard3"
 export SHARD3_HOSTNAME="pshard3-0"
 export SHARD3_CDB="PORCL3CDB"
 export SHARD3_PDB="PORCL3PDB"
- 
- 
+
+
 export PRIMARY_GSM_CONTAINER_NAME="gsm1"
 export PRIMARY_GSM_HOSTNAME="oshard-gsm1"
 export STANDBY_GSM_CONTAINER_NAME="gsm2"
 export STANDBY_GSM_HOSTNAME="oshard-gsm2"
- 
- 
+
+
 export PRIMARY_SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=primary;director_port=1522"
 export PRIMARY_SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=primary"
 export PRIMARY_CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=PCATCDB;catalog_pdb=PCAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=primary,standby"
@@ -88,7 +85,7 @@ export PRIMARY_SHARD2_PARAMS="shard_host=pshard2-0;shard_db=PORCL2CDB;shard_pdb=
 export PRIMARY_SHARD3_PARAMS="shard_host=pshard3-0;shard_db=PORCL3CDB;shard_pdb=PORCL3PDB;shard_port=1521;shard_group=shardgroup1"
 export PRIMARY_SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary"
 export PRIMARY_SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary"
- 
+
 export STANDBY_SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=standby;director_port=1522"
 export STANDBY_SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=standby"
 export STANDBY_CATALOG_PARAMS="catalog_host=pshard-catalog-0;catalog_db=PCATCDB;catalog_pdb=PCAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=primary,standby"
@@ -109,40 +106,64 @@ touch /opt/containers/shard_host_file
     ${LOCAL_NETWORK}.151     pshard1-0.example.com           pshard1-0
     ${LOCAL_NETWORK}.152     pshard2-0.example.com           pshard2-0
     ${LOCAL_NETWORK}.155     pshard3-0.example.com           pshard3-0
+    ${LOCAL_NETWORK}.156     pshard4-0.example.com           pshard4-0
     ${LOCAL_NETWORK}.154     oshard-gsm2.example.com         oshard-gsm2
+
+    ## Standby Enteries
+    ${LOCAL_NETWORK}.157     sshard-catalog-0.example.com    sshard-catalog-0
+    ${LOCAL_NETWORK}.158     sshard1-0.example.com           sshard1-0
+    ${LOCAL_NETWORK}.159     sshard2-0.example.com           sshard2-0
+    ${LOCAL_NETWORK}.160     sshard3-0.example.com           sshard3-0
+    ${LOCAL_NETWORK}.161     sshard4-0.example.com           sshard4-0
 EOF
 "
 
-
 # Create an encrypted password file. We have used password "Oracle_21c" here
-rm -rf /opt/.secrets
-mkdir -p /opt/.secrets
-openssl rand -hex 64 -out /opt/.secrets/pwd.key
-echo "Oracle_21c" > /opt/.secrets/common_os_pwdfile
-openssl enc -aes-256-cbc -md md5 -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
- 
+PDIR="/opt/.secrets/"
+PKDIR="${PDIR}"
+rm -rf "${PKDIR}"
+mkdir -p "${PKDIR}"
+PRIVKEY="${PKDIR}"/"key.pem"
+PUBKEY="${PKDIR}"/"key.pub"
+PWDFILE="${PKDIR}"/"pwdfile.txt"
+PWDFILE_ENC="${PKDIR}"/"pwdfile.enc"
+openssl genrsa -out ${PKDIR}/key.pem
+openssl rsa -in ${PKDIR}/key.pem -out ${PKDIR}/key.pub -pubout
+rm -f $PWDFILE_ENC
+echo Oracle_21c > ${PKDIR}/pwdfile.txt
+openssl pkeyutl -in $PWDFILE -out $PWDFILE_ENC -pubin -inkey $PUBKEY -encrypt
+
+rm -f ${PKDIR}/pwdfile.txt
+chown 54321:54321 $PWDFILE_ENC
+chown 54321:54321 $PUBKEY
+chown 54321:54321 $PRIVKEY
+chmod 400 $PWDFILE_ENC
+chmod 400 $PUBKEY
+chmod 400 $PRIVKEY
+
 
 # Create required directories
 mkdir -p ${PODMANVOLLOC}/scripts
 chown -R 54321:54321 ${PODMANVOLLOC}/scripts
 chmod 755 ${PODMANVOLLOC}/scripts
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/PCATALOG
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PCATALOG
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL1CDB
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL1CDB
 mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL2CDB
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL2CDB
 mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL3CDB
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL3CDB
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/GSM1DATA
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM1DATA
- 
+
 mkdir -p ${PODMANVOLLOC}/dbfiles/GSM2DATA
 chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM2DATA
- 
+
+
 chmod 755 ${PODMANVOLLOC}/dbfiles/PCATALOG
 chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL1CDB
 chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL2CDB
@@ -384,6 +405,16 @@ Wait for all setup to be ready:
  ✔ Container gsm2      Started       
 ```
 
+## Remove the deployment
+
+You can also use the `docker-compose` command to remove the deployment. To remove the deployment:
+
+- First export all the variables from the Prerequisites Sesion.
+- Use the below command to remove the deployment:
+
+```
+docker-compose down
+```
 
 ## Copyright
 

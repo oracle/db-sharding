@@ -636,4 +636,5 @@ rm -rf /oradata/dbfiles/ORCL3CDB
 
 ## Copyright
 
-Copyright (c) 2014-2022 Oracle and/or its affiliates.
+Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+Released under the Universal Permissive License v1.0 as shown at https://oss.oracle.com/licenses/upl/
