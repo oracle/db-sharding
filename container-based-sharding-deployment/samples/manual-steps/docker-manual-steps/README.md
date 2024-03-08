@@ -79,7 +79,7 @@ Specify the secret volume for resetting database users password during catalog a
 
 ```
 mkdir /opt/.secrets/
-openssl genrsa -out ${PKDIR}/key.pem
+openssl genrsa -out /opt/.secrets/key.pem
 openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
 ```
 
@@ -92,7 +92,6 @@ vi /opt/.secrets/pwdfile.txt
 **Note**: Enter your secure password in the above file and save the file.
 
 After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, execute following command:
-
 ```
 openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
 rm -f /opt/.secrets/pwdfile.txt

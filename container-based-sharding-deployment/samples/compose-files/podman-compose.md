@@ -7,7 +7,7 @@ Below steps provide an example to podman-compose to create the podman network an
 
 This example deploys an Oracle Sharded Database with SNR RAFT using Oracle 23c GSM and RDBMS Images with `4` shard containers, a Catalog Container, a Primary GSM container and a Standby GSM Container.
 
-**IMPORTANT:** This example uses 23c RDBMS and 23c GSM Docker Images. 
+**IMPORTANT:** This example uses 23c RDBMS and 23c GSM Podman Images. 
 
 **IMPORTANT:** Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
 
@@ -132,30 +132,22 @@ touch /opt/containers/shard_host_file
 EOF
 "
 
-podman-compose down
-sleep 30
+# Create an encrypted password file. We have used password "Oracle_23c" here and used the location "/opt/.secrets" to create the encrypted password file:
 
-PDIR="/opt/.secrets/"
-PKDIR="${PDIR}"
-rm -rf "${PKDIR}"
-mkdir -p "${PKDIR}"
-PRIVKEY="${PKDIR}"/"key.pem"
-PUBKEY="${PKDIR}"/"key.pub"
-PWDFILE="${PKDIR}"/"pwdfile.txt"
-PWDFILE_ENC="${PKDIR}"/"pwdfile.enc"
-openssl genrsa -out ${PKDIR}/key.pem
-openssl rsa -in ${PKDIR}/key.pem -out ${PKDIR}/key.pub -pubout
-rm -f $PWDFILE_ENC
-echo Oracle_23c > ${PKDIR}/pwdfile.txt
-openssl pkeyutl -in $PWDFILE -out $PWDFILE_ENC -pubin -inkey $PUBKEY -encrypt
+rm -rf /opt/.secrets/
+mkdir /opt/.secrets/
+openssl genrsa -out /opt/.secrets/key.pem
+openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
+echo Oracle_23c > /opt/.secrets/pwdfile.txt
+openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
 
-rm -f ${PKDIR}/pwdfile.txt
-chown 54321:54321 $PWDFILE_ENC
-chown 54321:54321 $PUBKEY
-chown 54321:54321 $PRIVKEY
-chmod 400 $PWDFILE_ENC
-chmod 400 $PUBKEY
-chmod 400 $PRIVKEY
+rm -f /opt/.secrets/pwdfile.txt
+chown 54321:54321 /opt/.secrets/pwdfile.enc
+chown 54321:54321 /opt/.secrets/key.pem
+chown 54321:54321 /opt/.secrets/key.pub
+chmod 400 /opt/.secrets/pwdfile.enc
+chmod 400 /opt/.secrets/key.pem
+chmod 400 /opt/.secrets/key.pub
 
 rm -rf ${PODMANVOLLOC}
 mkdir -p ${PODMANVOLLOC}/scripts

@@ -26,6 +26,10 @@ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 ## Complete the prerequisite steps
 ```
 # Export the variables:
+export DOCKERVOLLOC='/oradata/DOCKER_TEST'
+export NETWORK_INTERFACE='ens3'
+export SIDB_IMAGE='oracle/database-ext-sharding:21.3.0-ee'
+export GSM_IMAGE='oracle/database-gsm:21.3.0'
 export LOCAL_NETWORK=10.0.20
 export CATALOG_INIT_SGA_SIZE=2048M
 export CATALOG_INIT_PGA_SIZE=800M
@@ -118,57 +122,51 @@ touch /opt/containers/shard_host_file
 EOF
 "
 
-# Create an encrypted password file. We have used password "Oracle_21c" here
-PDIR="/opt/.secrets/"
-PKDIR="${PDIR}"
-rm -rf "${PKDIR}"
-mkdir -p "${PKDIR}"
-PRIVKEY="${PKDIR}"/"key.pem"
-PUBKEY="${PKDIR}"/"key.pub"
-PWDFILE="${PKDIR}"/"pwdfile.txt"
-PWDFILE_ENC="${PKDIR}"/"pwdfile.enc"
-openssl genrsa -out ${PKDIR}/key.pem
-openssl rsa -in ${PKDIR}/key.pem -out ${PKDIR}/key.pub -pubout
-rm -f $PWDFILE_ENC
-echo Oracle_21c > ${PKDIR}/pwdfile.txt
-openssl pkeyutl -in $PWDFILE -out $PWDFILE_ENC -pubin -inkey $PUBKEY -encrypt
+# Create an encrypted password file. We have used password "Oracle_21c" here and used the location "/opt/.secrets" to create the encrypted password file:
 
-rm -f ${PKDIR}/pwdfile.txt
-chown 54321:54321 $PWDFILE_ENC
-chown 54321:54321 $PUBKEY
-chown 54321:54321 $PRIVKEY
-chmod 400 $PWDFILE_ENC
-chmod 400 $PUBKEY
-chmod 400 $PRIVKEY
+rm -rf /opt/.secrets/
+mkdir /opt/.secrets/
+openssl genrsa -out /opt/.secrets/key.pem
+openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
+echo Oracle_21c > /opt/.secrets/pwdfile.txt
+openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
+
+rm -f /opt/.secrets/pwdfile.txt
+chown 54321:54321 /opt/.secrets/pwdfile.enc
+chown 54321:54321 /opt/.secrets/key.pem
+chown 54321:54321 /opt/.secrets/key.pub
+chmod 400 /opt/.secrets/pwdfile.enc
+chmod 400 /opt/.secrets/key.pem
+chmod 400 /opt/.secrets/key.pub
 
 
 # Create required directories
-mkdir -p ${PODMANVOLLOC}/scripts
-chown -R 54321:54321 ${PODMANVOLLOC}/scripts
-chmod 755 ${PODMANVOLLOC}/scripts
+mkdir -p ${DOCKERVOLLOC}/scripts
+chown -R 54321:54321 ${DOCKERVOLLOC}/scripts
+chmod 755 ${DOCKERVOLLOC}/scripts
 
-mkdir -p ${PODMANVOLLOC}/dbfiles/PCATALOG
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PCATALOG
+mkdir -p ${DOCKERVOLLOC}/dbfiles/PCATALOG
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/PCATALOG
 
-mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL1CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL1CDB
-mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL2CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL2CDB
-mkdir -p ${PODMANVOLLOC}/dbfiles/PORCL3CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/PORCL3CDB
+mkdir -p ${DOCKERVOLLOC}/dbfiles/PORCL1CDB
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/PORCL1CDB
+mkdir -p ${DOCKERVOLLOC}/dbfiles/PORCL2CDB
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/PORCL2CDB
+mkdir -p ${DOCKERVOLLOC}/dbfiles/PORCL3CDB
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/PORCL3CDB
 
-mkdir -p ${PODMANVOLLOC}/dbfiles/GSM1DATA
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM1DATA
+mkdir -p ${DOCKERVOLLOC}/dbfiles/GSM1DATA
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/GSM1DATA
 
-mkdir -p ${PODMANVOLLOC}/dbfiles/GSM2DATA
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM2DATA
+mkdir -p ${DOCKERVOLLOC}/dbfiles/GSM2DATA
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/GSM2DATA
 
 
-chmod 755 ${PODMANVOLLOC}/dbfiles/PCATALOG
-chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL1CDB
-chmod 755 ${PODMANVOLLOC}/dbfiles/PORCL2CDB
-chmod 755 ${PODMANVOLLOC}/dbfiles/GSM1DATA
-chmod 755 ${PODMANVOLLOC}/dbfiles/GSM2DATA
+chmod 755 ${DOCKERVOLLOC}/dbfiles/PCATALOG
+chmod 755 ${DOCKERVOLLOC}/dbfiles/PORCL1CDB
+chmod 755 ${DOCKERVOLLOC}/dbfiles/PORCL2CDB
+chmod 755 ${DOCKERVOLLOC}/dbfiles/GSM1DATA
+chmod 755 ${DOCKERVOLLOC}/dbfiles/GSM2DATA
 ```
 
 ## Create Docker Compose file 
@@ -192,7 +190,7 @@ services:
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
     volumes:
-      - ${PODMANVOLLOC}/dbfiles/PCATALOG:/opt/oracle/oradata
+      - ${DOCKERVOLLOC}/dbfiles/PCATALOG:/opt/oracle/oradata
       - /opt/.secrets:/run/secrets:ro
       - /opt/containers/shard_host_file:/etc/hosts
     environment:
@@ -221,7 +219,7 @@ services:
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
     volumes:
-      - ${PODMANVOLLOC}/dbfiles/PORCL1CDB:/opt/oracle/oradata
+      - ${DOCKERVOLLOC}/dbfiles/PORCL1CDB:/opt/oracle/oradata
       - /opt/.secrets:/run/secrets:ro
       - /opt/containers/shard_host_file:/etc/hosts
     environment:
@@ -250,7 +248,7 @@ services:
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
     volumes:
-      - ${PODMANVOLLOC}/dbfiles/PORCL2CDB:/opt/oracle/oradata
+      - ${DOCKERVOLLOC}/dbfiles/PORCL2CDB:/opt/oracle/oradata
       - /opt/.secrets:/run/secrets:ro
       - /opt/containers/shard_host_file:/etc/hosts
     environment:
@@ -279,7 +277,7 @@ services:
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
     volumes:
-      - ${PODMANVOLLOC}/dbfiles/PORCL3CDB:/opt/oracle/oradata
+      - ${DOCKERVOLLOC}/dbfiles/PORCL3CDB:/opt/oracle/oradata
       - /opt/.secrets:/run/secrets:ro
       - /opt/containers/shard_host_file:/etc/hosts
     environment:
@@ -308,7 +306,7 @@ services:
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
     volumes:
-      - ${PODMANVOLLOC}/dbfiles/GSM1DATA:/opt/oracle/gsmdata
+      - ${DOCKERVOLLOC}/dbfiles/GSM1DATA:/opt/oracle/gsmdata
       - /opt/.secrets:/run/secrets:ro
       - /opt/containers/shard_host_file:/etc/hosts
     environment:
@@ -351,7 +349,7 @@ services:
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
     volumes:
-      - ${PODMANVOLLOC}/dbfiles/GSM2DATA:/opt/oracle/gsmdata
+      - ${DOCKERVOLLOC}/dbfiles/GSM2DATA:/opt/oracle/gsmdata
       - /opt/.secrets:/run/secrets:ro
       - /opt/containers/shard_host_file:/etc/hosts
     environment:
