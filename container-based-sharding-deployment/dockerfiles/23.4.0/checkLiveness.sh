@@ -12,7 +12,7 @@
 
 export PYTHON="/bin/python3"
 
-$PYTHON  $SCRIPT_DIR/$MAINPY --checkliveness='true'
+$PYTHON  $SCRIPT_DIR/scripts/$MAINPY --checkliveness='true'
 retcode=$?
 
  if [ ${retcode} -eq 0 ]; then
