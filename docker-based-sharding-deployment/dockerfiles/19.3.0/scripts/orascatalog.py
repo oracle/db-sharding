@@ -6,4 +6,4 @@
 # Since: January, 2020
 # Author: sanjay.singh@oracle.com, paramdeep.saini@oracle.com
 
-class Common
+

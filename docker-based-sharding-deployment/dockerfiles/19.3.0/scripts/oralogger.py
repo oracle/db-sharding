@@ -159,7 +159,7 @@ class StdHandler(Handler):
           """
           request.stdout_ =  request.getStdOutValue()
           if request.stdout_ == LoggingType.STDOUT:
-            st = logging.FileHandler(request.stdoutfile_)
+            st = logging.FileHandler(request.stdoutfile_,mode="w")
             request.root.addHandler(st)
             st.setFormatter(request.formatter)
             self.print_message(request,st)
