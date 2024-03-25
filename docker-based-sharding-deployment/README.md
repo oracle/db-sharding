@@ -117,23 +117,26 @@ Specify the secret volume for resetting database users password during catalog a
 
 ```
 mkdir /opt/.secrets/
-openssl rand -hex 64 -out /opt/.secrets/pwd.key
+openssl genrsa -out /opt/.secrets/key.pem
+openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
 ```
 
-Edit the `/opt/.secrets/common_os_pwdfile` and seed the password for grid/oracle and database. It will be a common password for all the database users. Execute following command:  
+Edit the /opt/.secrets/pwdfile.txt and seed the password. It will be a common password for all the database users. Execute following command: 
 ```
-vi /opt/.secrets/common_os_pwdfile
+vi /opt/.secrets/pwdfile.txt
 ```
 **Note**: Enter your secure password in the above file and save the file.
 
-After seeding password and saving the `/opt/.secrets/common_os_pwdfile` file, execute following command:  
+After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, execute following command:  
 ```
-openssl enc -aes-256-cbc -salt -in /opt/.secrets/common_os_pwdfile -out /opt/.secrets/common_os_pwdfile.enc -pass file:/opt/.secrets/pwd.key
-rm -f /opt/.secrets/common_os_pwdfile
-chown 54321:54321 /opt/.secrets/common_os_pwdfile.enc
-chown 54321:54321 /opt/.secrets/pwd.key
-chmod 400 /opt/.secrets/common_os_pwdfile.enc
-chmod 400 /opt/.secrets/pwd.key
+openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
+rm -f /opt/.secrets/pwdfile.txt
+chown 54321:54321 /opt/.secrets/pwdfile.enc
+chown 54321:54321 /opt/.secrets/key.pem
+chown 54321:54321 /opt/.secrets/key.pub
+chmod 400 /opt/.secrets/pwdfile.enc
+chmod 400 /opt/.secrets/key.pem
+chmod 400 /opt/.secrets/key.pub
 ```
 
 This password is being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
@@ -145,8 +148,8 @@ The shard catalog is a special-purpose Oracle Database that is a persistent stor
 You need to create mountpoint on the docker host to save datafiles for Oracle Sharding Catalog DB and expose as a volume to catalog container. This volume can be local on a docker host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /oradata/dbfiles/CATALOG directory and exposed as volume to catalog container.
 
 ```
-mkdir -p /oradata/dbfiles/CATALOG
-chown -R 54321:54321 /oradata/dbfiles/CATALOG
+mkdir -p /scratch/oradata/dbfiles/CATALOG
+chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 ```
 
 **Notes**: 
@@ -172,14 +175,14 @@ docker run -d --hostname oshard-catalog-0 \
  -e ORACLE_SID=CATCDB \
  -e ORACLE_PDB=CAT1PDB \
  -e OP_TYPE=catalog \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
- -v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
+ -v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name catalog oracle/database:21.3.0-ee
+ --name catalog oracle/database-ext-sharding:21.3.0-ee
  
     Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the ontainer
@@ -204,20 +207,20 @@ docker logs -f catalog
 ```
 
 **IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
-
-    ################################################
-	Oracle GSM Catalog Setup Completed Successfully!
-	################################################
-	
+```bash
+################################################
+Oracle GSM Catalog Setup Completed Successfully!
+################################################
+```
 #### Deploying Shard Containers
 A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on docker host to save datafiles for Oracle Sharding DB and expose as a volume to shard container. This volume can be local on a docker host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /oradata/dbfiles/ORCL1CDB directory and exposed as volume to shard container.
 
 ##### Create Directories
 ```
-mkdir -p /oradata/dbfiles/ORCL1CDB
-mkdir -p /oradata/dbfiles/ORCL2CDB
-chown -R 54321:54321 /oradata/dbfiles/ORCL2CDB
-chown -R 54321:54321 /oradata/dbfiles/ORCL1CDB
+mkdir -p /scratch/oradata/dbfiles/ORCL1CDB
+mkdir -p /scratch/oradata/dbfiles/ORCL2CDB
+chown -R 54321:54321 /scratch/oradata/dbfiles/ORCL1CDB
+chown -R 54321:54321 /scratch/oradata/dbfiles/ORCL2CDB
 ```
 
 **Notes**: 
@@ -237,25 +240,26 @@ Before creating shard1 container, review the following notes carefully:
 
 ```
 docker run -d --hostname oshard1-0 \
-  --dns-search=example.com \
+ --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.103 \
  -e DOMAIN=example.com \
  -e ORACLE_SID=ORCL1CDB \
  -e ORACLE_PDB=ORCL1PDB \
  -e OP_TYPE=primaryshard \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
- -v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
+ -e ENABLE_ARCHIVELOG=true \
+ -v /scratch/oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard1 oracle/database:21.3.0-ee
+ --name shard1 oracle/database-ext-sharding:21.3.0-ee
  
    Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -265,15 +269,20 @@ docker run -d --hostname oshard1-0 \
       CUSTOM_SHARD_SCRIPT_DIR:  Specify the location of custom scripts which you want to run after setting up shard setup.
       CUSTOM_SHARD_SCRIPT_FILE: Specify the file name that must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup.
       CLONE_DB: Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata.
-      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB.
+      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed cloning using existing cold backup of Oracle DB.
       OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
 ```
 
 To check the shard1 container/services creation logs, please tail docker logs. It will take 20 minutes to create the shard1 container service.
 
-```
+```bash
 docker logs -f shard1
 ```
+```bash
+##############################################
+Oracle GSM Shard Setup Completed Successfully!
+###############################################
+```	
 
 ##### Shard2 Container
 Before creating shard1 container, review the following notes carefully:  
@@ -287,25 +296,26 @@ Before creating shard1 container, review the following notes carefully:
 
 ```
 docker run -d --hostname oshard2-0 \
-  --dns-search=example.com \
+ --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.104 \
  -e DOMAIN=example.com \
  -e ORACLE_SID=ORCL2CDB \
  -e ORACLE_PDB=ORCL2PDB \
  -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
- -e PWD_KEY=pwd.key \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
  -e SHARD_SETUP="true" \
- -v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
+ -e ENABLE_ARCHIVELOG=true \
+ -v /scratch/oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --volume /opt/.secrets:/run/secrets:ro \
  --privileged=false \
- --name shard2 oracle/database:21.3.0-ee
+ --name shard2 oracle/database-ext-sharding:21.3.0-ee
   
      Mandatory Parameters:
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside the container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For Shards it has to be set to primaryshard or standbyshard
       DOMAIN:                   Specify the domain name
       ORACLE_SID:               CDB name
@@ -315,7 +325,7 @@ docker run -d --hostname oshard2-0 \
       CUSTOM_SHARD_SCRIPT_DIR:  Specify the location of custom scripts that you want to run after setting up the shard setup.
       CUSTOM_SHARD_SCRIPT_FILE: Specify the file name which must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup.
       CLONE_DB: Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata.
-      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB.
+      OLD_ORACLE_SID: Specify the OLD_ORACLE_SID if you are performing db seed cloning using existing cold backup of Oracle DB.
       OLD_ORACLE_PDB: Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.
 ```
 
@@ -328,57 +338,58 @@ docker logs -f shard2
 
 **IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
 
-    ##############################################
-	Oracle GSM Shard Setup Completed Successfully!
-	###############################################
-	
+```bash
+##############################################
+Oracle GSM Shard Setup Completed Successfully!
+###############################################
+```	
 #### Deploying GSM Container
 The Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases. You need to create mountpoint on docker host to save gsm setup related file for Oracle Global Service Manager and expose as a volume to GSM container. This volume can be local on a docker host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /oradata/dbfiles/GSMDATA directory and exposed as volume to GSM container.
 
 ##### Create Directory
 ```
-mkdir -p /oradata/dbfiles/GSMDATA
-chown -R 54321:54321 /oradata/dbfiles/GSMDATA
+mkdir -p /scratch/oradata/dbfiles/GSMDATA
+chown -R 54321:54321 /scratch/oradata/dbfiles/GSMDATA
 ```
 
 ##### Create GSM Master Container
 ```
-  docker run -d --hostname oshard-gsm1 \
-   --dns-search=example.com \
-   --network=shard_pub1_nw \
-   --ip=10.0.20.100 \
-   -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
-   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
-   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
-   -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
-   -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
-   -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
-   -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
-   -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
-   -e PWD_KEY=pwd.key \
-   -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
-   -v /opt/containers/shard_host_file:/etc/hosts \
-   --volume /opt/.secrets:/run/secrets:ro \
-   -e OP_TYPE=gsm \
-   -e MASTER_GSM="TRUE" \
-   --privileged=false \
-   --name gsm1 oracle/database-gsm:21.3.0
+docker run -d --hostname oshard-gsm1 \
+ --dns-search=example.com \
+ --network=shard_pub1_nw \
+ --ip=10.0.20.100 \
+ -e DOMAIN=example.com \
+ -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
+ -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
+ -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
+ -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
+ -v /scratch/oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
+ -v /opt/containers/shard_host_file:/etc/hosts \
+ --volume /opt/.secrets:/run/secrets:ro \
+ -e OP_TYPE=gsm \
+ -e MASTER_GSM="TRUE" \
+ --privileged=false \
+ --name gsm1 oracle/database-gsm:21.3.0 
    
    Mandatory Parameters:
       SHARD_DIRECTOR_PARAMS:     Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=director_name,     value=shard director name
                                  key=director_region,   value=shard director region
                                  key=director_port,     value=shard director port
-                                 
+
       SHARD[1-9]_GROUP_PARAMS:   Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=group_name,        value=shard group name
                                  key=deploy_as,         value=deploy shard group as primary or active_standby
                                  key=group_region,      value=shard group region name
-         **Notes**: 
-           SHARD[1-9]_GROUP_PARAMS is in regex form, you can specify env parameter based on your enviornment such SHARD1_GROUP_PARAMS, SHARD2_GROUP_PARAMS.
+         **Notes**:
+           SHARD[1-9]_GROUP_PARAMS is in regex form, you can specify env parameter based on your environment such SHARD1_GROUP_PARAMS, SHARD2_GROUP_PARAMS.
            Each SHARD[1-9]_GROUP_PARAMS must have above key value pair.
-         
+
       CATALOG_PARAMS:            Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=catalog_host,       value=catalog hostname
                                  key=catalog_db,         value=catalog cdb name
@@ -386,26 +397,26 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
                                  key=catalog_port,       value=catalog db port name
                                  key=catalog_name,       value=catalog name in GSM
                                  key=catalog_region,     value=specify comma separated region name for catalog db deployment
-                                 
+
       SHARD[1-9]_PARAMS:         Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
-                                 key=shard_host,         value=shard hostname 
+                                 key=shard_host,         value=shard hostname
                                  key=shard_db,           value=shard cdb name
                                  key=shard_pdb,          value=shard pdb name
                                  key=shard_port,         value=shard db port
                                  key=shard_group         value=shard group name
-        **Notes**: 
-           SHARD[1-9]_PARAMS is in regex form, you can specify env parameter based on your enviornment such SHARD1_PARAMS, SHARD2_PARAMS.
+        **Notes**:
+           SHARD[1-9]_PARAMS is in regex form, you can specify env parameter based on your environment such SHARD1_PARAMS, SHARD2_PARAMS.
            Each SHARD[1-9]_PARAMS must have above key value pair.
-                                  
+
       SERVICE[1-9]_PARAMS:      Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs:
                                  key=service_name,       value=service name
                                  key=service_role,       value=service role e.g. primary or physical_standby
-        **Notes**: 
-           SERVICE[1-9]_PARAMS is in regex form, you can specify env parameter based on your enviornment such SERVICE1_PARAMS, SERVICE2_PARAMS.
-           Each SERVICE[1-9]_PARAMS must have above key value pair. 
-           
+        **Notes**:
+           SERVICE[1-9]_PARAMS is in regex form, you can specify env parameter based on your environment such SERVICE1_PARAMS, SERVICE2_PARAMS.
+           Each SERVICE[1-9]_PARAMS must have above key value pair.
+
       COMMON_OS_PWD_FILE:       Specify the encrypted password file to be read inside container
-      PWD.key:                  Specify password key file to decrypt the encrypted password file and read the password
+      PWD_KEY:                  Specify password key file to decrypt the encrypted password file and read the password
       OP_TYPE:                  Specify the operation type. For GSM it has to be set to gsm.
       DOMAIN:                   Domain of the container.
       MASTER_GSM:               Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.
@@ -419,42 +430,54 @@ chown -R 54321:54321 /oradata/dbfiles/GSMDATA
       EXECUTOR:                 Specify the script executor such as /bin/python or /bin/bash. Default set to /bin/python.
 ```
 
-**Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, PRIMARY_SHARD_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment. 
+**Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, PRIMARY_SHARD_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
 To check the gsm1 container/services creation logs, please tail docker logs. It will take 2 minutes to create the gsm container service.
 
-```
+```bash
 docker logs -f gsm1
 ```
-
-#### Create GSM Standby Container
-You need GSM standby container to serve the connection when master GSM fails.
-
-##### Create Directory
+```bash
+##############################################
+Oracle GSM Setup Completed Successfully!
+###############################################
 ```
+#### Deploying Standby GSM Container
+
+You need standby GSM container to serve the connection when master GSM fails.
+
+##### Create Directory for Standby GSM Container
+
+```bash
 mkdir -p /oradata/dbfiles/GSM2DATA
 chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
 ```
 
-##### Create Container
+##### Create Standby GSM Container
+
 ```
-  docker run -d --hostname oshard-gsm2 \
-   --dns-search=example.com \
-   --network=shard_pub1_nw \
-   --ip=10.0.20.101 \
-   -e DOMAIN=example.com \
-   -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region1;director_port=1522" \
-   -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region1" \
-   -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
-   -e CATALOG_SETUP="True" \
-   -e COMMON_OS_PWD_FILE=common_os_pwdfile.enc \
-   -e PWD_KEY=pwd.key \
-   -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
-   -v /opt/containers/shard_host_file:/etc/hosts \
-   --volume /opt/.secrets:/run/secrets:ro \
-   -e OP_TYPE=gsm \
-   --privileged=false \
-   --name gsm2 oracle/database-gsm:21.3.0
+docker run -d --hostname oshard-gsm2 \
+ --dns-search=example.com \
+ --network=shard_pub1_nw \
+ --ip=10.0.20.101 \
+ -e DOMAIN=example.com \
+ -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=region2" \
+ -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
+ -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
+ -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+ -e CATALOG_SETUP="True" \
+ -e COMMON_OS_PWD_FILE=pwdfile.enc \
+ -e PWD_KEY=key.pem \
+ -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
+ -v /opt/containers/shard_host_file:/etc/hosts \
+ --volume /opt/.secrets:/run/secrets:ro \
+ -e OP_TYPE=gsm \
+ --privileged=false \
+ --name gsm2 oracle/database-gsm:21.3.0
+
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
    Mandatory Parameters:
@@ -468,18 +491,20 @@ chown -R 54321:54321 /oradata/dbfiles/GSM2DATA
                                  key=catalog_region,     value=specify comma separated region name for catalog db deployment
 ```
 
+**IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
+
 To check the gsm2 container/services creation logs, please tail docker logs. It will take 2 minutes to create the gsm container service.
 
-```
+```bash
 docker logs -f gsm2
 ```
 
 **IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
 
-```
-    ##############################################
-	Oracle GSM Setup Completed Successfully!
-	###############################################
+```bash
+##############################################
+Oracle GSM Setup Completed Successfully!
+###############################################
 ```
 
 ## Support 
@@ -494,4 +519,4 @@ All scripts and files hosted in this project and GitHub docker-images/OracleData
 
 ## Copyright 
 
-Copyright (c) 2014-2021 Oracle and/or its affiliates.
+Copyright (c) 2014-2024 Oracle and/or its affiliates.
