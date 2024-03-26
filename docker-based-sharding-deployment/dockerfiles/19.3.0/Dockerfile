@@ -18,11 +18,22 @@
 #
 # Pull base image
 # ---------------
-FROM oraclelinux:7-slim as base
+ARG BASE_OL_IMAGE=oraclelinux:7-slim
 
-# Maintainer
-# ----------
-MAINTAINER Paramdeep Saini <paramdeep.saini@oracle.com>
+# Pull base image
+# ---------------
+FROM $BASE_OL_IMAGE AS base
+
+# Labels
+# ------
+LABEL "provider"="Oracle"                                          \
+      "issues"="https://github.com/oracle/db-sharding/issues"       \
+      "volume.setup.location1"="/opt/oracle/scripts"              \
+      "port.listener"="1522"
+
+# Argument to control removal of components not needed after db software installation
+ARG SLIMMING=false
+ARG INSTALL_FILE_1="LINUX.X64_193000_gsm.zip"
 
 # Environment variables required for this build (do NOT change)
 # -------------------------------------------------------------
@@ -30,7 +41,7 @@ ENV GSM_BASE="/u01/app/oracle" \
     GSM_HOME="/u01/app/oracle/product/19c/gsmhome_1" \
     INVENTORY="/u01/app/oracle/oraInventory" \
     INSTALL_DIR="/opt/oracle/scripts" \
-    INSTALL_FILE_1="LINUX.X64_193000_gsm.zip" \
+    INSTALL_FILE_1=$INSTALL_FILE_1 \
     INSTALL_RSP="19c_gsm_install.rsp" \
     RUN_FILE="runOracle.sh" \
     SETUP_LINUX_FILE="setupLinuxEnv.sh" \
@@ -41,20 +52,22 @@ ENV GSM_BASE="/u01/app/oracle" \
     GSM_ENV_SETUP_FILE="setupGSM.sh" \
     GSM_SCRIPTS="scripts" \
     MAINPY="main.py" \
-    CHECKLIVENESS="checkLiveness.sh" 
+    PYTHON_FILE="/usr/bin/python" \
+    PYTHON3_FILE="/usr/bin/python3" \
+    CHECKLIVENESS="checkLiveness.sh"
 # Use second ENV so that variable get substituted
 ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
      ORACLE_HOME=$GSM_HOME \
      ORACLE_BASE=$GSM_BASE \
      SCRIPT_DIR=$INSTALL_DIR/sharding \
-     PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH \
-     GSM_PATH=$GSM_HOME/bin:/usr/sbin:$PATH \
-     GSM_LD_LIBRARY_PATH=$GSM_HOME/lib:/usr/lib:/lib 
-    
+     PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+     GSM_PATH=$GSM_HOME/bin:$PATH \
+     GSM_LD_LIBRARY_PATH=$GSM_HOME/lib:/usr/lib:/lib
+
 
 # Copy files needed during both installation and runtime
 # ------------
-COPY $INSTALL_FILE_1 $SETUP_LINUX_FILE $CHECK_SPACE_FILE $INSTALL_RSP $GSM_ENV_SETUP_FILE $INSTALL_GSM_BINARIES_FILE $GSM_SETUP_FILE $INSTALL_DIR/install/
+COPY $SETUP_LINUX_FILE $CHECK_SPACE_FILE $GSM_ENV_SETUP_FILE $INSTALL_DIR/install/
 COPY $RUN_FILE $GSM_SETUP_FILE $CHECKLIVENESS $USER_SCRIPTS_FILE $SCRIPT_DIR/
 COPY $GSM_SCRIPTS $SCRIPT_DIR/scripts/
 
@@ -63,7 +76,22 @@ RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     $INSTALL_DIR/install/$CHECK_SPACE_FILE && \
     $INSTALL_DIR/install/$SETUP_LINUX_FILE && \
     $INSTALL_DIR/install/$GSM_ENV_SETUP_FILE  && \
+    sync
+
+#############################################
+# -------------------------------------------
+# Start new stage for installing the GSM
+# -------------------------------------------
+#############################################
+
+from base AS builder
+
+COPY $INSTALL_FILE_1 $INSTALL_RSP $INSTALL_GSM_BINARIES_FILE $GSM_SETUP_FILE $INSTALL_DIR/install/
+
+RUN chmod 755 $INSTALL_SCRIPTS/*.sh  && \
+    sync && \
     sed -e '/hard *memlock/s/^/#/g' -i /etc/security/limits.d/oracle-database-preinstall-19c.conf && \
+    sed -e '/ *nofile /s/^/#/g' -i /etc/security/limits.d/oracle-database-preinstall-19c.conf && \
     su oracle -c "$INSTALL_DIR/install/$INSTALL_GSM_BINARIES_FILE" && \
     $INVENTORY/orainstRoot.sh && \
     $GSM_HOME/root.sh && \
@@ -72,10 +100,30 @@ RUN chmod 755 $INSTALL_DIR/install/*.sh && \
     rm -f /etc/sysctl.d/99-sysctl.conf && \
     rm -f /etc/rc.d/init.d/oracle-database-preinstall-19c-firstboot && \
     rm -f /etc/security/limits.d/oracle-database-preinstall-19c.conf && \
+    sync
+
+#############################################
+# -------------------------------------------
+# Start new layer for GSM runtime
+# -------------------------------------------
+#############################################
+
+FROM base
+
+COPY --from=builder /u01 /u01
+
+RUN if [ ! -f $PYTHON_FILE ]; then \
+      ln -s $PYTHON3_FILE $PYTHON_FILE && \
+      :; \
+    fi && \
     rm -f $INSTALL_DIR/install/*  && \
+    cp $SCRIPT_DIR/scripts/cmdExec  $SCRIPT_DIR/ && \
     chown -R oracle:oinstall $SCRIPT_DIR && \
     chmod 755 $SCRIPT_DIR/*.sh && \
     chmod 755 $SCRIPT_DIR/scripts/*.py && \
+    chmod 755 $SCRIPT_DIR/scripts/*.sh && \
+    chmod 755 $SCRIPT_DIR/scripts/cmdExec && \
+    chmod 755 $SCRIPT_DIR/cmdExec && \
     sync
 
 USER  oracle
