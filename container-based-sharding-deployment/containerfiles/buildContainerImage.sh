@@ -12,15 +12,14 @@
 usage() {
   cat << EOF
 
-Usage: buildContainerImage.sh -v [version] -t [image_name:tag] [-e | -s] [-n] [-p] [-i] [-o] [container build option]
+Usage: buildContainerImage.sh -v [version] -t [image_name:tag] [-e | -s] [-i] [-o] [container build option]
 It builds a container image for a DNS server
 
 Parameters:
    -v: version to build
    -i: ignores the MD5 checksums
-   -p: set the slim option
-   -n: user defined image name
-   -o: passes on container build option
+   -t: user defined image name and tag (e.g., image_name:ta
+   -o: passes on container build option (e.g., --build-arg SLIMMIMG=true for slim)
 
 LICENSE UPL 1.0
 
@@ -61,8 +60,8 @@ SKIPMD5=0
 DOCKEROPS=""
 IMAGE_NAME=""
 SLIM="false"
-
-while getopts "hiv:o:pn:" optname; do
+DOCKEROPS=" --build-arg SLIMMING=false"
+while getopts "hiv:o:t:" optname; do
   case "$optname" in
     "h")
       usage
@@ -75,13 +74,18 @@ while getopts "hiv:o:pn:" optname; do
       ;;
     "o")
       DOCKEROPS="$OPTARG"
-      ;;
-    "n")
-      IMAGE_NAME="$OPTARG"
-      ;;
-    "p")
-      SLIM="true"
+      if [[ "$DOCKEROPS" != *"--build-arg SLIMMING="* ]]; then
+         DOCKEROPS+=" --build-arg SLIMMING=false"
+         SLIM="false"
+      fi
+      if [[ "$OPTARG" == *"--build-arg SLIMMING=true"* ]]; then
+        SLIM="true"
+      fi
      ;;
+    "t")
+      IMAGE_NAME="$OPTARG"
+     ;;
+
     "?")
       usage;
       ;;
