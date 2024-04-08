@@ -105,7 +105,6 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
      GSM_LD_LIBRARY_PATH=$GSM_HOME/lib:/usr/lib:/lib  \
     INSTALL_SCRIPTS=$INSTALL_DIR/install \
      PATH=/bin:/usr/bin:/sbin:/usr/sbin \
-     SCRIPT_DIR=$INSTALL_DIR/startup \
      GSM_SCRIPTS="scripts"
 
 # Copy binaries
