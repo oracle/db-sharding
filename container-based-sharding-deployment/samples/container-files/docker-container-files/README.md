@@ -1,4 +1,4 @@
-# Create Containers using manual steps using Docker
+# Oracle Sharding Containers on Docker
 
 Docker is used on Oracle Linux 7 Host Machines to create containers. This page provides the details to manually create the docker containers to deploy a Sharded Database.
 
@@ -29,22 +29,22 @@ Before creating a container, create the docker network by creating docker networ
 
 #### Macvlan Bridge
 
-```
-# docker network create -d macvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=eth0 shard_pub1_nw
+```bash
+docker network create -d macvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=ens5 shard_pub1_nw
 ```
 
 #### Ipvlan Bridge
 
-```
-# docker network create -d ipvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=eth0 shard_pub1_nw
+```bash
+docker network create -d ipvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=ens5 shard_pub1_nw
 ```
 
 If you are planning to create a test env within a single machine, you can use a docker bridge but these IPs will not be reachable on the user network.
 
 #### Bridge
 
-```
-# docker network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
+```bash
+docker network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
 
 **Note:** You can change subnet and choose one of the above mentioned docker network bridge based on your environment.
@@ -55,14 +55,14 @@ All containers will share a host file for name resolution.  The shared hostfile 
 
 For example:
 
-```
-# mkdir /opt/containers
-# touch /opt/containers/shard_host_file
+```bash
+mkdir /opt/containers
+rm -rf /opt/containers/shard_host_file && touch /opt/containers/shard_host_file
 ```
 
-Add the following host entries in /opt/containers/shard_host_file as Oracle database containers do not have root access to modify the /etc/hosts file. This file must be pre-populated. You can change these entries based on your environment and network setup.
+Add the following host entries in `/opt/containers/shard_host_file` as Oracle database containers do not have root access to modify the `/etc/hosts` file. This file must be pre-populated. You can change these entries based on your environment and network setup.
 
-```
+```bash
 127.0.0.1       localhost.localdomain           localhost
 10.0.20.100     oshard-gsm1.example.com         oshard-gsm1
 10.0.20.101     oshard-gsm2.example.com         oshard-gsm2
@@ -77,7 +77,7 @@ Add the following host entries in /opt/containers/shard_host_file as Oracle data
 
 Specify the secret volume for resetting database users password during catalog and shard setup. It can be a shared volume among all the containers
 
-```
+```bash
 mkdir /opt/.secrets/
 openssl genrsa -out /opt/.secrets/key.pem
 openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
@@ -85,14 +85,14 @@ openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
 
 Edit the `/opt/.secrets/pwdfile.txt` and seed the password. It will be a common password for all the database users. Execute following command:
 
-```
+```bash
 vi /opt/.secrets/pwdfile.txt
 ```
 
 **Note**: Enter your secure password in the above file and save the file.
 
-After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, execute following command:
-```
+After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, then execute the following command:
+```bash
 openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
 rm -f /opt/.secrets/pwdfile.txt
 chown 54321:54321 /opt/.secrets/pwdfile.enc

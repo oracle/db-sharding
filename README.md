@@ -6,7 +6,6 @@
 [SDB-Mid-Tier-Routing]: https://github.com/oracle/db-sharding/tree/master/Mid-Tier-Routing
 [SDB-Fast-Data-Ingest]: https://github.com/oracle/db-sharding/tree/master/sharding-fast-data-ingest
 [OKE-sharding]: https://github.com/oracle/db-sharding/tree/master/oke-based-sharding-deployment
-[CONTAINER-sharding]: https://github.com/oracle/db-sharding/tree/master/container-based-sharding-deployment
 [MTR-Intro]: https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing#introduction
 [SDB-prod-page]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 [SDB-prod-doc]: https://docs.oracle.com/en/database/oracle/oracle-database/19/shard/
@@ -82,7 +81,7 @@ Container based deployment of sharded database.
 
 ### Details
 
-For more details, please refer to the [Container sharding][CONTAINER-sharding] documentation.
+For more details, please refer to the [Container sharding](./container-based-sharding-deployment/README.md) documentation.
 
 ## Fast data ingest
 
