@@ -4,13 +4,11 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
 
 - [Oracle Sharding Container QuickStart Guide - Oracle 23ai](#oracle-sharding-container-quickstart-guide---oracle-23ai)
   - [Before you begin](#before-you-begin)
-  - [Getting Oracle Sharding Images](#getting-oracle-rac-images)
-  - [Networking in Oracle Sharding Podman Container Environment](#networking-in-oracle-rac-podman-container-environment)
-  - [Deploy Oracle Sharding 2 Node Environment with NFS Storage Container](#deploy-oracle-rac-2-node-environment-with-nfs-storage-container)
-  - [Deploy Oracle Sharding 2 Node Environment with BlockDevices](#deploy-oracle-rac-2-node-environment-with-blockdevices)
-  - [Validating Oracle Sharding Environment](#validating-oracle-rac-environment)
-  - [Connecting Oracle Sharding Environment](#connecting-to-oracle-rac-environment)
-  - [Environment Variables Explained for above 2 Node RAC on Podman Compose](#environment-variables-explained-for-above-2-node-rac-on-podman-compose)
+  - [Getting Oracle Sharding Images](#getting-oracle-sharding-images)
+  - [Networking in Oracle Sharding Podman Container Environment](#networking-in-oracle-sharding-podman-container-environment)
+  - [Deploy Oracle Sharding Environment](#deploy-oracle-sharding-environment)
+  - [Validating Oracle Sharding Environment](#validating-oracle-sharding-environment)
+  - [Environment Variables Explained](#environment-variables-explained)
   - [Support](#support)
   - [License](#license)
   - [Copyright](#copyright)
@@ -182,18 +180,18 @@ Refer to [Environment Variables Explained for Oracle Sharding on Podman Compose]
 
 ## Support
 
-At the time of this release, Oracle Sharding on Podman is supported for Oracle Linux 9.3 later. To see current Linux support certifications, refer [Oracle Sharding on Podman Documentation](https://docs.oracle.com/en/database/oracle/oracle-database/21/install-and-upgrade.html)
+Oracle GSM and Sharding Database on Docker is supported on Oracle Linux 7. 
+Oracle 23ai GSM and Sharding Database on Podman is supported on Oracle Linux 8 and onwards.
+
 
 ## License
 
-To download and run Oracle Grid and Database, regardless of whether inside or outside a container, you must download the binaries from the Oracle website and accept the license indicated on that page.
+To download and run Oracle GSM and Sharding Database, regardless whether inside or outside a Container, ensure to download the binaries from the Oracle website and accept the license indicated at that page.
 
-All scripts and files hosted in this repository that are required to build the container images are, unless otherwise noted, released under a UPL 1.0 license.
+All scripts and files hosted in this project and GitHub docker-images/OracleDatabase repository required to build the Docker and Podman images are, unless otherwise noted, released under UPL 1.0 license.
+
 
 ## Copyright
 
-Copyright (c) 2014-2024 Oracle and/or its affiliates.
-
-
-
-
+Copyright (c) 2022 - 2024 Oracle and/or its affiliates.
+Released under the Universal Permissive License v1.0 as shown at https://oss.oracle.com/licenses/upl/
