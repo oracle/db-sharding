@@ -113,16 +113,16 @@ This password and key secrets are being used for initial sharding topology setup
 
 ## SELinux Configuration on Podman Host
 To run Podman containers in an environment with SELinux enabled, you must configure an SELinux policy for the containers.To check if your SELinux is enabled or not, run the `getenforce` command.
-With Security-Enhanced Linux (SELinux), you must set a policy to implement permissions for your containers. If you do not configure a policy module for your containers, then they can end up restarting indefinitely or other permission errors. You must add all Podman host nodes for your cluster to the policy module `rac-podman`, by installing the necessary packages and creating a type enforcement file (designated by the .te suffix) to build the policy, and load it into the system. 
+With Security-Enhanced Linux (SELinux), you must set a policy to implement permissions for your containers. If you do not configure a policy module for your containers, then they can end up restarting indefinitely or other permission errors. You must add all Podman host nodes for your cluster to the policy module `shard-podman`, by installing the necessary packages and creating a type enforcement file (designated by the .te suffix) to build the policy, and load it into the system. 
 
-In the following example, the Podman host `podman-host` is configured in the SELinux policy module `rac-podman`: 
+In the following example, the Podman host `podman-host` is configured in the SELinux policy module `shard-podman`: 
 
-Copy [rac-podman.te](../../../containerfiles/rac-podman.te) to `/var/opt` folder in your host and then execute below-
+Copy [shard-podman.te](../../../containerfiles/shard-podman.te) to `/var/opt` folder in your host and then execute below-
 ```bash
 cd /var/opt
-make -f /usr/share/selinux/devel/Makefile rac-podman.pp
-semodule -i rac-podman.pp
-semodule -l | grep rac-pod
+make -f /usr/share/selinux/devel/Makefile shard-podman.pp
+semodule -i shard-podman.pp
+semodule -l | grep shard-pod
 ```
 ## Deploy Sharding Containers
 

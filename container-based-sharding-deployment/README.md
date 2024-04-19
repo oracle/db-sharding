@@ -73,7 +73,7 @@ To assist with building the images, you can use the [buildContainerImage.sh](con
 
 **IMPORTANT:** Oracle Global Service Manager (GDS) container is useful when you want to configure the Global Data Service Framework. A Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases.
 
-### Create Oracle Global Service Manager Image
+### Building Oracle Global Service Manager Image
 
 **IMPORTANT:** To create an Oracle Global Service Manager image (GSM image), you must provide the installation binaries of `Oracle Global Service Manager Oracle Database 23ai  (23.4) for Linux x86-64` and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
 **Note:** Do not uncompress the binaries.
@@ -103,13 +103,13 @@ LICENSE UPL 1.0
 Copyright (c) 2014,2024 Oracle and/or its affiliates.
 ```
 
-### Create Oracle Database Image
+### Building Oracle Database Image
 
 To build Oracle Sharding on Docker and a container, download and build an Oracle 23.4.0 Database image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
 
 **Note**: Use the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md) to create the image, and do not use the container instructions. For the container, use the steps given in this document under the [Create Containers](#create-containers) section.
 
-### Create Extended Oracle Database Image with Sharding Feature
+### Building Extended Oracle Database Image with Sharding Feature
 
 After creating the base image using `buildContainerImage.sh` in the previous step, use the `buildExtensions.sh` script that is under the `extensions` folder to build an extended image. This extended image will include the Sharding Feature. For more information, the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/extensions/README.md) in the `extensions` folder for the Oracle Single Instance Database, which is available on the Oracle GitHub repository.
 
