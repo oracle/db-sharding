@@ -12,14 +12,14 @@
 [OCI]: https://www.oracle.com/cloud/
 [SDB]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 
-- [About](#about)
+- [About this Oracle Sharding repository](#about)
 - [Terraform based deployment of Oracle sharded database](#terraform-based-deployment-of-oracle-sharded-database)
   * [Overview](#overview)
   * [Details](#details)
 - [Mid-tier routing for use in Oracle sharded database client applications](#mid-tier-routing-for-use-in-oracle-sharded-database-client-applications)
   * [Overview](#overview-1)
   * [Details](#details-1)
-- [OKE based deployment of Oracle sharded database](#oke-based-deployment-of-oracle-sharded-database)
+- [OKE-based deployment of Oracle sharded database](#oke-based-deployment-of-oracle-sharded-database)
   * [Overview](#overview-2)
   * [Details](#details-2)
 - [Container based deployment of Oracle sharded database](#container-based-deployment-of-oracle-sharded-database)
@@ -29,65 +29,65 @@
   * [Overview](#overview-4)
   * [Details](#details-4)
 
-## About
+## About this Oracle Sharding repository
 
-This repository provides Oracle Sharded database deployment automation and tools :
+This repository provides deployment automation and tools for Oracle Database using Oracle Sharding. It includes the following:
 
 * Terraform based deployment of Oracle sharded database.
 * Mid-tier routing for use in Oracle sharded database applications.
 * OKE based deployment of Oracle sharded database.
 * Fast data ingest for sharding applications.
 
-If you want to learn more about Oracle sharding a.k.a Oracle Sharded Database, please refer to the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
+To learn more about Oracle Sharding (also referred to as Oracle Sharded Database), review the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
 
-<strong> Note </strong> : Oracle Sharding and Oracle Sharded Database (SDB) are interchangeably used names in the documentation and refer to the same entity. 
+<strong> Note </strong> : Oracle Sharding, Sharded database, and Oracle Sharded Database (SDB) are interchangeably used names in the documentation and refer to the same entity. 
 
  
 ## Terraform based deployment of Oracle sharded database
 
-### Overview 
+### Overview  
 
-Provides Terraform modules, configuration and scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Sharded Database][SDB] (SDB) on either [Oracle Cloud Infrastructure][OCI] (OCI) or On-Premise. It creates and configures SDB infrastructure components necessary for a successful Sharded Database setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
+The `SDB-terraform-oci` and `SDB-terraform-onprem` deployments provide Terraform modules, configuration and scripts that provision the necessary components and resources for a quick and easy setup of [Oracle Sharded Database][SDB] (SDB) on either [Oracle Cloud Infrastructure][OCI] (OCI) or as an On-Premises (`onprem`) database. These deployments create and configures SDB infrastructure components that are necessary for a successful Sharded Database setup, including Oracle Shard Directors, Shard Catalogs, Shards, and optionally, Shard Standbys. It also provides replication through a recovery catalog standby database using Oracle Data Guard. Oracle Data Guard provides both high availability (HA) and disaster recovery (DR) for data in the sharded database.
 
 ### Details
 
-For more details, please refer to the [SDB-Terraform][SDB-terraform] documentation.
+For more details, see the [SDB-Terraform][SDB-terraform] documentation.
 
 ## Mid-tier routing for use in Oracle sharded database client applications
 
 ### Overview
 
-Please refer to the Sharded database [Mid-Tier Routing introduction][MTR-Intro] for an overview.
+For an overview of the mid-tier Oracle sharded database feature, see the Sharded database [Mid-Tier Routing introduction][MTR-Intro].
 
 ### Details
 
-For more details, please refer to the [SDB Mid-Tier routing][SDB-Mid-Tier-Routing] documentation.
+To learn more about the Oracle sharded database features for mid-tier, see: [SDB Mid-Tier routing][SDB-Mid-Tier-Routing].
 
-## OKE based deployment of Oracle sharded database 
+## OKE-based deployment of Oracle sharded database 
 
 ### Overview 
 
-Oracle Kubernetes Engine (OKE) based deployment of sharded database.
+The OKE deployment provides Oracle Kubernetes Engine (OKE)-based deployment of an Oracle sharded database.
 
 ### Details
 
-For more details, please refer to the [OKE sharding][OKE-sharding] documentation.
+To learn more about the OKE sharding feature, see: [OKE sharding][OKE-sharding] documentation.
 
-## Container based deployment of Oracle sharded database 
+## Container-based deployment of Oracle sharded database 
 
 ### Overview 
 
-Container based deployment of sharded database.
+Oracle provides deployment tools for container-based deployment of sharded databases.
 
 ### Details
 
-For more details, please refer to the [Container sharding](./container-based-sharding-deployment/README.md) documentation.
+To learn more about container-based deployment of Oracle sharded database, see: [Container sharding](./container-based-sharding-deployment/README.md).
 
 ## Fast data ingest
 
 ### Overview
 
-The Fast data ingest library consist of several parts:
+The Fast data ingest library consists of several parts:
  * Generic routing table interfaces
  * Sharding metadata implementation
  * Metadata reader (encapsulated select queries)
@@ -95,4 +95,4 @@ The Fast data ingest library consist of several parts:
 
 ### Details
 
-For more details, please refer to the [Fast data ingest][SDB-Fast-Data-Ingest] documentation.
+To learn more about the Oracle Sharding Fast Data Ingest feature, see: [Fast data ingest][SDB-Fast-Data-Ingest].
