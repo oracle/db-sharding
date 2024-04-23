@@ -1,4 +1,4 @@
-module rac-podman  1.0;
+module shard-podman  1.0;
  
 require {
         type kernel_t;
