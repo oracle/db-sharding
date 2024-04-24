@@ -152,30 +152,17 @@ Note:
 ### Deploy Oracle Database Sharding Containers
 If you want to manually deploy the sharded database using Docker or Podman containers, then use the sections that follow to see the step by step procedure.
 
-#### Deploy Oracle Sharding Containers on Docker
-
-To deploy a sharded database on Docker, see: [Deploy Oracle Sharding Containers on Docker](./samples/container-files/docker-container-files/README.md). This document provides the commands that you need to deploy a Sharded Database using Docker with either System Sharding or with User Defined Sharding.
-
-**NOTE:** If you want to use the Oracle Database 19c or Oracle Database 21c release-based container images with Docker, then you must deploy on an Oracle Linux 7 host.
-
 #### Deploy Oracle Sharding Containers on Podman
 
 To deploy a sharded database on Podman, see: [Deploy Oracle Sharding Containers on Podman](./samples/container-files/podman-container-files/README.md). This document provides the commands that you need to deploy a Sharded Database using Podman with either System Sharding or with User Defined Sharding.
 
 **NOTE:** If you want to use Oracle Database 21c or Oracle Database 23ai release-based container images with Podman, then you must deploy on an Oracle Linux 8 host.
 
-### Deploy Oracle Database Sharding Containers using compose files
+#### Deploy Oracle Sharding Containers on Docker
 
-To use compose files to deploy containers for the sharded database in an automated way, complete the steps in this section.
+To deploy a sharded database on Docker, see: [Deploy Oracle Sharding Containers on Docker](./samples/container-files/docker-container-files/README.md). This document provides the commands that you need to deploy a Sharded Database using Docker with either System Sharding or with User Defined Sharding.
 
-#### Deploy Oracle Database Sharding Containers using docker compose
-
-[Compose](https://docs.docker.com/compose/) is a tool for defining and running multi-container Docker applications. With "docker-compose", you use a YAML file to configure your application's services. The Compose tool enables you to create and start all the services from your configuration with a single command. To deploy an Oracle Sharded Database on an Oracle Linux 7 Machine using an Oracle Database 21c RDBMS with release 21c GSM Docker Images, See: [sample deployment using docker compose](./samples/compose-files/docker-compose.md).
-
-
-#### Deploy Oracle Database Sharding Containers using podman-compose
-
-For Oracle Linux 8 host machines, you can use `podman-compose`for deploying containers to create an Oracle Sharded database. When you deploy the Oracle Sharded Database, you can use Oracle Database 23ai GSM and RDBMS Podman Images and can enable the SNR RAFT feature. To obtain instructions to deploy an Oracle Sharded Database on an Oracle Linux 8 Machine using Oracle 23ai RDBMS and 23ai GSM Podman Images, see: [sample deployment using podman-compose](./samples/compose-files/podman-compose.md).  
+**NOTE:** If you want to use the Oracle Database 19c or Oracle Database 21c release-based container images with Docker, then you must deploy on an Oracle Linux 7 host.
 
 ## Support
 
