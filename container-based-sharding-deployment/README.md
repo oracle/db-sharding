@@ -145,6 +145,8 @@ LICENSE UPL 1.0
 
 Copyright (c) 2024 Oracle and/or its affiliates. All rights reserved.
 ```
+Note:
+* Ensure that you have enough space in `/var/lib/containers` while building the Oracle Sharding images. Also, if required use `export TMPDIR=</path/to/tmpdir>` for Podman to refer to any other folder as the temporary podman cache location instead of the default `/tmp` location.
 
 ## Oracle Sharding in Containers Deployment Scenarios
 ### Deploy Oracle Database Sharding Containers

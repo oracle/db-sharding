@@ -25,7 +25,7 @@ setup_sharding_variables(){
     export NETWORK_INTERFACE='ens3'
     export NETWORK_SUBNET="10.0.20.0/20"
     export SIDB_IMAGE='oracle/database-ext-sharding:23.4.0-ee'
-    export GSM_IMAGE='oracle/database-gsm:23.4.0'
+    export GSM_IMAGE='oracle/gsm:23.4.0'
     export LOCAL_NETWORK=10.0.20
     export healthcheck_interval=30s
     export healthcheck_timeout=3s
