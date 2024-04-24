@@ -14,7 +14,7 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   - [Copyright](#copyright)
 
 ## Before you begin
-- Before proceeding further, prepate podman host with  prerequisites related to the Oracle Sharding Containers on Podman host Environment as explained in [Preparation Steps for running Oracle Sharding Database in containers](../README.md#preparation-steps-for-running-oracle-sharding-in-linux-containers). We have a pre-created script `setup_sharding_host.sh` which will prepare the podman host with the following pre-requisites-
+- Before proceeding further, prepare podman host with  prerequisites related to the Oracle Sharding Containers on Podman host Environment as explained in [Preparation Steps for running Oracle Sharding Database in containers](../README.md#preparation-steps-for-running-oracle-sharding-in-linux-containers). We have a pre-created script `setup_sharding_host.sh` which will prepare the podman host with the following pre-requisites-
     - Validate Host machine for supported Os version(OL >8), Kernel(>UEKR6), Memory(>32GB), etc.
     - Install Podman
     - Install Podman Compose
@@ -45,7 +45,6 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   localhost/oracle/database                                23.4.0-ee           ee6a794351a0  22 hours ago  6.74 GB
   localhost/oracle/gsm                                     23.4.0              8721eee1dbba  23 hours ago  2.14 GB
   localhost/oracle/database                                23.4.0-ee-base      b40d790f3224  8 days ago    339 MB
-  localhost/oracle/database-gsm                            23.4.0              e53dc906f121  8 days ago    2.1 GB
   ```
 ## Networking in Oracle Sharding Podman Container Environment
 - In this Quick Start, we will create below subnets for Oracle Sharding Podman Container Environment-  
@@ -55,7 +54,7 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   | shard_pub1_nw    | 10.0.20.0/20 | Public network for Oracle Sharding Podman Container Environment                      |
 
 ## Deploy Oracle Sharding Environment
-- Copy `podman-compose.yml` file from this [<GITHUB_REPO_CLONED_PATH>/db-sharding/container-based-sharding-deployment/samples/podman-compose.yml](../samples/compose-files/podman-compose.yml) in your working directory.
+- Copy `podman-compose.yml` file from this [<GITHUB_REPO_CLONED_PATH>/db-sharding/container-based-sharding-deployment/samples/compose-files/podman-compose.yml](../samples/compose-files/podman-compose.yml) in your working directory.
 - Execute the below command from your working directory to export the required environment variables required by the compose file in this quickstart-
   ```bash
   source ./setup_sharding_host.sh -export-sharding-env
@@ -64,6 +63,8 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```bash
   INFO: Sharding Environment Variables are setup successfully.
   ```
+  Note:
+  * This Quickstart guide uses `export PODMANVOLLOC='/scratch/oradata'` variable for storing all data files related to sharding containers, change this as per your environment where required free space is available.
 - Execute the below command from your working directory to setup pre-requisites in this quickstart-
   ```bash
   source ./setup_sharding_host.sh -prepare-sharding-env
@@ -135,7 +136,7 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```bash
   podman-compose logs -f primary_gsm
   ==============================================
-     GSM Shard Setup Completed                
+  GSM Setup Completed
   ==============================================
   ```
 - Execute below to deploy Standby GSM Container-
@@ -146,7 +147,7 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```bash
   podman-compose logs -f standby_gsm
   ==============================================
-     GSM Shard Setup Completed                
+  GSM Setup Completed
   ==============================================
   ```
 - If you want to cleanup the Sharding Container environment, then execute below-
