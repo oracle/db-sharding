@@ -10,9 +10,9 @@ In this installation guide, we deploy Oracle Database Sharding Containers on Pod
   - [Setup Hostfile](#setup-hostfile)
   - [Password Management](#password-management)
   - [SELinux Configuration on Podman Host](#selinux-configuration-on-podman-host)
-  - [Deploy Containers](#deploy-containers)
+  - [Deploy Sharding Containers](#deploy-sharding-containers)
     - [Deploy Sharded Database with System Sharding](#deploy-sharded-database-with-system-sharding)
-    - [Deploy Sharded Database with System Sharding with SNR RAFT enabled](#deploy-sharded-database-with-user-defined-sharding-with-snr-raft-enabled)
+    - [Deploy Sharded Database with System Sharding with SNR RAFT enabled](#deploy-sharded-database-with-system-sharding-with-snr-raft-enabled)
     - [Deploy Sharded Database with User Defined Sharding](#deploy-sharded-database-with-user-defined-sharding)
 - [Support](#support)
 - [License](#license)
@@ -31,11 +31,15 @@ Before creating a container, create the podman network by creating podman networ
 
 #### Macvlan Network
 
+To create a podman network with `macvlan` driver:
+
 ```bash
 podman network create -d macvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=ens5 shard_pub1_nw
 ```
 
 #### Ipvlan Network
+
+To create a podman network with `ipvlan` driver:
 
 ```bash
 podman network create -d ipvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=ens5 shard_pub1_nw
@@ -45,6 +49,8 @@ If you are planning to create a test env within a single machine, you can use a 
 
 #### Bridge Network
 
+To create a podman network with `bridge` driver:
+
 ```bash
 podman network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
@@ -52,6 +58,8 @@ podman network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 **Note:** You can change subnet and choose one of the above mentioned podman network bridge based on your environment.
 
 ### Setup Hostfile
+
+**Note:** You can skip this step of creating a Hostfile when you are using a DNS for the IP resolution.
 
 All containers will share a host file for name resolution.  The shared hostfile must be available to all containers. Create the empty shared host file (if it doesn't exist) at `/opt/containers/shard_host_file`:
 
@@ -62,7 +70,7 @@ mkdir /opt/containers
 rm -rf /opt/containers/shard_host_file && touch /opt/containers/shard_host_file
 ```
 
-Add the following host entries in `/opt/containers/shard_host_file` as Oracle database containers do not have root access to modify the /etc/hosts file. This file must be pre-populated. You can change these entries based on your environment and network setup.
+Add the following host entries in `/opt/containers/shard_host_file` as Oracle Database Containers do not have root access to modify the /etc/hosts file. This file must be pre-populated. You can change these entries based on your environment and network setup.
 
 ```text
 127.0.0.1       localhost.localdomain           localhost
@@ -109,10 +117,11 @@ Add the following host entries in `/opt/containers/shard_host_file` as Oracle da
   547eed65c01d525bc2b4cebd9  keysecret   file        8 seconds ago  8 seconds ago
   8ad6e8e519c26e9234dbcf60a  pwdsecret   file        8 seconds ago  8 seconds ago
   ```
-This password and key secrets are being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
+
+**Note:** This password and key secrets are being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
 
 ## SELinux Configuration on Podman Host
-To run Podman containers in an environment with SELinux enabled, you must configure an SELinux policy for the containers.To check if your SELinux is enabled or not, run the `getenforce` command.
+To run Podman containers in an environment with SELinux enabled, you must configure an SELinux policy for the containers. To check if your SELinux is enabled or not, run the `getenforce` command.
 With Security-Enhanced Linux (SELinux), you must set a policy to implement permissions for your containers. If you do not configure a policy module for your containers, then they can end up restarting indefinitely or other permission errors. You must add all Podman host nodes for your cluster to the policy module `shard-podman`, by installing the necessary packages and creating a type enforcement file (designated by the .te suffix) to build the policy, and load it into the system. 
 
 In the following example, the Podman host `podman-host` is configured in the SELinux policy module `shard-podman`: 

@@ -8,6 +8,7 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   - [Networking in Oracle Sharding Podman Container Environment](#networking-in-oracle-sharding-podman-container-environment)
   - [Deploy Oracle Sharding Environment](#deploy-oracle-sharding-environment)
   - [Validating Oracle Sharding Environment](#validating-oracle-sharding-environment)
+  - [Cleanup the environment](#cleanup-the-environment)
   - [Environment Variables Explained](#environment-variables-explained)
   - [Support](#support)
   - [License](#license)
@@ -180,6 +181,7 @@ INFO: Oracle Container RAC Environment Cleanup Successfully
 ```
 
 ## Environment Variables Explained
+
 Refer to [Environment Variables Explained for Oracle Sharding on Podman Compose](./ENVVARIABLESCOMPOSE.md) for the explanation of all the environment variables related to Oracle Sharding on Podman Compose. Change or Set these environment variables as per your environment.
 
 ## Support

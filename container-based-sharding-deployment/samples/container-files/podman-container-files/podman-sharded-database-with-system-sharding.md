@@ -6,17 +6,17 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 - [Prerequisites](#prerequisites)
 - [Deploying Catalog Container](#deploying-catalog-container)
   - [Create Directory](#create-directory)
-  - [Create Catalog Container](#create-catalog-container)
+  - [Catalog Container](#catalog-container)
 - [Deploying Shard Containers](#deploying-shard-containers)
   - [Create Directories](#create-directories)
   - [Shard1 Container](#shard1-container)
   - [Shard2 Container](#shard2-container)
 - [Deploying GSM Container](#deploying-gsm-container)
   - [Create Directory for Master GSM Container](#create-directory-for-master-gsm-container)
-  - [Create Master GSM Container](#create-master-gsm-container)
+  - [Master GSM Container](#master-gsm-container)
 - [Deploying Standby GSM Container](#deploying-standby-gsm-container)  
   - [Create Directory for Standby GSM Container](#create-directory-for-standby-gsm-container)
-  - [Create Standby GSM Container](#create-standby-gsm-container)   
+  - [Standby GSM Container](#standby-gsm-container)   
 - [Scale-out an existing Sharded Database](#scale-out-an-existing-sharded-database)
   - [Complete the prerequisite steps before creating Podman Container for new shard](#complete-the-prerequisite-steps-before-creating-podman-container-for-new-shard) 
   - [Create Podman Container for new shard](#create-podman-container-for-new-shard)
@@ -36,7 +36,7 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 
 ## Setup Details
 
-This setup involves deploying podman containers for:
+This setup initially involves deploying podman containers for:
 
 * Catalog Database
 * Two Shard Databases
@@ -71,7 +71,7 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 * Change the ownership for data volume `/scratch/oradata/dbfiles/CATALOG` exposed to catalog container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
-### Create Catalog Container
+### Catalog Container
 
 Before performing catalog container, review the following notes carefully:
 
@@ -150,7 +150,7 @@ restorecon -v /scratch/oradata/dbfiles/ORCL2CDB
 * Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL1CDB` and `/scratch/oradata/dbfiles/ORCL2CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/main/OracleDatabase/SingleInstance).
 
-### Deploy Shard1 Container
+### Shard1 Container
 
 Before creating shard1 container, review the following notes carefully:
 
@@ -257,7 +257,7 @@ semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/GSMDATA
 restorecon -v /scratch/oradata/dbfiles/GSMDATA
 ```
 
-### Create Master GSM Container
+### Master GSM Container
 
 ```bash
 podman run -d --hostname oshard-gsm1 \

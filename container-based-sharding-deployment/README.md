@@ -153,7 +153,7 @@ If you want to manually deploy the sharded database using Docker or Podman conta
 
 #### Deploy Oracle Sharding Containers on Podman
 
-To deploy a sharded database on Podman, see: [Deploy Oracle Sharding Containers on Podman](./samples/container-files/podman-container-files/README.md). This document provides the commands that you need to deploy a Sharded Database using Podman with either System Sharding or with User Defined Sharding.
+To deploy a sharded database on Podman, see: [Deploy Oracle Sharding Containers on Podman](./samples/container-files/podman-container-files/README.md). This document provides the commands that you need to deploy a Sharded Database using Podman with System Sharding or with System Sharding with SNR RAFT enabled or with User Defined Sharding.
 
 **NOTE:** If you want to use Oracle Database 21c or Oracle Database 23ai release-based container images with Podman, then you must deploy on an Oracle Linux 8 host.
 
