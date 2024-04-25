@@ -22,19 +22,16 @@ To create an Oracle Sharding Container environment, follow these steps:
 - [Oracle Sharding in Linux Containers](#oracle-sharding-in-linux-containers)
   - [Overview of Oracle Sharding in Linux Containers](#overview-of-oracle-sharding-in-linux-containers)
   - [Using this Documentation](#using-this-documentation)
+  - [Preparation Steps for running Oracle Sharding in Linux Containers](#preparation-steps-for-running-oracle-sharding-in-linux-containers)
   - [QuickStart](#quickstart)
-  - [Preparation Steps for running Oracle Sharding in Linux Containers](#preparation-steps-for-running-oracle-rac-database-in-containers)
   - [Building Oracle Sharding Container Images](#building-oracle-sharding-container-images)
     - [Building Oracle Global Service Manager Image](#building-oracle-global-service-manager-image)
     - [Building Oracle Database Image](#building-oracle-database-image)
     - [Building Extended Oracle Database Image with Sharding Feature](#building-extended-oracle-database-image-with-sharding-feature)
   - [Oracle Sharding in Containers Deployment Scenarios](#oracle-sharding-in-containers-deployment-scenarios)
-    - [Deploy Oracle Sharding Containers](#deploy-oracle-sharding-containers)
+    - [Deploy Oracle Database Sharding Containers](#deploy-oracle-database-sharding-containers)
+      - [Deploy Oracle Sharding Containers on Podman](#deploy-oracle-sharding-containers-on-podman)    
       - [Deploy Oracle Sharding Containers on Docker](#deploy-oracle-sharding-containers-on-docker)
-      - [Deploy Oracle Sharding Containers on Podman](#deploy-oracle-sharding-containers-on-podman)
-    - [Deploy Oracle Database Sharding Containers using compose files](#deploy-oracle-database-sharding-containers-using-compose-files)
-      - [Deploy Oracle Database Sharding Containers using docker compose](#deploy-oracle-database-sharding-containers-using-docker-compose)
-      - [Deploy Oracle Database Sharding Containers using podman-compose](#deploy-oracle-database-sharding-containers-using-podman-compose)
   - [Support](#support)
   - [License](#license)
   - [Copyright](#copyright)
@@ -67,6 +64,9 @@ Oracle recommends that you start with the Quickstart to become familiar with Ora
 
 After you become familiar with Oracle Sharding in Linux Containers, you can explore more advanced setups, deployments, features, and so on, as explained in detail in [Oracle Sharding in Containers Deployment Scenarios](#oracle-sharding-in-containers-deployment-scenarios).
 
+**Note:**
+* Ensure that you have enough space in `/var/lib/containers` while building the Oracle Sharding images. Also, if required use `export TMPDIR=</path/to/tmpdir>` for Podman to refer to any other folder as the temporary podman cache location instead of the default `/tmp` location.
+
 ## Building Oracle Sharding Container Images
 
 To assist with building the images, you can use the [buildContainerImage.sh](containerfiles/buildContainerImage.sh) script.
@@ -75,7 +75,8 @@ To assist with building the images, you can use the [buildContainerImage.sh](con
 
 ### Building Oracle Global Service Manager Image
 
-**IMPORTANT:** To create an Oracle Global Service Manager image (GSM image), you must provide the installation binaries of `Oracle Global Service Manager Oracle Database 23ai  (23.4) for Linux x86-64` and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
+**IMPORTANT:** To create an Oracle Global Service Manager image (GSM image), you must provide the installation binaries of `Oracle Global Service Manager Oracle Database 23ai (23.4) for Linux x86-64` and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
+
 **Note:** Do not uncompress the binaries.
 
 The `buildContainerImage.sh` script is just a utility shell script that performs MD5 checks. This script provides an easy way for beginners to get started. Expert users can directly call `podman build` with their preferred set of parameters. Before you build the image, ensure that you have provided the installation binaries and put them into the right folder. Go into the **containerfiles** folder and run the **buildContainerImage.sh**  script as `root` or with `sudo` privileges:
@@ -105,9 +106,9 @@ Copyright (c) 2014,2024 Oracle and/or its affiliates.
 
 ### Building Oracle Database Image
 
-To build Oracle Sharding on Docker and a container, download and build an Oracle 23.4.0 Database image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
+To build Oracle Sharding on Docker and a container, download and build an Oracle 23.4.0 Database Image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
 
-**Note**: Use the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md) to create the image, and do not use the container instructions. For the container, use the steps given in this document under the [Create Containers](#create-containers) section.
+**Note**: Use the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md) to create the image, and do not use the container instructions. For the container, use the steps given in this document under the [Oracle Sharding in Containers Deployment Scenarios](#oracle-sharding-in-containers-deployment-scenarios) section.
 
 ### Building Extended Oracle Database Image with Sharding Feature
 
@@ -145,8 +146,6 @@ LICENSE UPL 1.0
 
 Copyright (c) 2024 Oracle and/or its affiliates. All rights reserved.
 ```
-Note:
-* Ensure that you have enough space in `/var/lib/containers` while building the Oracle Sharding images. Also, if required use `export TMPDIR=</path/to/tmpdir>` for Podman to refer to any other folder as the temporary podman cache location instead of the default `/tmp` location.
 
 ## Oracle Sharding in Containers Deployment Scenarios
 ### Deploy Oracle Database Sharding Containers

@@ -39,7 +39,7 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
 - Refer to the [Getting Oracle Sharding Database Container Images](../README.md#building-oracle-sharding-container-images) section to get Oracle Sharding Images used in quickstart setup.  
 - When Podman Images are ready like the below example used in this quickstart, you can proceed to the next steps-
   ```bash
-  podman images
+  # podman images
   REPOSITORY                                               TAG                 IMAGE ID      CREATED       SIZE
   localhost/oracle/database-ext-sharding                   23.4.0-ee           1c17b71b710e  21 hours ago  7.06 GB
   localhost/oracle/database                                23.4.0-ee           ee6a794351a0  22 hours ago  6.74 GB
@@ -64,22 +64,16 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   INFO: Sharding Environment Variables are setup successfully.
   ```
   Note:
-  * This Quickstart guide uses `export PODMANVOLLOC='/scratch/oradata'` variable for storing all data files related to sharding containers, change this as per your environment where required free space is available.
-- Execute the below command from your working directory to setup pre-requisites in this quickstart-
-  ```bash
-  source ./setup_sharding_host.sh -prepare-sharding-env
-  ```
-  Logs -
-  ```bash
-  INFO: Finished setting up the pre-requisites for Podman-Host
-  ```
+  * This Quickstart guide uses `export PODMANVOLLOC='/scratch/oradata'` variable for storing all data files related to sharding containers. You can change this as per your environment where required free space is available.
+
 - Execute below to deploy Catalog Container-
   ```bash
   ./setup_sharding_host.sh -deploy-catalog
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f catalog_db
+  # podman-compose logs -f catalog_db
+
   ==============================================
      GSM Catalog Setup Completed              
   ==============================================
@@ -90,7 +84,8 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f shard1_db
+  # podman-compose logs -f shard1_db
+  
   ==============================================
      GSM Shard Setup Completed                
   ==============================================
@@ -101,7 +96,8 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f shard2_db
+  # podman-compose logs -f shard2_db
+
   ==============================================
      GSM Shard Setup Completed                
   ==============================================
@@ -112,7 +108,8 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f shard3_db
+  # podman-compose logs -f shard3_db
+  
   ==============================================
      GSM Shard Setup Completed                
   ==============================================
@@ -123,7 +120,8 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f shard4_db
+  # podman-compose logs -f shard4_db
+  
   ==============================================
      GSM Shard Setup Completed                
   ==============================================
@@ -134,7 +132,8 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f primary_gsm
+  # podman-compose logs -f primary_gsm
+  
   ==============================================
   GSM Setup Completed
   ==============================================
@@ -145,27 +144,17 @@ This quickstart aims to help you install Oracle Sharding Containers with SNR RAF
   ```
   Monitor Logs -
   ```bash
-  podman-compose logs -f standby_gsm
+  # podman-compose logs -f standby_gsm
+  
   ==============================================
   GSM Setup Completed
   ==============================================
   ```
-- If you want to cleanup the Sharding Container environment, then execute below-
-  ```bash
-  ./setup_sharding_host.sh -cleanup
-  ```
-  This will cleanup Oracle Sharding Containers, Oracle Storage Volume,  Oracle Sharding Podman Networks, etc.
-
-  Logs-
-  ```bash
-  INFO: Oracle Container RAC Environment Cleanup Successfully
-  ```
-
 
 ## Validating Oracle Sharding Environment
 You can validate if the environment is setup properly by running the below command and checking logs of each container-
 ```bash
-podman ps -a
+# podman ps -a
 CONTAINER ID  IMAGE                                             COMMAND               CREATED         STATUS         PORTS       NAMES
 181a4215b517  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  22 minutes ago  Up 22 minutes              catalog
 2b5ade918112  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  18 minutes ago  Up 18 minutes              shard1
@@ -174,6 +163,20 @@ fa9611ad2bbe  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec 
 e19138866b51  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago   Up 7 minutes               shard4
 e88e57c4e442  localhost/oracle/database-gsm:23.4.0              /bin/sh -c exec $...  3 minutes ago   Up 3 minutes               gsm1
 4e751cdfe01e  localhost/oracle/database-gsm:23.4.0              /bin/sh -c exec $...  24 seconds ago  Up 24 seconds              gsm2
+```
+
+## Cleanup the environment
+
+If you want to cleanup the Sharding Container environment, then execute below-
+```bash
+./setup_sharding_host.sh -cleanup
+```
+
+This will cleanup Oracle Sharding Containers, Oracle Storage Volume,  Oracle Sharding Podman Networks, etc.
+
+Logs-
+```bash
+INFO: Oracle Container RAC Environment Cleanup Successfully
 ```
 
 ## Environment Variables Explained

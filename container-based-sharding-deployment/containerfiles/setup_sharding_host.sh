@@ -251,10 +251,10 @@ install_podman_compose() {
 function setupSELinuxContext(){
 
     dnf install selinux-policy-devel -y
-    [ -f /var/opt/rac-podman.te ] && cp /var/opt/rac-podman.te /var/opt/rac-podman.te.ORG
-    [ -f /var/opt/rac-podman.te ] && rm -rf /var/opt/rac-podman.te
-    cat > /var/opt/rac-podman.te <<EOF
-module rac-podman  1.0;
+    [ -f /var/opt/sharding-podman.te ] && cp /var/opt/sharding-podman.te /var/opt/sharding-podman.te.ORG
+    [ -f /var/opt/sharding-podman.te ] && rm -rf /var/opt/sharding-podman.te
+    cat > /var/opt/sharding-podman.te <<EOF
+module sharding-podman  1.0;
  
 require {
         type kernel_t;
@@ -283,9 +283,9 @@ allow container_init_t unlabeled_t:file read;
 EOF
 
     cd /var/opt
-    yes | make -f /usr/share/selinux/devel/Makefile rac-podman.pp
-    semodule -l | grep -q "rac-podman" && semodule -r rac-podman
-    semodule -i rac-podman.pp
+    yes | make -f /usr/share/selinux/devel/Makefile sharding-podman.pp
+    semodule -l | grep -q "sharding-podman" && semodule -r sharding-podman
+    semodule -i sharding-podman.pp
     semodule -l | grep rac-pod
     sleep 3
     cd - 
