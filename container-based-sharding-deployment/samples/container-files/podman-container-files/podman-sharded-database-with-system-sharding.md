@@ -49,7 +49,7 @@ This setup initially involves deploying podman containers for:
 
 ## Prerequisites
 
-Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Deploy Catalog Containers using manual steps using Podman](./README.md)
+Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Deploy Catalog Containers using manual steps using Podman](./README.md#prerequisites)
 
 Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to Deploy Catalog Containers:
 
