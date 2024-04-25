@@ -319,7 +319,7 @@ podman run -d --hostname oshard-gsm2 \
  --ip=10.0.20.101 \
  -e DOMAIN=example.com \
  -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
- -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=region2" \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region2" \
  -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
  -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
  -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
@@ -586,8 +586,7 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 | CATALOG_SETUP              | Accept True. If set then, it will just create gsm director and add catalog but will not add any shard          | Mandatory          |
 | CATALOG_PARAMS             | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=catalog_host, value=catalog hostname;key=catalog_db, value=catalog cdb name;key=catalog_pdb, value=catalog pdb name;key=catalog_port, value=catalog db port name;key=catalog_name, value=catalog name in GSM;key=catalog_region, value=specify comma separated region name for catalog db deployment | Mandatory          |
 | SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=director_name, value=shard director name;key=director_region, value=shard director region;key=director_port, value=shard director port | Mandatory          |
-| SHARD[1-9]_GROUP_PARAMS   | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=group_name, value=shard group name;key=deploy_as, value=deploy shard group as primary or active_standby
-key=group_region, value=shard group region name | Mandatory          |
+| SHARD[1-9]_GROUP_PARAMS   | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=group_name, value=shard group name;key=deploy_as, value=deploy shard group as primary or standby or active_standby;key=group_region, value=shard group region name | Mandatory          |
 | SHARD[1-9]_PARAMS         | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=shard_host, value=shard hostname; key=shard_db, value=shard cdb name; key=shard_pdb, value=shard pdb name; key=shard_port, value=shard db port;key=shard_group value=shard group name | Mandatory          |
 | SERVICE[1-9]_PARAMS       | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=service_name, value=service name;key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
 | COMMON_OS_PWD_FILE         | Specify the podman secret for the password file to be read inside the container                                | Mandatory          |
