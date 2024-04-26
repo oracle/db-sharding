@@ -50,9 +50,9 @@ This setup involves deploying podman containers for:
 
 ## Prerequisites
 
-Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Create Containers using manual steps using Podman](./README.md)
+Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Oracle Sharding Containers on Podman](./README.md#prerequisites)
 
-Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers:
+Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers for the deployment:
 
 ## Deploying Catalog Container
 
@@ -117,7 +117,7 @@ To check the catalog container/services creation logs, please tail podman logs. 
 podman logs -f catalog
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Catalog database is ready to be used:
      
 ```bash
 ==============================================
@@ -201,7 +201,7 @@ Before creating shard1 container, review the following notes carefully:
   * In this case, `/scratch/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
-podman run -d --hostname oshard1-0 \
+podman run -d --hostname oshard2-0 \
  --dns-search=example.com \
  --network=shard_pub1_nw \
  --ip=10.0.20.104 \
@@ -229,7 +229,7 @@ To check the shard2 container/services creation logs, please tail podman logs. I
 podman logs -f shard2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Shard database is ready to be used:
 
 ```bash
 ==============================================
@@ -335,7 +335,7 @@ To check the gsm2 container/services creation logs, please tail podman logs. It 
 podman logs -f gsm2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
+**IMPORTANT:** The GSM Container Image used in this case is having the Oracle GSM installed. On first startup of the container, a new GSM setup will be created and the following lines highlight when the GSM setup is ready to be used:
 
 ```bash
 ==============================================
@@ -433,6 +433,8 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --addsh
 Use the below command to check the status of the newly added shard:
 ``` bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
+
+
 Name                Shard space         Status    State       Region    Availability 
 ----                -----------         ------    -----       ------    ------------ 
 orcl1cdb_orcl1pdb   shardspace1         Ok        Deployed    region1   ONLINE       
@@ -451,6 +453,8 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --deplo
 Use the below command to check the status of the newly added shard and the chunks distribution:
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
+
+
 Name                Shard space         Status    State       Region    Availability 
 ----                -----------         ------    -----       ------    ------------ 
 orcl1cdb_orcl1pdb   shardspace1         Ok        Deployed    region1   ONLINE       
@@ -574,26 +578,26 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 | OLD_ORACLE_SID             | Specify the OLD_ORACLE_SID if you are performing db seed cloning using existing cold backup of Oracle DB.     | Optional           |
 | OLD_ORACLE_PDB             | Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.       | Optional           |
 
-For GSM Containers-
+**For GSM Containers-**
 
 | Parameter                  | Description                                                                                                    | Mandatory/Optional |
 |----------------------------|----------------------------------------------------------------------------------------------------------------|---------------------|
 | CATALOG_SETUP              | Accept True. if set then , it will only restrict till catalog connection and setup.                            | Mandatory          |
-| CATALOG_PARAMS             | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=catalog_host, value=catalog hostname key=catalog_db, value=catalog cdb name key=catalog_pdb, value=catalog pdb name key=catalog_port, value=catalog db port name key=catalog_name, value=catalog name in GSM key=catalog_region, value=specify comma separated region name for catalog db deployment | Mandatory          |
-| SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=director_name, value=shard director name key=director_region, value=shard director region key=director_port, value=shard director port | Mandatory          |
-| SHARD[1-9]_PARAMS         | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=shard_host, value=shard hostname key=shard_db, value=shard cdb name key=shard_pdb, value=shard pdb name key=shard_port, value=shard db port key=shard_space, value=shard space name key=deploy_as, value=primary or standby key=shard_region, value=region name | Mandatory          |
-| SERVICE[1-9]_PARAMS       | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=service_name, value=service name key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
-| COMMON_OS_PWD_FILE         | Specify the encrypted password file to be read inside container                                               | Mandatory          |
+| CATALOG_PARAMS             | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=catalog_host, value=catalog hostname; key=catalog_db, value=catalog cdb name; key=catalog_pdb, value=catalog pdb name; key=catalog_port, value=catalog db port name; key=catalog_name, value=catalog name in GSM; key=catalog_region, value=specify comma separated region name for catalog db deployment | Mandatory          |
+| SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=director_name, value=shard director name; key=director_region, value=shard director region; key=director_port, value=shard director port | Mandatory          |
+| SHARD[1-9]_PARAMS          | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=shard_host, value=shard hostname key=shard_db, value=shard cdb name key=shard_pdb, value=shard pdb name key=shard_port, value=shard db port key=shard_space, value=shard space name key=deploy_as, value=primary or standby key=shard_region, value=region name | Mandatory          |
+| SERVICE[1-9]_PARAMS        | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=service_name, value=service name; key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
+| COMMON_OS_PWD_FILE         | Specify the encrypted password file to be read inside container                                                  | Mandatory          |
 | PWD_KEY                    | Specify the podman secret for the password key file to decrypt the encrypted password file and read the password | Mandatory          |
-| OP_TYPE                    | Specify the operation type. For GSM it has to be set to gsm.                                                   | Mandatory          |
-| DOMAIN                     | Domain of the container.                                                                                      | Mandatory          |
-| MASTER_GSM                 | Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.                         | Mandatory          |
-| SAMPLE_SCHEMA              | Specify a value to "DEPLOY" if you want to deploy sample app schema in catalog DB during GSM setup.           | Optional           |
-| CUSTOM_SHARD_SCRIPT_DIR   | Specify the location of custom scripts that you want to run after setting up GSM.                              | Optional           |
+| OP_TYPE                    | Specify the operation type. For GSM it has to be set to gsm.                                                     | Mandatory          |
+| DOMAIN                     | Domain of the container.                                                                                         | Mandatory          |
+| MASTER_GSM                 | Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.                            | Mandatory          |
+| SAMPLE_SCHEMA              | Specify a value to "DEPLOY" if you want to deploy sample app schema in catalog DB during GSM setup.              | Optional           |
+| CUSTOM_SHARD_SCRIPT_DIR   | Specify the location of custom scripts that you want to run after setting up GSM.                                 | Optional           |
 | CUSTOM_SHARD_SCRIPT_FILE  | Specify the file name which must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after GSM setup. | Optional           |
-| BASE_DIR                   | Specify BASE_DIR if you want to change the base location of the scripts to setup GSM.                          | Optional           |
-| SCRIPT_NAME                | Specify the script name which will be executed from BASE_DIR. Default set to main.py.                          | Optional           |
-| EXECUTOR                   | Specify the script executor such as /bin/python or /bin/bash. Default set to /bin/python.                      | Optional           |
+| BASE_DIR                   | Specify BASE_DIR if you want to change the base location of the scripts to setup GSM.                            | Optional           |
+| SCRIPT_NAME                | Specify the script name which will be executed from BASE_DIR. Default set to main.py.                            | Optional           |
+| EXECUTOR                   | Specify the script executor such as /bin/python or /bin/bash. Default set to /bin/python.                        | Optional           |
 
 ## Support
 
