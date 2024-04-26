@@ -51,7 +51,7 @@ This setup initially involves deploying podman containers for:
 
 Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Oracle Sharding Containers on Podman](./README.md#prerequisites)
 
-Before creating the GSM container, you need to build the catalog and shard containers. First, execute the following steps to deploy catalog container:
+Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers for the deployment:
 
 ## Deploying Catalog Container
 
@@ -117,7 +117,7 @@ podman logs -f catalog
 ```
 
 **IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Catalog database is ready to be used:
-     
+
 ```bash
 ==============================================
       GSM Catalog Setup Completed
@@ -585,10 +585,10 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 |----------------------------|----------------------------------------------------------------------------------------------------------------|---------------------|
 | CATALOG_SETUP              | Accept True. If set then, it will just create gsm director and add catalog but will not add any shard          | Mandatory          |
 | CATALOG_PARAMS             | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=catalog_host, value=catalog hostname;key=catalog_db, value=catalog cdb name;key=catalog_pdb, value=catalog pdb name;key=catalog_port, value=catalog db port name;key=catalog_name, value=catalog name in GSM;key=catalog_region, value=specify comma separated region name for catalog db deployment | Mandatory          |
-| SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=director_name, value=shard director name;key=director_region, value=shard director region;key=director_port, value=shard director port | Mandatory          |
-| SHARD[1-9]_GROUP_PARAMS   | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=group_name, value=shard group name;key=deploy_as, value=deploy shard group as primary or standby or active_standby;key=group_region, value=shard group region name | Mandatory          |
-| SHARD[1-9]_PARAMS         | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=shard_host, value=shard hostname; key=shard_db, value=shard cdb name; key=shard_pdb, value=shard pdb name; key=shard_port, value=shard db port;key=shard_group value=shard group name | Mandatory          |
-| SERVICE[1-9]_PARAMS       | Accept key value pair separated by semicolon e.g. key=value;key=value for following key=value pairs: key=service_name, value=service name;key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
+| SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=director_name, value=shard director name;key=director_region, value=shard director region;key=director_port, value=shard director port | Mandatory          |
+| SHARD[1-9]_GROUP_PARAMS   | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=group_name, value=shard group name;key=deploy_as, value=deploy shard group as primary or standby or active_standby;key=group_region, value=shard group region name | Mandatory          |
+| SHARD[1-9]_PARAMS         | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=shard_host, value=shard hostname; key=shard_db, value=shard cdb name; key=shard_pdb, value=shard pdb name; key=shard_port, value=shard db port;key=shard_group value=shard group name | Mandatory          |
+| SERVICE[1-9]_PARAMS       | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=service_name, value=service name;key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
 | COMMON_OS_PWD_FILE         | Specify the podman secret for the password file to be read inside the container                                | Mandatory          |
 | PWD_KEY                    | Specify the podman secret for the password key file to decrypt the encrypted password file and read the password | Mandatory          |
 | OP_TYPE                    | Specify the operation type. For GSM, it has to be set to gsm.                                                  | Mandatory          |
