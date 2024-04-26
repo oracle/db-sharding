@@ -71,7 +71,7 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 
 ### Create Container
 
-Before performing catalog container, review the following notes carefully:
+Before creating catalog container, review the following notes carefully:
 
 **Notes:**
 
@@ -107,7 +107,7 @@ To check the catalog container/services creation logs, please tail docker logs. 
 docker logs -f catalog
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Catalog database is ready to be used:
      
 ```
 ==============================================
@@ -211,7 +211,7 @@ To check the shard2 container/services creation logs, please tail docker logs. I
 docker logs -f shard2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Shard database is ready to be used:
 
 ```bash
 ==============================================
@@ -308,7 +308,7 @@ To check the gsm2 container/services creation logs, please tail docker logs. It 
 docker logs -f gsm2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
+**IMPORTANT:** The GSM Container Image used in this case is having the Oracle GSM installed. On first startup of the container, a new GSM setup will be created and the following lines highlight when the GSM setup is ready to be used:
 
 ```bash
 ==============================================

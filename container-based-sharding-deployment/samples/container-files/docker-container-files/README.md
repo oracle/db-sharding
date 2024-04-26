@@ -51,6 +51,8 @@ docker network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 
 ### Setup Hostfile
 
+**Note:** You can skip this step of creating a Hostfile when you are using a DNS for the IP resolution.
+
 All containers will share a host file for name resolution.  The shared hostfile must be available to all containers. Create the shared host file (if it doesn't exist) at `/opt/containers/shard_host_file`:
 
 For example:

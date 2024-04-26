@@ -74,7 +74,7 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 
 ### Create Container
 
-Before performing catalog container, review the following notes carefully:
+Before creating catalog container, review the following notes carefully:
 
 **Notes:**
 

@@ -70,7 +70,7 @@ restorecon -v /opt/containers/shard_host_file
 
 ### Create Container
 
-Before performing catalog container, review the following notes carefully:
+Before creating catalog container, review the following notes carefully:
 
 **Notes:**
 

@@ -6,7 +6,7 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 - [Prerequisites](#prerequisites)
 - [Deploying Catalog Container](#deploying-catalog-container)
   - [Create Directory](#create-directory)
-  - [Catalog Container](#catalog-container)
+  - [Create Container](#create-container)
 - [Deploying Shard Containers](#deploying-shard-containers)
   - [Create Directories](#create-directories)
   - [Shard1 Container](#shard1-container)
@@ -71,9 +71,9 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 * Change the ownership for data volume `/scratch/oradata/dbfiles/CATALOG` exposed to catalog container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed, then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
-### Catalog Container
+### Create Container
 
-Before performing catalog container, review the following notes carefully:
+Before creating catalog container, review the following notes carefully:
 
 **Notes:**
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
