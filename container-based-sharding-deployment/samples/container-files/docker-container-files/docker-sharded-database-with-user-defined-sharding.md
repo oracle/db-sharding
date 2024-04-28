@@ -599,6 +599,7 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 | CATALOG_SETUP                   | Accepts True. If set, it will only restrict till catalog connection and setup.                               |
 | CATALOG_PARAMS                  | Accepts key-value pairs for catalog configuration. Refer to the Mandatory Parameters section.              |
 
+
 ## Support
 
 Oracle GSM and Sharding Database on Docker is supported on Oracle Linux 7. 
