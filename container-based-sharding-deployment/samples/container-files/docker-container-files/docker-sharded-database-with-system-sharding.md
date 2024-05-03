@@ -29,6 +29,8 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
   - [Confirm the shard has been successfully deleted from the Sharded database](#confirm-the-shard-has-been-successfully-deleted-from-the-sharded-database)
   - [Remove the Docker Container](#remove-the-docker-container)
 - [Environment Varibles  Explained](#environment-variables-explained)
+- [Support](#support)
+- [License](#license)
 - [Copyright](#copyright)
 
 
@@ -47,7 +49,7 @@ This setup involves deploying docker containers for:
 
 ## Prerequisites
 
-Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Create Containers using manual steps using Docker](./README.md)
+Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Oracle Sharding Containers on Docker](./README.md#prerequisites)
 
 Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers:
 
@@ -71,7 +73,7 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 
 ### Create Container
 
-Before performing catalog container, review the following notes carefully:
+Before creating catalog container, review the following notes carefully:
 
 **Notes:**
 
@@ -107,7 +109,7 @@ To check the catalog container/services creation logs, please tail docker logs. 
 docker logs -f catalog
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Catalog database is ready to be used:
      
 ```bash
 ==============================================
@@ -131,7 +133,7 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/ORCL2CDB
 **Notes:**:
 
 * Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL1CDB` and `/scratch/oradata/dbfiles/ORCL2CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
-* If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
+* If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
 ### Shard1 Container
 
@@ -211,7 +213,7 @@ To check the shard2 container/services creation logs, please tail docker logs. I
 docker logs -f shard2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Shard database is ready to be used:
 
 ```bash
 ==============================================
@@ -284,7 +286,7 @@ docker run -d --hostname oshard-gsm2 \
  --ip=10.0.20.101 \
  -e DOMAIN=example.com \
  -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
- -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=region2" \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region2" \
  -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
  -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
  -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
@@ -308,7 +310,7 @@ To check the gsm2 container/services creation logs, please tail docker logs. It 
 docker logs -f gsm2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
+**IMPORTANT:** The GSM Container Image used in this case is having the Oracle GSM installed. On first startup of the container, a new GSM setup will be created and the following lines highlight when the GSM setup is ready to be used:
 
 ```bash
 ==============================================
@@ -339,7 +341,7 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/ORCL3CDB
 **Notes:**:
 
 * Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL3CDB` and `/scratch/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
-* If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
+* If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
 ### Create Docker Container for new shard
 
@@ -527,32 +529,33 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 | OLD_ORACLE_SID            | Specify the OLD_ORACLE_SID if you are performing db seed clonging using existing cold backup of Oracle DB  |
 | OLD_ORACLE_PDB            | Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB  |
 
+
 **For GSM Containers**-
 
 | Mandatory Parameters            | Description                                                                                                 |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------|
-| SHARD_DIRECTOR_PARAMS           | Accepts key-value pairs for shard director configuration.                                                     |
+| SHARD_DIRECTOR_PARAMS           | Accepts key=value pairs for shard director configuration.                                                   |
 |                                 |   - director_name: Shard director name                                                                      |
 |                                 |   - director_region: Shard director region                                                                  |
 |                                 |   - director_port: Shard director port                                                                      |
-| SHARD[1-9]_GROUP_PARAMS         | Accepts key-value pairs for shard group configuration.                                                       |
+| SHARD[1-9]_GROUP_PARAMS         | Accepts key=value pairs for shard group configuration.                                                       |
 |                                 |   - group_name: Shard group name                                                                            |
 |                                 |   - deploy_as: Deploy shard group as primary or active_standby                                              |
 |                                 |   - group_region: Shard group region name                                                                   |
-| CATALOG_PARAMS                  | Accepts key-value pairs for catalog configuration.                                                           |
+| CATALOG_PARAMS                  | Accepts key=value pairs for catalog configuration.                                                           |
 |                                 |   - catalog_host: Catalog hostname                                                                          |
 |                                 |   - catalog_db: Catalog CDB name                                                                             |
 |                                 |   - catalog_pdb: Catalog PDB name                                                                            |
 |                                 |   - catalog_port: Catalog DB port name                                                                      |
 |                                 |   - catalog_name: Catalog name in GSM                                                                        |
 |                                 |   - catalog_region: Comma-separated region name for catalog DB deployment                                   |
-| SHARD[1-9]_PARAMS               | Accepts key-value pairs for shard configuration.                                                             |
+| SHARD[1-9]_PARAMS               | Accepts key=value pairs for shard configuration.                                                             |
 |                                 |   - shard_host: Shard hostname                                                                              |
 |                                 |   - shard_db: Shard CDB name                                                                                |
 |                                 |   - shard_pdb: Shard PDB name                                                                                |
 |                                 |   - shard_port: Shard DB port                                                                                |
 |                                 |   - shard_group: Shard group name                                                                           |
-| SERVICE[1-9]_PARAMS             | Accepts key-value pairs for service configuration.                                                           |
+| SERVICE[1-9]_PARAMS             | Accepts key=value pairs for service configuration.                                                           |
 |                                 |   - service_name: Service name                                                                              |
 |                                 |   - service_role: Service role (e.g., primary or physical_standby)                                          |
 | COMMON_OS_PWD_FILE              | Specifies the encrypted password file to be read inside the container.                                      |
@@ -575,7 +578,6 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 ## Support
 
 Oracle GSM and Sharding Database on Docker is supported on Oracle Linux 7. 
-Oracle 23ai GSM and Sharding Database on Podman is supported on Oracle Linux 8 and onwards.
 
 ## License
 

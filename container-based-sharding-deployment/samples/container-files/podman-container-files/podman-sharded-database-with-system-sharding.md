@@ -6,17 +6,17 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 - [Prerequisites](#prerequisites)
 - [Deploying Catalog Container](#deploying-catalog-container)
   - [Create Directory](#create-directory)
-  - [Create Catalog Container](#create-catalog-container)
+  - [Create Container](#create-container)
 - [Deploying Shard Containers](#deploying-shard-containers)
   - [Create Directories](#create-directories)
   - [Shard1 Container](#shard1-container)
   - [Shard2 Container](#shard2-container)
 - [Deploying GSM Container](#deploying-gsm-container)
   - [Create Directory for Master GSM Container](#create-directory-for-master-gsm-container)
-  - [Create Master GSM Container](#create-master-gsm-container)
+  - [Master GSM Container](#master-gsm-container)
 - [Deploying Standby GSM Container](#deploying-standby-gsm-container)  
   - [Create Directory for Standby GSM Container](#create-directory-for-standby-gsm-container)
-  - [Create Standby GSM Container](#create-standby-gsm-container)   
+  - [Standby GSM Container](#standby-gsm-container)   
 - [Scale-out an existing Sharded Database](#scale-out-an-existing-sharded-database)
   - [Complete the prerequisite steps before creating Podman Container for new shard](#complete-the-prerequisite-steps-before-creating-podman-container-for-new-shard) 
   - [Create Podman Container for new shard](#create-podman-container-for-new-shard)
@@ -36,7 +36,7 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 
 ## Setup Details
 
-This setup involves deploying podman containers for:
+This setup initially involves deploying podman containers for:
 
 * Catalog Database
 * Two Shard Databases
@@ -49,9 +49,9 @@ This setup involves deploying podman containers for:
 
 ## Prerequisites
 
-Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Deploy Catalog Containers using manual steps using Podman](./README.md)
+Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Oracle Sharding Containers on Podman](./README.md#prerequisites)
 
-Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to Deploy Catalog Containers:
+Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers for the deployment:
 
 ## Deploying Catalog Container
 
@@ -69,14 +69,13 @@ chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
 **Notes:**:
 
 * Change the ownership for data volume `/scratch/oradata/dbfiles/CATALOG` exposed to catalog container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
-* If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
+* If this is not changed, then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
-### Create Catalog Container
+### Create Container
 
-Before performing catalog container, review the following notes carefully:
+Before creating catalog container, review the following notes carefully:
 
 **Notes:**
-
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/CATALOG based on your enviornment.
 * By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
@@ -117,8 +116,8 @@ To check the catalog container/services creation logs, please tail podman logs. 
 podman logs -f catalog
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
-     
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Catalog database is ready to be used:
+
 ```bash
 ==============================================
       GSM Catalog Setup Completed
@@ -150,7 +149,7 @@ restorecon -v /scratch/oradata/dbfiles/ORCL2CDB
 * Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL1CDB` and `/scratch/oradata/dbfiles/ORCL2CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instance Database](https://github.com/oracle/docker-images/tree/main/OracleDatabase/SingleInstance).
 
-### Deploy Shard1 Container
+### Shard1 Container
 
 Before creating shard1 container, review the following notes carefully:
 
@@ -233,7 +232,7 @@ To check the shard2 container/services creation logs, please tail podman logs. I
 podman logs -f shard2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle binaries installed. On first startup of the container a new database will be created, the following lines highlight when the Shard database is ready to be used:
+**IMPORTANT:** The Database Container Image used in this case is having the Oracle Database binaries installed. On first startup of the container, a new database will be created and the following lines highlight when the Shard database is ready to be used:
 
 ```bash
 ==============================================
@@ -257,7 +256,7 @@ semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/GSMDATA
 restorecon -v /scratch/oradata/dbfiles/GSMDATA
 ```
 
-### Create Master GSM Container
+### Master GSM Container
 
 ```bash
 podman run -d --hostname oshard-gsm1 \
@@ -267,10 +266,9 @@ podman run -d --hostname oshard-gsm1 \
  -e DOMAIN=example.com \
  -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
  -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
- -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=30;repl_type=Native" \
- -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
+ -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
+ -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
  -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
  -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
  -e COMMON_OS_PWD_FILE=pwdsecret \
@@ -321,11 +319,10 @@ podman run -d --hostname oshard-gsm2 \
  --ip=10.0.20.101 \
  -e DOMAIN=example.com \
  -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
- -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=region2" \
- -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=30;repl_type=Native" \
- -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"  \
+ -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region2" \
+ -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2" \
+ -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
+ -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
  -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
  -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
  -e CATALOG_SETUP="True" \
@@ -338,9 +335,9 @@ podman run -d --hostname oshard-gsm2 \
  -e OP_TYPE=gsm \
  --privileged=false \
  --name gsm2 oracle/database-gsm:23.4.0
+```
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
-```
 
 To check the gsm2 container/services creation logs, please tail podman logs. It will take 2 minutes to create the gsm container service.
 
@@ -348,7 +345,7 @@ To check the gsm2 container/services creation logs, please tail podman logs. It 
 podman logs -f gsm2
 ```
 
-**IMPORTANT:** The resulting images will be an image with the Oracle GSM binaries installed. On first startup of the container a new GSM setup will be created, the following lines highlight when the GSM setup is ready to be used:
+**IMPORTANT:** The GSM Container Image used in this case is having the Oracle GSM installed. On first startup of the container, a new GSM setup will be created and the following lines highlight when the GSM setup is ready to be used:
 
 ```bash
 ==============================================
@@ -381,7 +378,7 @@ semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/ORCL3CDB
 restorecon -v /scratch/oradata/dbfiles/ORCL3CDB
 ```
 
-**Notes:**:
+**Notes:**
 
 * Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL3CDB` and `/scratch/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
@@ -578,27 +575,28 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 | ORACLE_PDB                 | PDB name                                                                                                       | Mandatory          |
 | CUSTOM_SHARD_SCRIPT_DIR    | Specify the location of custom scripts which you want to run after setting up shard setup.                     | Optional           |
 | CUSTOM_SHARD_SCRIPT_FILE   | Specify the file name that must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup. | Optional           |
-| CLONE_DB                   | Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata. | Optional           |
+| CLONE_DB                   | Specify value "true" if you want to avoid db creation using DBCA and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata. | Optional           |
 | OLD_ORACLE_SID             | Specify the OLD_ORACLE_SID if you are performing db seed cloning using existing cold backup of Oracle DB.     | Optional           |
 | OLD_ORACLE_PDB             | Specify the OLD_ORACLE_PDB if you are performing db seed cloning using existing cold backup of Oracle DB.       | Optional           |
+
 
 **For GSM Containers-**
 | Parameter                  | Description                                                                                                    | Mandatory/Optional |
 |----------------------------|----------------------------------------------------------------------------------------------------------------|---------------------|
-| CATALOG_SETUP              | Accept True. if set then, it will only restrict till catalog connection and setup.                              | Mandatory          |
-| CATALOG_PARAMS             | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=catalog_host, value=catalog hostname key=catalog_db, value=catalog cdb name key=catalog_pdb, value=catalog pdb name key=catalog_port, value=catalog db port name key=catalog_name, value=catalog name in GSM key=catalog_region, value=specify comma separated region name for catalog db deployment | Mandatory          |
-| SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=director_name, value=shard director name key=director_region, value=shard director region key=director_port, value=shard director port | Mandatory          |
-| SHARD[1-9]_GROUP_PARAMS   | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=group_name, value=shard group name key=deploy_as, value=deploy shard group as primary or active_standby key=group_region, value=shard group region name | Mandatory          |
-| SHARD[1-9]_PARAMS         | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=shard_host, value=shard hostname key=shard_db, value=shard cdb name key=shard_pdb, value=shard pdb name key=shard_port, value=shard db port key=shard_group value=shard group name | Mandatory          |
-| SERVICE[1-9]_PARAMS       | Accept key value pair separated by semicolon e.g. <key>=<value>;<key>=<value> for following <key>=<value> pairs: key=service_name, value=service name key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
+| CATALOG_SETUP              | Accept True. If set then, it will just create gsm director and add catalog but will not add any shard          | Mandatory          |
+| CATALOG_PARAMS             | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=catalog_host, value=catalog hostname;key=catalog_db, value=catalog cdb name;key=catalog_pdb, value=catalog pdb name;key=catalog_port, value=catalog db port name;key=catalog_name, value=catalog name in GSM;key=catalog_region, value=specify comma separated region name for catalog db deployment | Mandatory          |
+| SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=director_name, value=shard director name;key=director_region, value=shard director region;key=director_port, value=shard director port | Mandatory          |
+| SHARD[1-9]_GROUP_PARAMS   | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=group_name, value=shard group name;key=deploy_as, value=deploy shard group as primary or standby or active_standby;key=group_region, value=shard group region name | Mandatory          |
+| SHARD[1-9]_PARAMS         | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=shard_host, value=shard hostname; key=shard_db, value=shard cdb name; key=shard_pdb, value=shard pdb name; key=shard_port, value=shard db port;key=shard_group value=shard group name | Mandatory          |
+| SERVICE[1-9]_PARAMS       | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=service_name, value=service name;key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
 | COMMON_OS_PWD_FILE         | Specify the podman secret for the password file to be read inside the container                                | Mandatory          |
 | PWD_KEY                    | Specify the podman secret for the password key file to decrypt the encrypted password file and read the password | Mandatory          |
-| OP_TYPE                    | Specify the operation type. For GSM it has to be set to gsm.                                                   | Mandatory          |
+| OP_TYPE                    | Specify the operation type. For GSM, it has to be set to gsm.                                                  | Mandatory          |
 | DOMAIN                     | Domain of the container.                                                                                      | Mandatory          |
 | MASTER_GSM                 | Set value to "TRUE" if you want the GSM to be a master GSM. Otherwise, do not set it.                         | Mandatory          |
 | SAMPLE_SCHEMA              | Specify a value to "DEPLOY" if you want to deploy sample app schema in catalog DB during GSM setup.           | Optional           |
-| CUSTOM_SHARD_SCRIPT_DIR   | Specify the location of custom scripts that you want to run after setting up GSM.                              | Optional           |
-| CUSTOM_SHARD_SCRIPT_FILE  | Specify the file name which must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after GSM setup. | Optional           |
+| CUSTOM_SHARD_SCRIPT_DIR    | Specify the location of custom scripts that you want to run after setting up GSM.                              | Optional           |
+| CUSTOM_SHARD_SCRIPT_FILE   | Specify the file name which must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after GSM setup. | Optional           |
 | BASE_DIR                   | Specify BASE_DIR if you want to change the base location of the scripts to setup GSM.                          | Optional           |
 | SCRIPT_NAME                | Specify the script name which will be executed from BASE_DIR. Default set to main.py.                          | Optional           |
 | EXECUTOR                   | Specify the script executor such as /bin/python or /bin/bash. Default set to /bin/python.                      | Optional           |
