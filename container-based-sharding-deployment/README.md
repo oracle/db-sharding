@@ -58,6 +58,10 @@ To create an Oracle Sharding Container environment, follow these steps:
       # Install Podman and Podman-docker
       dnf install -y podman podman-docker
       ```
+    * If SELinux is enabled on podman host, then install the following package as well:
+      ```bash
+      dnf install -y selinux-policy-devel
+      ```
 
 ## QuickStart
 Oracle recommends that you start with the Quickstart to become familiar with Oracle Sharding in Linux Containers. See: [QuickStart documentation](./docs/QUICKSTART.md).
