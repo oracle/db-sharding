@@ -805,8 +805,15 @@ class OraCommon:
                self.remove_file(fname)
                
             if self.check_key("ORACLE_PWD",self.ora_env_dict):
-               msg="ORACLE_PWD is passed as an env variable. Check Passed!"
-               self.log_info_message(msg,self.file_name)
+               if len(self.ora_env_dict["ORACLE_PWD"]) > 0:
+                  msg="ORACLE_PWD is passed as an env variable. Check Passed!"
+                  self.log_info_message(msg,self.file_name)
+               else:
+                 msg="ORACLE_PWD passed as 0 length string"
+                 self.log_info_message(msg,self.file_name)
+                 self.ora_env_dict=self.add_key("ORACLE_PWD",password,self.ora_env_dict)
+                 msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
+                 self.log_info_message(msg,self.file_name)                  
             else:
                self.ora_env_dict=self.add_key("ORACLE_PWD",password,self.ora_env_dict)
                msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
