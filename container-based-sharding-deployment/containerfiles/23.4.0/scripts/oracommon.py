@@ -811,7 +811,7 @@ class OraCommon:
                else:
                  msg="ORACLE_PWD passed as 0 length string"
                  self.log_info_message(msg,self.file_name)
-                 self.ora_env_dict=self.add_key("ORACLE_PWD",password,self.ora_env_dict)
+                 self.ora_env_dict=self.update_key("ORACLE_PWD",password,self.ora_env_dict)
                  msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
                  self.log_info_message(msg,self.file_name)                  
             else:
