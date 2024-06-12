@@ -66,6 +66,8 @@ kubectl get secret
 ## Modify Configuration
 Before you install chart, you need to review "Configuration" section and make changes in values.yaml based on your enviornment. You can also refer values.yaml.sample file to see the parameter details.
 
+**NOTE:** If you are using values.yaml.sample, make changes carefully to set the correct parameter values based on your environment.
+
 ## Installing the Chart
 install the chart with the release name my-release:
 

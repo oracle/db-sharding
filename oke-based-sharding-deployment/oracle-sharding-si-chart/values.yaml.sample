@@ -6,7 +6,6 @@
 # MAINTAINER <paramdeep.saini@oracle.com>
 #
 ---
----
 global:
   gsmimage:
    repository: dbintg-racgsm-release.dockerhub-phx.oci.mycorp.com/oracle/database-gsm
