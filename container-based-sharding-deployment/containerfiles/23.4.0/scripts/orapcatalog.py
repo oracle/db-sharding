@@ -44,6 +44,8 @@ class OraPCatalog:
           """
            This function setup the catalog on Primary DB.
           """
+          if self.ocommon.check_key("ORACLE_PDB1",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_PDB1"],self.ora_env_dict)
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
              create_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
              exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
@@ -99,6 +101,7 @@ class OraPCatalog:
                self.ocommon.set_events("spfile")
                self.set_dbparams_version()
                self.restart_db()
+               self.create_pdb()
                self.alter_db()
                self.setup_pdb_catalog()
                self.set_primary_listener()
@@ -487,6 +490,19 @@ class OraPCatalog:
             #self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
             #self.ocommon.check_sql_err(output,error,retcode,True)
 
+      def create_pdb(self):
+         """
+         This function creates the PDB
+         """
+         inst_sid=self.ora_env_dict["ORACLE_SID"]
+         ohome=self.ora_env_dict["ORACLE_HOME"]
+         if self.ocommon.check_key("ORACLE_PDB1",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_PDB1"],self.ora_env_dict)
+            opdb=self.ora_env_dict["ORACLE_PDB"]
+            status=self.ocommon.check_pdb(opdb)
+            if not status:
+             self.ocommon.create_pdb(ohome,opdb,inst_sid)
+                                     
       def alter_db(self):
           """
           Alter db 

@@ -873,7 +873,43 @@ class OraCommon:
          self.log_info_message("Running the sqlplus command to import the tde key: " + sqlcmd,self.file_name)
          output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
          self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-         self.check_sql_err(output,error,retcode,True)         
+         self.check_sql_err(output,error,retcode,True)
+
+####### Check PDB if it exist ###############
+      def check_pdb(self,pdbname):
+         """
+         This function check the PDB.
+         """
+         self.log_info_message("Inside check_pdb()",self.file_name)
+         sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         sqlcmd='''
+         set heading off
+         set feedback off
+         select NAME from gv$pdbs;
+         '''
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.check_sql_err(output,error,retcode,None)
+         pdblist=output.splitlines()
+         self.log_info_message("Checking pdb " + pdbname, self.file_name)
+         if pdbname in pdblist:
+            return True
+         else:
+            return False
+
+####### Create PDB if it does not exist ###############
+      def create_pdb(self,ohome,opdb,inst_sid):
+         """
+         This function create the PDB.
+         """
+         self.log_info_message("Inside create_pdb()",self.file_name)
+         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         cmd='''{0}/bin/dbca -silent -createPluggableDatabase -pdbName {1}  -sourceDB {2} <<< HIDDEN_STRING'''.format(ohome,opdb,inst_sid)
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.unset_mask_str()
+         self.check_os_err(output,error,retcode,True)
+      
 ######## Reset the DB Password in database ########
       def reset_passwd(self):
          """
