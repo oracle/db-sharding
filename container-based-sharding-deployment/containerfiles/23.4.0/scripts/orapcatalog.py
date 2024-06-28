@@ -101,7 +101,7 @@ class OraPCatalog:
                self.ocommon.set_events("spfile")
                self.set_dbparams_version()
                self.restart_db()
-               self.restart_for_db_unqiue_name()
+               self.restart_for_db_unique_name()
                self.create_pdb()
                self.alter_db()
                self.setup_pdb_catalog()
@@ -497,7 +497,7 @@ class OraPCatalog:
             #self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
             #self.ocommon.check_sql_err(output,error,retcode,True)
 
-      def restart_for_db_unqiue_name(self):
+      def restart_for_db_unique_name(self):
           """
           restarting the db, when db_unique_name is passed explicitly
           """
