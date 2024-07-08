@@ -44,8 +44,8 @@ class OraPCatalog:
           """
            This function setup the catalog on Primary DB.
           """
-          if self.ocommon.check_key("ORACLE_PDB1",self.ora_env_dict):
-            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_PDB1"],self.ora_env_dict)
+          if self.ocommon.check_key("ORACLE_FREE_PDB",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_FREE_PDB"],self.ora_env_dict)
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
              create_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
              exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
@@ -520,8 +520,8 @@ class OraPCatalog:
          """
          inst_sid=self.ora_env_dict["ORACLE_SID"]
          ohome=self.ora_env_dict["ORACLE_HOME"]
-         if self.ocommon.check_key("ORACLE_PDB1",self.ora_env_dict):
-            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_PDB1"],self.ora_env_dict)
+         if self.ocommon.check_key("ORACLE_FREE_PDB",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_FREE_PDB"],self.ora_env_dict)
             opdb=self.ora_env_dict["ORACLE_PDB"]
             status=self.ocommon.check_pdb(opdb)
             if not status:
