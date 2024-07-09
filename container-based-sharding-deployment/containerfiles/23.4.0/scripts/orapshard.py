@@ -56,8 +56,8 @@ class OraPShard:
           """
            This function setup the shard on Primary DB.
           """
-          if self.ocommon.check_key("ORACLE_PDB1",self.ora_env_dict):
-            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_PDB1"],self.ora_env_dict)
+          if self.ocommon.check_key("ORACLE_FREE_PDB",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_FREE_PDB"],self.ora_env_dict)
           if self.ocommon.check_key("RESET_LISTENER",self.ora_env_dict):
             status = self.shard_setup_check()
             if not status:
@@ -540,8 +540,8 @@ class OraPShard:
          """
          inst_sid=self.ora_env_dict["ORACLE_SID"]
          ohome=self.ora_env_dict["ORACLE_HOME"]
-         if self.ocommon.check_key("ORACLE_PDB1",self.ora_env_dict):
-            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_PDB1"],self.ora_env_dict)
+         if self.ocommon.check_key("ORACLE_FREE_PDB",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_FREE_PDB"],self.ora_env_dict)
             opdb=self.ora_env_dict["ORACLE_PDB"]
             status=self.ocommon.check_pdb(opdb)
             if not status:
