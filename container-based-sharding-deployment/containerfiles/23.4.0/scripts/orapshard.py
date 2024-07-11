@@ -145,7 +145,7 @@ class OraPShard:
           self.passwd_check()
           self.set_user()
           self.sid_check()
-          self.dbuinque_name_check()
+          self.dbunique_name_check()
           self.hostname_check()
           self.dbport_check()
           self.dbr_dest_checks()
@@ -210,7 +210,7 @@ class OraPShard:
                self.ocommon.log_error_message(msg,self.file_name)
                self.ocommon.prog_exit()
 
-      def dbuinque_name_check(self):
+      def dbunique_name_check(self):
            """
            This funnction check and set the db unique name for standby
            """
@@ -521,17 +521,18 @@ class OraPShard:
           """
           restarting the db, when db_unique_name is passed explicitly
           """
-          if self.ora_env_dict["RESTART_DB_TO_SET_DB_UNIQUE_NAME"] == 'true':
-              msg='''DB_UNIQUE_NAME {0} is passed as an env variable. Restarting the Database to set the DB_UNIQUE_NAME! '''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
-              self.ocommon.log_info_message(msg,self.file_name)
+          if self.ocommon.check_key("RESTART_DB_TO_SET_DB_UNIQUE_NAME",self.ora_env_dict):
+              if self.ora_env_dict["RESTART_DB_TO_SET_DB_UNIQUE_NAME"] == 'true':
+                  msg='''DB_UNIQUE_NAME {0} is passed as an env variable. Restarting the Database to set the DB_UNIQUE_NAME! '''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
+                  self.ocommon.log_info_message(msg,self.file_name)
 
-              ohome=self.ora_env_dict["ORACLE_HOME"]
-              inst_sid=self.ora_env_dict["ORACLE_SID"]
-              sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
-              self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
-              self.ocommon.shutdown_db(self.ora_env_dict)
-              self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
-              self.ocommon.start_db(self.ora_env_dict)
+                  ohome=self.ora_env_dict["ORACLE_HOME"]
+                  inst_sid=self.ora_env_dict["ORACLE_SID"]
+                  sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+                  self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
+                  self.ocommon.shutdown_db(self.ora_env_dict)
+                  self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
+                  self.ocommon.start_db(self.ora_env_dict)
 
 
       def create_pdb(self):
