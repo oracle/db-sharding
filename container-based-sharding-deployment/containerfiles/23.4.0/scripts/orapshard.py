@@ -546,6 +546,7 @@ class OraPShard:
             status=self.ocommon.check_pdb(opdb)
             if not status:
              self.ocommon.create_pdb(ohome,opdb,inst_sid)
+             self.ocommon.create_pdb_tns_entry(ohome,opdb)
              
       def alter_db(self):
           """

@@ -328,6 +328,20 @@ class OraCommon:
           f1.write(fdata)
           f1.close
 
+      def append_file(self,fname,fdata):
+          """
+            append the contents to a file
+            Attributes:
+               fname (string): file to be appended
+               fdata (string): COnetents to be appended
+
+            Return:
+               file data (string)
+          """
+          f1 = open(fname, 'a')
+          f1.write(fdata)
+          f1.close
+
       def create_dir(self,dir,local,remote,user):
           """
             Create dir locally or remotely
@@ -909,6 +923,29 @@ class OraCommon:
          output,error,retcode=self.execute_cmd(cmd,None,None)
          self.unset_mask_str()
          self.check_os_err(output,error,retcode,True)
+
+
+
+####### Create PDB tnsnames.ora entry ###############
+      def create_pdb_tns_entry(self,ohome,opdb):
+         """
+         This function create the PDB tnsnames.ora entry.
+         """
+         self.log_info_message("Inside create_pdb_tns_entry()",self.file_name)
+         tns_entry_string="""
+{0} =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 0.0.0.0)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {0})
+    )
+  )
+
+""".format(opdb)
+
+         tns_file='''{0}/network/admin/tnsnames.ora'''.format(ohome)
+         self.append_file(tns_file,tns_entry_string)
       
 ######## Reset the DB Password in database ########
       def reset_passwd(self):
