@@ -9,9 +9,9 @@ networks:
         - subnet: "${NETWORK_SUBNET}"
 secrets:
   pwdsecret:
-    file: ${PWD_SECRET_FILE}
+    external: pwdsecret
   keysecret:
-    file: ${KEY_SECRET_FILE}
+    external: keysecret
 services:
   catalog_db:
     container_name: ${CAT_CONTAINER_NAME}

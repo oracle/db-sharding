@@ -1,4 +1,6 @@
-# Variables to be exported before using podman-compose to deploy Globally Distributed Database using podman
+#!/bin/bash
+
+# Variables to be exported before using podman-compose to deploy Globally Distributed Database using podman with Enterprise Images    
 export PODMANVOLLOC='/scratch/oradata'
 export NETWORK_INTERFACE='ens3'
 export NETWORK_SUBNET="10.0.20.0/20"
@@ -11,8 +13,6 @@ export healthcheck_retries=40
 export CATALOG_OP_TYPE="catalog"
 export ALLSHARD_OP_TYPE="primaryshard"
 export GSM_OP_TYPE="gsm"
-export PWD_SECRET_FILE=/opt/.secrets/pwdfile.enc
-export KEY_SECRET_FILE=/opt/.secrets/key.pem
 export CAT_SHARD_SETUP="true"
 export CATALOG_ARCHIVELOG="true"
 export SHARD_ARCHIVELOG="true"
@@ -77,3 +77,51 @@ export STANDBY_SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=O
 export STANDBY_SHARD4_PARAMS="shard_host=oshard4-0;shard_db=ORCL4CDB;shard_pdb=ORCL4PDB;shard_port=1521;shard_group=shardgroup1"
 export STANDBY_SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby"
 export STANDBY_SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby"
+
+# Create network host file
+mkdir -p  /opt/containers
+rm -f /opt/containers/shard_host_file && touch /opt/containers/shard_host_file
+sh -c "cat << EOF > /opt/containers/shard_host_file
+127.0.0.1        localhost.localdomain           localhost
+${LOCAL_NETWORK}.100     oshard-gsm1.example.com         oshard-gsm1
+${LOCAL_NETWORK}.102     oshard-catalog-0.example.com    oshard-catalog-0
+${LOCAL_NETWORK}.103     oshard1-0.example.com           oshard1-0
+${LOCAL_NETWORK}.104     oshard2-0.example.com           oshard2-0
+${LOCAL_NETWORK}.105     oshard3-0.example.com           oshard3-0
+${LOCAL_NETWORK}.106     oshard4-0.example.com           oshard4-0
+${LOCAL_NETWORK}.101     oshard-gsm2.example.com         oshard-gsm2
+
+EOF
+"
+
+# Create required directries
+mkdir -p ${PODMANVOLLOC}/scripts
+chown -R 54321:54321 ${PODMANVOLLOC}/scripts
+chmod 755 ${PODMANVOLLOC}/scripts
+
+mkdir -p ${PODMANVOLLOC}/dbfiles/CATALOG
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/CATALOG
+
+mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL1CDB
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL1CDB
+mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL2CDB
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL2CDB
+mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL3CDB
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL3CDB
+mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL4CDB
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL4CDB
+
+mkdir -p ${PODMANVOLLOC}/dbfiles/GSMDATA
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSMDATA
+
+mkdir -p ${PODMANVOLLOC}/dbfiles/GSM2DATA
+chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM2DATA
+
+chmod 755 ${PODMANVOLLOC}/dbfiles/CATALOG
+chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL1CDB
+chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL2CDB
+chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL3CDB
+chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL4CDB
+chmod 755 ${PODMANVOLLOC}/dbfiles/GSMDATA
+chmod 755 ${PODMANVOLLOC}/dbfiles/GSM2DATA
+

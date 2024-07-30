@@ -25,31 +25,12 @@ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
 ## Complete the prerequisite steps
 
-Use the file [docker-compose-env-variables](./docker-compose-env-variables) to export the environment variables before running next steps:
+Use the file [docker-compose-prerequisites.sh](./docker-compose-prerequisites.sh) to export the environment variables, create the network host file and create required directories before running next steps:
 
 **NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images you want to use for the deployment.
 
 ```bash
 source docker-compose-env-variables
-```
-
-Use below steps to create a network host file:
-
-```bash
-  # Create file with Host IPs for containers
-    mkdir -p  /opt/containers
-    touch /opt/containers/shard_host_file
-    sh -c "cat << EOF > /opt/containers/shard_host_file
-    127.0.0.1        localhost.localdomain           localhost
-    ${LOCAL_NETWORK}.100     oshard-gsm1.example.com         oshard-gsm1
-    ${LOCAL_NETWORK}.102     oshard-catalog-0.example.com    oshard-catalog-0
-    ${LOCAL_NETWORK}.103     oshard1-0.example.com           oshard1-0
-    ${LOCAL_NETWORK}.104     oshard2-0.example.com           oshard2-0
-    ${LOCAL_NETWORK}.105     oshard3-0.example.com           oshard3-0
-    ${LOCAL_NETWORK}.106     oshard4-0.example.com           oshard4-0
-    ${LOCAL_NETWORK}.101     oshard-gsm2.example.com         oshard-gsm2
-EOF
-"
 ```
 
 Use below steps to create an encrypted password file:
@@ -73,36 +54,6 @@ chown 54321:54321 /opt/.secrets/key.pub
 chmod 400 /opt/.secrets/pwdfile.enc
 chmod 400 /opt/.secrets/key.pem
 chmod 400 /opt/.secrets/key.pub
-```
-
-
-Create required directories:
-
-```bash
-mkdir -p ${DOCKERVOLLOC}/scripts
-chown -R 54321:54321 ${DOCKERVOLLOC}/scripts
-chmod 755 ${DOCKERVOLLOC}/scripts
-
-mkdir -p ${DOCKERVOLLOC}/dbfiles/CATALOG
-chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/CATALOG
-
-mkdir -p ${DOCKERVOLLOC}/dbfiles/ORCL1CDB
-chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/ORCL1CDB
-mkdir -p ${DOCKERVOLLOC}/dbfiles/ORCL2CDB
-chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/ORCL2CDB
-
-mkdir -p ${DOCKERVOLLOC}/dbfiles/GSMDATA
-chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/GSMDATA
-
-mkdir -p ${DOCKERVOLLOC}/dbfiles/GSM2DATA
-chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/GSM2DATA
-
-
-chmod 755 ${DOCKERVOLLOC}/dbfiles/CATALOG
-chmod 755 ${DOCKERVOLLOC}/dbfiles/ORCL1CDB
-chmod 755 ${DOCKERVOLLOC}/dbfiles/ORCL2CDB
-chmod 755 ${DOCKERVOLLOC}/dbfiles/GSMDATA
-chmod 755 ${DOCKERVOLLOC}/dbfiles/GSM2DATA
 ```
 
 ## Create Docker Compose file 

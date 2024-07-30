@@ -30,110 +30,25 @@ dnf install podman-compose
 
 ## Complete the prerequisite steps
 
-Use the file [podman-compose-env-variables](./podman-compose-env-variables) to export the environment variables before running next steps:
+### Use below steps to create an encrypted password file:
+
+Complete steps to create podman secrets from [Password Management](../../container-files/podman-container-files/README.md). Same podman secrets are going to be used during Oracle Sharding Containers.
+
+### Prerequisites script file
+Use the script file [podman-compose-prequisites.sh](./podman-compose-prequisites.sh) to export the environment variables, create the network host file and create required directories before running next steps:
 
 **NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images you want to use for the deployment.
 
 ```bash
-source podman-compose-env-variables
-```
-
-Use below steps to create a network host file:
-
-```bash
-    mkdir -p  /opt/containers
-    rm -f /opt/containers/shard_host_file && touch /opt/containers/shard_host_file
-    sh -c "cat << EOF > /opt/containers/shard_host_file
-    127.0.0.1        localhost.localdomain           localhost
-    ${LOCAL_NETWORK}.100     oshard-gsm1.example.com         oshard-gsm1
-    ${LOCAL_NETWORK}.102     oshard-catalog-0.example.com    oshard-catalog-0
-    ${LOCAL_NETWORK}.103     oshard1-0.example.com           oshard1-0
-    ${LOCAL_NETWORK}.104     oshard2-0.example.com           oshard2-0
-    ${LOCAL_NETWORK}.105     oshard3-0.example.com           oshard3-0
-    ${LOCAL_NETWORK}.106     oshard4-0.example.com           oshard4-0
-    ${LOCAL_NETWORK}.101     oshard-gsm2.example.com         oshard-gsm2
-
-EOF
-"
-```
-
-Use below steps to create an encrypted password file:
-
-```bash
-rm -rf /opt/.secrets/
-mkdir /opt/.secrets/
-openssl genrsa -out /opt/.secrets/key.pem
-openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
-
-# Edit the file /opt/.secrets/pwdfile.txt to add the password string
-vi /opt/.secrets/pwdfile.txt
-
-# Encrypt the file having the password
-openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
-
-rm -f /opt/.secrets/pwdfile.txt
-
-podman secret create pwdsecret /opt/.secrets/pwdfile.enc
-podman secret create keysecret /opt/.secrets/key.pem
-```
-
-Create required directories:
-```bash
-mkdir -p ${PODMANVOLLOC}/scripts
-chown -R 54321:54321 ${PODMANVOLLOC}/scripts
-chmod 755 ${PODMANVOLLOC}/scripts
-
-mkdir -p ${PODMANVOLLOC}/dbfiles/CATALOG
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/CATALOG
-
-mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL1CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL1CDB
-mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL2CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL2CDB
-mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL3CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL3CDB
-mkdir -p ${PODMANVOLLOC}/dbfiles/ORCL4CDB
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/ORCL4CDB
-
-mkdir -p ${PODMANVOLLOC}/dbfiles/GSMDATA
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSMDATA
-
-mkdir -p ${PODMANVOLLOC}/dbfiles/GSM2DATA
-chown -R 54321:54321 ${PODMANVOLLOC}/dbfiles/GSM2DATA
-
-chmod 755 ${PODMANVOLLOC}/dbfiles/CATALOG
-chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL1CDB
-chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL2CDB
-chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL3CDB
-chmod 755 ${PODMANVOLLOC}/dbfiles/ORCL4CDB
-chmod 755 ${PODMANVOLLOC}/dbfiles/GSMDATA
-chmod 755 ${PODMANVOLLOC}/dbfiles/GSM2DATA
+source podman-compose-prequisites.sh
 ```
 
 ## SELinux Configuration Management for Podman Host
-If SELinux is enabled on podman-host then load the necessary `rac-podman` policy as explained in [SELinux Configuration on Podman Host](../container-files/podman-container-files/README.md#selinux-configuration-on-podman-host)
+If SELinux is enabled on podman-host then load the necessary `shard-podman` policy as explained in [SELinux Configuration on Podman Host](../container-files/podman-container-files/README.md#selinux-configuration-on-podman-host)
 
-Additionally, execute below command to set SELinux contexts for required files and folders-
+Additionally, execute below command to set SELinux contexts for required files and folders using the file [set-file-context.sh](./set-file-context.sh)
 ```bash
-files=(
-        "${PODMANVOLLOC}/dbfiles/CATALOG"
-        "/opt/containers/shard_host_file"
-        "${PODMANVOLLOC}/dbfiles/ORCL1CDB"
-        "${PODMANVOLLOC}/dbfiles/ORCL2CDB"
-        "${PODMANVOLLOC}/dbfiles/GSMDATA"
-        "${PODMANVOLLOC}/dbfiles/GSM2DATA"
-        "${PODMANVOLLOC}/dbfiles/ORCL3CDB"
-        "${PODMANVOLLOC}/dbfiles/ORCL4CDB"
-    )
-
-    # Check if SELinux is enabled (enforcing or permissive)
-    if grep -q '^SELINUX=enforcing' /etc/selinux/config || grep -q '^SELINUX=permissive' /etc/selinux/config; then
-        for file in "${files[@]}"; do
-            semanage fcontext -a -t container_file_t "$file"
-            restorecon -v "$file"
-        done
-        echo "SELinux is enabled. Updated file contexts."
-    fi
+source set-file-context.sh
 ```
 
 ## Create Podman Compose file
@@ -199,8 +114,7 @@ podman logs -f gsm2
 
 You can also use the `podman-compose` command to remove the deployment. To remove the deployment:
 
-- First export all the variables from the [Prerequisites Section](#complete-the-prerequisite-steps)
-- Execute the below command to remove the Oracle Sharding Containers and folders:
+- With the environment variables set in [Prerequisites Section](#complete-the-prerequisite-steps), execute the below command to remove the Oracle Sharding Containers and folders:
 
 ```bash
 podman-compose down
@@ -210,9 +124,10 @@ rm -rf ${PODMANVOLLOC}
 ## Oracle 23ai FREE Database and GSM Images
 
 In case you are going to use Oracle 23ai FREE Database and GSM Images for deploying the Oracle Globally Distributed Database, then you need to:
-- Use file [podman-compose-env-variables-free](./podman-compose-env-variables-free) to export the environment variables before running the above setup.
 
-**NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images you want to use for the deployment.
+- Use file [podman-compose-prequisites-free.sh](./podman-compose-prequisites-free.sh) as the prerequisites script file before running the above setup.
+
+**NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the Oracle 23ai FREE Images you want to use for the deployment.
 
 - Take the file [podman-compose-free.yml](./podman-compose-free.yml) and rename as `podman-compose.yml` to deploy the setup using `podman-compose` command.
 

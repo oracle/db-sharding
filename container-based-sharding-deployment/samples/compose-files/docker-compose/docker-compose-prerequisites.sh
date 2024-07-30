@@ -1,4 +1,6 @@
-# Variables to be exported before using docker-compose to deploy Globally Distributed Database using docker
+#!/bin/bash
+
+# Export the variables:
 export DOCKERVOLLOC='/scratch/oradata'
 export NETWORK_INTERFACE='ens3'
 export NETWORK_SUBNET="10.0.20.0/20"
@@ -66,3 +68,63 @@ export STANDBY_SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=O
 export STANDBY_SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"
 export STANDBY_SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby"
 export STANDBY_SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby"
+
+# Create file with Host IPs for containers
+mkdir -p  /opt/containers
+touch /opt/containers/shard_host_file
+sh -c "cat << EOF > /opt/containers/shard_host_file
+127.0.0.1        localhost.localdomain           localhost
+${LOCAL_NETWORK}.100     oshard-gsm1.example.com         oshard-gsm1
+${LOCAL_NETWORK}.102     oshard-catalog-0.example.com    oshard-catalog-0
+${LOCAL_NETWORK}.103     oshard1-0.example.com           oshard1-0
+${LOCAL_NETWORK}.104     oshard2-0.example.com           oshard2-0
+${LOCAL_NETWORK}.105     oshard3-0.example.com           oshard3-0
+${LOCAL_NETWORK}.106     oshard4-0.example.com           oshard4-0
+${LOCAL_NETWORK}.101     oshard-gsm2.example.com         oshard-gsm2
+EOF
+"
+
+# Create an encrypted password file. We have used password "Oracle_21c" here and used the location "/opt/.secrets" to create the encrypted password file:
+
+rm -rf /opt/.secrets/
+mkdir /opt/.secrets/
+openssl genrsa -out /opt/.secrets/key.pem
+openssl rsa -in /opt/.secrets/key.pem -out /opt/.secrets/key.pub -pubout
+echo Oracle_21c > /opt/.secrets/pwdfile.txt
+openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
+
+rm -f /opt/.secrets/pwdfile.txt
+chown 54321:54321 /opt/.secrets/pwdfile.enc
+chown 54321:54321 /opt/.secrets/key.pem
+chown 54321:54321 /opt/.secrets/key.pub
+chmod 400 /opt/.secrets/pwdfile.enc
+chmod 400 /opt/.secrets/key.pem
+chmod 400 /opt/.secrets/key.pub
+
+
+# Create required directories
+mkdir -p ${DOCKERVOLLOC}/scripts
+chown -R 54321:54321 ${DOCKERVOLLOC}/scripts
+chmod 755 ${DOCKERVOLLOC}/scripts
+
+mkdir -p ${DOCKERVOLLOC}/dbfiles/CATALOG
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/CATALOG
+
+mkdir -p ${DOCKERVOLLOC}/dbfiles/ORCL1CDB
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/ORCL1CDB
+mkdir -p ${DOCKERVOLLOC}/dbfiles/ORCL2CDB
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/ORCL2CDB
+
+mkdir -p ${DOCKERVOLLOC}/dbfiles/GSMDATA
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/GSMDATA
+
+mkdir -p ${DOCKERVOLLOC}/dbfiles/GSM2DATA
+chown -R 54321:54321 ${DOCKERVOLLOC}/dbfiles/GSM2DATA
+
+
+chmod 755 ${DOCKERVOLLOC}/dbfiles/CATALOG
+chmod 755 ${DOCKERVOLLOC}/dbfiles/ORCL1CDB
+chmod 755 ${DOCKERVOLLOC}/dbfiles/ORCL2CDB
+chmod 755 ${DOCKERVOLLOC}/dbfiles/GSMDATA
+chmod 755 ${DOCKERVOLLOC}/dbfiles/GSM2DATA
+
