@@ -1,6 +1,6 @@
-# Deploy Sharded Database with System Sharding using Podman Containers
+# Deploy Oracle Globally Distributed Database with System-Managed Sharding using Podman Containers
 
-This page covers the steps to manually deploy a sample Sharded Database with System Sharding using Podman Containers. 
+This page covers the steps to manually deploy a sample Oracle Globally Distributed Database with System-Managed Sharding using Podman Containers. 
 
 - [Setup Details](#setup-details)
 - [Prerequisites](#prerequisites)
@@ -17,16 +17,16 @@ This page covers the steps to manually deploy a sample Sharded Database with Sys
 - [Deploying Standby GSM Container](#deploying-standby-gsm-container)  
   - [Create Directory for Standby GSM Container](#create-directory-for-standby-gsm-container)
   - [Standby GSM Container](#standby-gsm-container)   
-- [Scale-out an existing Sharded Database](#scale-out-an-existing-sharded-database)
+- [Scale-out an existing Oracle Globally Distributed Database](#scale-out-an-existing-oracle-globally-distributed-database)
   - [Complete the prerequisite steps before creating Podman Container for new shard](#complete-the-prerequisite-steps-before-creating-podman-container-for-new-shard) 
   - [Create Podman Container for new shard](#create-podman-container-for-new-shard)
-  - [Add the new shard Database to the existing Sharded Database](#add-the-new-shard-database-to-the-existing-sharded-database)
+  - [Add the new shard Database to the existing Oracle Globally Distributed Database](#add-the-new-shard-database-to-the-existing-oracle-globally-distributed-database)
   - [Deploy the new shard](#deploy-the-new-shard)
-- [Scale-in an existing Sharded Database](#scale-in-an-existing-sharded-database)
-  - [Confirm the shard to be deleted is present in the list of shards in the Sharded Database](#confirm-the-shard-to-be-deleted-is-present-in-the-list-of-shards-in-the-sharded-database)
+- [Scale-in an existing Oracle Globally Distributed Database](#scale-in-an-existing-oracle-globally-distributed-database)
+  - [Confirm the shard to be deleted is present in the list of shards in the Oracle Globally Distributed Database](#confirm-the-shard-to-be-deleted-is-present-in-the-list-of-shards-in-the-oracle-globally-distributed-database)
   - [Move the chunks out of the shard database which you want to delete](#move-the-chunks-out-of-the-shard-database-which-you-want-to-delete)
-  - [Delete the shard database from the Sharded Database](#delete-the-shard-database-from-the-sharded-database)
-  - [Confirm the shard has been successfully deleted from the Sharded database](#confirm-the-shard-has-been-successfully-deleted-from-the-sharded-database) 
+  - [Delete the shard database from the Oracle Globally Distributed Database](#delete-the-shard-database-from-the-oracle-globally-distributed-database)
+  - [Confirm the shard has been successfully deleted from the Oracle Globally Distributed Database](#confirm-the-shard-has-been-successfully-deleted-from-the-oracle-globally-distributed-database) 
   - [Remove the Podman Container](#remove-the-podman-container)
 - [Environment Variables Explained](#environment-variables-explained)
 - [Support](#support)
@@ -45,21 +45,21 @@ This setup initially involves deploying podman containers for:
 
 **NOTE:** You can use Oracle 21c or Oracle 23ai RDBMS and GSM Podman Images for this sample deployment. 
 
-**NOTE:** In the current Sample Sharded Database Deployment, we have used Oralce 23ai RDBMS and GSM Podman Images.
+**NOTE:** In the current Sample Oracle Globally Distributed Database Deployment, we have used Oralce 23ai RDBMS and GSM Podman Images.
 
 ## Prerequisites
 
-Before using this page to create a sample sharded database, please complete the prerequisite steps mentioned in [Oracle Sharding Containers on Podman](./README.md#prerequisites)
+Before using this page to create a sample Oracle Globally Distributed Database, please complete the prerequisite steps mentioned in [Oracle Globally Distributed Database Containers on Podman](./README.md#prerequisites)
 
 Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers for the deployment:
 
 ## Deploying Catalog Container
 
-The shard catalog is a special-purpose Oracle Database that is a persistent store for SDB configuration data and plays a key role in the automated deployment and centralized management of a sharded database. It also hosts the gold schema of the application and the master copies of common reference data (duplicated tables)
+The shard catalog is a special-purpose Oracle Database that is a persistent store for SDB configuration data and plays a key role in the automated deployment and centralized management of an Oracle Globally Distributed Database. It also hosts the gold schema of the application and the master copies of common reference data (duplicated tables)
 
 ### Create Directory
 
-You need to create mountpoint on the podman host to save datafiles for Oracle Sharding Catalog DB and expose as a volume to catalog container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this sample Sharded Database, we used `/scratch/oradata/dbfiles/CATALOG` directory and exposed as volume to catalog container.
+You need to create mountpoint on the podman host to save datafiles for Oracle Sharding Catalog DB and expose as a volume to catalog container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this sample Oracle Globally Distributed Database, we used `/scratch/oradata/dbfiles/CATALOG` directory and exposed as volume to catalog container.
 
 ```bash
 mkdir -p /scratch/oradata/dbfiles/CATALOG
@@ -78,8 +78,8 @@ Before creating catalog container, review the following notes carefully:
 **Notes:**
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/CATALOG based on your enviornment.
-* By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:23.4.0-ee` to `--name catalog oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:23.4.0-ee` to `--name catalog oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, /scratch/oradata/dbfiles/CATALOG must contain the DB backup and it must not be in zipped format. E.g. /scratch/oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.
 * If SELinux is enabled on podman host, then execute following-
   ```bash
@@ -126,7 +126,7 @@ podman logs -f catalog
 
 ## Deploying Shard Containers
 
-A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on podman host to save datafiles for Oracle Sharding DB and expose as a volume to shard container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /scratch/oradata/dbfiles/ORCL1CDB directory and exposed as volume to shard container.
+A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on podman host to save datafiles for Oracle Globally Distributed Database and expose as a volume to shard container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /scratch/oradata/dbfiles/ORCL1CDB directory and exposed as volume to shard container.
 
 ### Create Directories
 
@@ -157,8 +157,8 @@ Before creating shard1 container, review the following notes carefully:
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/ORCL1CDB based on your environment.
-* By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:23.4.0-ee` to `--name shard1 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:23.4.0-ee` to `--name shard1 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -199,8 +199,8 @@ Before creating shard1 container, review the following notes carefully:
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/ORCL2CDB based on your environment.
-* By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:23.4.0-ee` to `--name shard2 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:23.4.0-ee` to `--name shard2 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -353,16 +353,16 @@ podman logs -f gsm2
 ==============================================
 ```
 
-## Scale-out an existing Sharded Database
+## Scale-out an existing Oracle Globally Distributed Database
 
-If you want to Scale-Out an existing Sharded Database already deployed using the Podman Containers, then you will to complete the steps in below order:
+If you want to Scale-Out an existing Oracle Globally Distributed Database already deployed using the Podman Containers, then you will to complete the steps in below order:
 
-- Complete the prerequisite steps before creating the Podman Container for the new shard to be added to the Sharded Database
+- Complete the prerequisite steps before creating the Podman Container for the new shard to be added to the Oracle Globally Distributed Database
 - Create the Podman Container for the new shard
-- Add the new shard Database to the existing Sharded Database
+- Add the new shard Database to the existing Oracle Globally Distributed Database
 - Deploy the new shard
 
-The below example covers the steps to add a `new shard (shard3)` to an existing Sharded Database which was deployed earlier in this page with `two shards (shard1 and shard2)`.
+The below example covers the steps to add a `new shard (shard3)` to an existing Oracle Globally Distributed Database which was deployed earlier in this page with `two shards (shard1 and shard2)`.
 
 ### Complete the prerequisite steps before creating Podman Container for new shard
 
@@ -391,8 +391,8 @@ Before creating new shard (shard3 in this case) container, review the following 
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/ORCL3CDB based on your environment.
-* By default, sharding setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the sharding setup using existing cold DB backup, you need to replace following `--name shard3 oracle/database:23.4.0-ee` to `--name shard3 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name shard3 oracle/database:23.4.0-ee` to `--name shard3 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL3CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL3CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -430,7 +430,7 @@ podman logs -f shard3
 ==============================================
 ```
 
-### Add the new shard Database to the existing Sharded Database
+### Add the new shard Database to the existing Oracle Globally Distributed Database
 
 Use the below command to add the new shard3:
 ```bash
@@ -474,17 +474,17 @@ orcl3cdb_orcl3pdb             201       240
 
 **NOTE:** The chunks redistribution after deploying the new shard may take some time to complete.
 
-## Scale-in an existing Sharded Database
+## Scale-in an existing Oracle Globally Distributed Database
 
-If you want to Scale-in an existing Sharded Database by removing a particular shard database out of the existing shard databases, then you will to complete the steps in below order:
+If you want to Scale-in an existing Oracle Globally Distributed Database by removing a particular shard database out of the existing shard databases, then you will to complete the steps in below order:
 
-- Confirm the shard to be deleted is present in the list of shards in the Sharded Database
+- Confirm the shard to be deleted is present in the list of shards in the Oracle Globally Distributed Database
 - Move the chunks out of the shard database which you want to delete
-- Delete the shard database from the Sharded Database
-- Confirm the shard has been successfully deleted from the Sharded database
+- Delete the shard database from the Oracle Globally Distributed Database
+- Confirm the shard has been successfully deleted from the Oracle Globally Distributed Database
 
 
-### Confirm the shard to be deleted is present in the list of shards in the Sharded Database
+### Confirm the shard to be deleted is present in the list of shards in the Oracle Globally Distributed Database
 
 Use the below commands to check the status of the shard which you want to delete and status of chunks present in this shard:
 ```bash
@@ -502,7 +502,7 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 ### Move the chunks out of the shard database which you want to delete
 
-In the current example, if you want to delete the shard3 database from the Sharded Database, then you need to use the below command to move the chunks out of shard3 database:
+In the current example, if you want to delete the shard3 database from the Oracle Globally Distributed Database, then you need to use the below command to move the chunks out of shard3 database:
 
 ```bash
 podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --movechunks="shard_db=ORCL3CDB;shard_pdb=ORCL3PDB"
@@ -519,7 +519,7 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 **NOTE:** You will need to wait for some time for all the chunks to move out of the shard database which you want to delete. If the chunks are still moving out, you can rerun the above command to check the status after some time.
 
 
-### Delete the shard database from the Sharded Database
+### Delete the shard database from the Oracle Globally Distributed Database
 
 Once you have confirmed that no chunk is present in the shard to be deleted in earlier step, you can use the below command to delete that shard(shard4 in this case):
 
@@ -530,9 +530,9 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py  --dele
 **NOTE:** In this case, `oshard3-0`, `ORCL3CDB` and `ORCL3PDB` are the names of host, CDB and PDB for the shard3 respectively.
 
 
-### Confirm the shard has been successfully deleted from the Sharded database
+### Confirm the shard has been successfully deleted from the Oracle Globally Distributed Database
 
-Once the shard is deleted from the Sharded Database, use the below commands to check the status of the shards and chunk distribution in the sharded database:
+Once the shard is deleted from the Oracle Globally Distributed Database, use the below commands to check the status of the shards and chunk distribution in the Oracle Globally Distributed Database:
 
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
@@ -547,7 +547,7 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 ### Remove the Podman Container
 
-Once the shard is deleted from the Sharded Database, you can remove the Podman Container which was deployed earlier for the deleted shard database. 
+Once the shard is deleted from the Oracle Globally Distributed Database, you can remove the Podman Container which was deployed earlier for the deleted shard database. 
 
 If the deleted shard was "shard3", to remove its Podman Container, please use the below steps:
 
@@ -603,13 +603,13 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 
 ## Support
 
-Oracle GSM and Sharding Database on Docker is supported on Oracle Linux 7. 
-Oracle 23ai GSM and Sharding Database on Podman is supported on Oracle Linux 8 and onwards.
+Oracle Globally Distributed Database on Docker is supported on Oracle Linux 7. 
+Oracle Globally Distributed Database on Podman is supported on Oracle Linux 8 and onwards.
 
 
 ## License
 
-To download and run Oracle GSM and Sharding Database, regardless whether inside or outside a Container, ensure to download the binaries from the Oracle website and accept the license indicated at that page.
+To run Oracle Globally Distributed Database, regardless whether inside or outside a Container, ensure to download the binaries from the Oracle website and accept the license indicated at that page.
 
 All scripts and files hosted in this project and GitHub docker-images/OracleDatabase repository required to build the Docker and Podman images are, unless otherwise noted, released under UPL 1.0 license.
 

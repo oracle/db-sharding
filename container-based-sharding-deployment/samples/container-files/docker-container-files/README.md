@@ -1,6 +1,6 @@
-# Oracle Sharding Containers on Docker
+# Oracle Globally Distributed Database Containers on Docker
 
-Docker is used on Oracle Linux 7 Host Machines to create containers. This page provides the details to manually create the docker containers to deploy a Sharded Database.
+Docker is used on Oracle Linux 7 Host Machines to create containers. This page provides the details to manually create the docker containers to deploy an Oracle Globally Distributed Database.
 
 - [Prerequisites](#prerequisites)
   - [Create Network Bridge](#create-network-bridge)
@@ -10,8 +10,8 @@ Docker is used on Oracle Linux 7 Host Machines to create containers. This page p
   - [Setup Hostfile](#setup-hostfile)
   - [Password Setup](#password-setup)
   - [Create Containers](#create-containers)
-    - [Deploy Sharded Database with System Sharding](#deploy-sharded-database-with-system-sharding)
-    - [Deploy Sharded Database with User Defined Sharding](#deploy-sharded-database-with-user-defined-sharding)
+    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding](#deploy-oracle-globally-distributed-database-with-system-managed-sharding)
+    - [Deploy Oracle Globally Distributed Database with User-Defined Sharding](#deploy-oracle-globally-distributed-database-with-user-defined-sharding)
 - [Support](#support)
 - [License](#license)
 - [Copyright](#copyright)
@@ -20,7 +20,7 @@ Docker is used on Oracle Linux 7 Host Machines to create containers. This page p
 
 ## Prerequisites
 
-This section provides the prerequisite steps to be completed before deploying an Oracle Sharded Database using Docker Containers. In involves the docker network creation, creation of encrypted file with secrets etc. 
+This section provides the prerequisite steps to be completed before deploying an Oracle Globally Distributed Database using Docker Containers. In involves the docker network creation, creation of encrypted file with secrets etc. 
 
 
 ### Create Network Bridge
@@ -105,19 +105,19 @@ chmod 400 /opt/.secrets/key.pem
 chmod 400 /opt/.secrets/key.pub
 ```
 
-This password key is being used for initial sharding topology setup. Once the sharding topology setup is completed, user must change the sharding topology passwords based on his enviornment.
+This password key is being used for initial Oracle Globally Distributed Database topology setup. Once the Oracle Globally Distributed Database topology setup is completed, user must change the topology passwords based on his environment.
 
 ## Create Containers
 
-Refer to the relevant section depending on whether you want to deploy the Sharded Database using System Sharding or User Defined Sharding.
+Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding or User-Defined Sharding.
 
-### Deploy Sharded Database with System Sharding
+### Deploy Oracle Globally Distributed Database with System Sharding
 
-Refer to [Sample Sharded Database with System Sharding deployed manually using Docker Containers](./docker-sharded-database-with-system-sharding.md) to deploy a sample sharded database with system sharding using docker containers.
+Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding deployed manually using Docker Containers](./docker-sharded-database-with-system-sharding.md) to deploy a sample Oracle Globally Distributed Database with system-managed sharding using docker containers.
 
-### Deploy Sharded Database with User Defined Sharding
+### Deploy Oracle Globally Distributed Database with User-Defined Sharding
 
-Refer to [Sample Sharded Database with User Defined Sharding deployed manually using Docker Containers](./docker-sharded-database-with-user-defined-sharding.md) to deploy a sample sharded database with User Defined sharding using docker containers.
+Refer to [Sample Oracle Globally Distributed Database with User-Defined Sharding deployed manually using Docker Containers](./docker-sharded-database-with-user-defined-sharding.md) to deploy a sample Oracle Globally Distributed Database with User-Defined sharding using docker containers.
 
 
 ## Support

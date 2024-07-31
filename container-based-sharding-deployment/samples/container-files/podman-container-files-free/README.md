@@ -1,7 +1,7 @@
-# Oracle Globally Distributed Database Containers on Podman
+# Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman
 
-In this installation guide, we deploy Oracle Globally Distributed Database Containers on Podman. This page provides detailed steps for various scenarios of Oracle Globally Distributed Database deployments using Podman Containers.
-- [Oracle Globally Distributed Database Containers on Podman](#oracle-globally-distributed-database-containers-on-podman)
+In this installation guide, we deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman. This page provides detailed steps for various scenarios of Oracle Globally Distributed Database deployments using Oracle Database FREE Images using Podman Containers.
+- [Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman](#oracle-globally-distributed-database-containers-using-oracle-database-free-images-on-podman)
   - [Prerequisites](#prerequisites)
   - [Network Management](#network-management)
     - [Macvlan Network](#macvlan-network)
@@ -10,10 +10,10 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
   - [Setup Hostfile](#setup-hostfile)
   - [Password Management](#password-management)
   - [SELinux Configuration on Podman Host](#selinux-configuration-on-podman-host)
-  - [Deploy Oracle Globally Distributed Database Containers](#deploy-oracle-globally-distributed-database-containers)
-    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding](#deploy-oracle-globally-distributed-database-with-system-managed-sharding)
-    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-with-raft-replication-enabled)
-    - [Deploy Oracle Globally Distributed Database with User-Defined Sharding](#deploy-oracle-globally-distributed-database-with-user-defined-sharding)
+  - [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-containers)
+    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-using-oracle-database-free-images)
+    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-with-raft-replication-enabled-using-oracle-database-free-images)
+    - [Deploy Oracle Globally Distributed Database with User-Defined Sharding using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-user-defined-sharding-using-oracle-database-free-images)
 - [Support](#support)
 - [License](#license)
 - [Copyright](#copyright)
@@ -22,12 +22,12 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
 
 ## Prerequisites
 
-This section provides the prerequisite steps to be completed before deploying an Oracle Globally Distributed Database using Podman Containers. In involves the podman network creation, creation of encrypted file with secrets etc. 
+This section provides the prerequisite steps to be completed before deploying an Oracle Globally Distributed Database using Podman Containers using Oracle Database FREE Images. In involves the podman network creation, creation of encrypted file with secrets etc. 
 
 
 ### Network Management
 
-Before creating a container, create the podman network by creating podman network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md then you can use the same IPs mentioned in [Deploy Oracle Globally Distributed Database Containers](#create-containers) section.
+Before creating a container, create the podman network by creating podman network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md then you can use the same IPs mentioned in [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#create-containers) section.
 
 #### Macvlan Network
 
@@ -133,24 +133,24 @@ make -f /usr/share/selinux/devel/Makefile shard-podman.pp
 semodule -i shard-podman.pp
 semodule -l | grep shard-pod
 ```
-## Deploy Oracle Globally Distributed Database Containers
+## Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images
 
 Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding, System-Managed Sharding with RAFT Replication enabled or User-Defined Sharding.
 
-### Deploy Oracle Globally Distributed Database with System-Managed Sharding
+### Deploy Oracle Globally Distributed Database with System-Managed Sharding using Oracle Database FREE Images
 
-Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding using podman containers.
+Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding deployed manually using Podman Containers and Oracle Database FREE Images](./podman-sharded-database-free-with-system-sharding.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding using podman containers and Oracle Database FREE Images.
 
 
-### Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication Enabled
+### Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication Enabled using Oracle Database FREE Images
 
-Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding with RAFT Replication enabled using podman containers.
+Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled deployed manually using Podman Containers and Oracle Database FREE Images](./podman-sharded-database-free-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding with RAFT Replication enabled using podman containers and Oracle Database FREE Images.
 
 **NOTE:** RAFT Replication Feature is available only for Oracle 23ai RDBMS and Oracle 23ai GSM version.
 
-### Deploy Oracle Globally Distributed Database with User-Defined Sharding
+### Deploy Oracle Globally Distributed Database with User-Defined Sharding using Oracle Database FREE Images
 
-Refer to [Sample Oracle Globally Distributed Database with User-Defined Sharding deployed manually using Podman Containers](./podman-sharded-database-with-user-defined-sharding.md) to deploy a sample Oracle Globally Distributed Database with User-Defined sharding using Podman containers.
+Refer to [Sample Oracle Globally Distributed Database with User-Defined Sharding deployed manually using Podman Containers and Oracle Database FREE Images](./podman-sharded-database-free-with-user-defined-sharding.md) to deploy a sample Oracle Globally Distributed Database with User-Defined sharding using Podman containers and Oracle Database FREE Images.
 
 
 ## Support
