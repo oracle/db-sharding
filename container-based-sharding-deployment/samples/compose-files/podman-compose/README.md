@@ -30,9 +30,9 @@ dnf install podman-compose
 
 ## Complete the prerequisite steps
 
-### Use below steps to create an encrypted password file:
+### Create Podman Secrets
 
-Complete steps to create podman secrets from [Password Management](../../container-files/podman-container-files/README.md). Same podman secrets are going to be used during Oracle Sharding Containers.
+Complete steps to create podman secrets from [Password Management](../../container-files/podman-container-files/README.md#password-management). Same podman secrets are going to be used during Oracle Sharding Containers.
 
 ### Prerequisites script file
 Use the script file [podman-compose-prequisites.sh](./podman-compose-prequisites.sh) to export the environment variables, create the network host file and create required directories before running next steps:

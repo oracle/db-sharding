@@ -10,6 +10,7 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
   - [Setup Hostfile](#setup-hostfile)
   - [Password Management](#password-management)
   - [SELinux Configuration on Podman Host](#selinux-configuration-on-podman-host)
+  - [Oracle Database FREE Images](#oracle-database-free-images)
   - [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-containers)
     - [Deploy Oracle Globally Distributed Database with System-Managed Sharding using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-using-oracle-database-free-images)
     - [Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-with-raft-replication-enabled-using-oracle-database-free-images)
@@ -133,6 +134,17 @@ make -f /usr/share/selinux/devel/Makefile shard-podman.pp
 semodule -i shard-podman.pp
 semodule -l | grep shard-pod
 ```
+
+## Oracle Database FREE Images
+
+While using Oracle Database FREE Images, you need to consider the following:
+
+- There is a limit of 2 CPUs for foreground processes, 2 GB of RAM and 12 GB of user data on disk.
+- Total number of chunks for FREE Database defaults to 12 if `CATALOG_CHUNKS` value is not specified. This default value is determined considering limitation of 12 GB of user data on disk for oracle free database.
+- `INIT_SGA_SIZE` and `INIT_PGA_SIZE` to control the SGA and PGA allocation at the database level are not supported.
+- Provisioning the Sharded Database using Cloning from Database Gold Image is NOT supported with Oracle Database Free Image.
+
+
 ## Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images
 
 Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding, System-Managed Sharding with RAFT Replication enabled or User-Defined Sharding.

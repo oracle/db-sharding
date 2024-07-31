@@ -14,10 +14,21 @@ This page covers the steps to manually deploy a sample Oracle Globally Distribut
   - [Shard3 Container](#shard3-container)
 - [Deploying GSM Container](#deploying-gsm-container)
   - [Create Directory for Master GSM Container](#create-directory-for-master-gsm-container)
-  - [Create Master GSM Container](#create-master-gsm-container)
+  - [Master GSM Container](#master-gsm-container)
 - [Deploying Standby GSM Container](#deploying-standby-gsm-container)  
   - [Create Directory for Standby GSM Container](#create-directory-for-standby-gsm-container)
-  - [Create Standby GSM Container](#create-standby-gsm-container)
+  - [Standby GSM Container](#standby-gsm-container)   
+- [Scale-out an existing Oracle Globally Distributed Database](#scale-out-an-existing-oracle-globally-distributed-database)
+  - [Complete the prerequisite steps before creating Podman Container for new shard](#complete-the-prerequisite-steps-before-creating-podman-container-for-new-shard) 
+  - [Create Podman Container for new shard](#create-podman-container-for-new-shard)
+  - [Add the new shard Database to the existing Oracle Globally Distributed Database](#add-the-new-shard-database-to-the-existing-oracle-globally-distributed-database)
+  - [Deploy the new shard](#deploy-the-new-shard)
+- [Scale-in an existing Oracle Globally Distributed Database](#scale-in-an-existing-oracle-globally-distributed-database)
+  - [Confirm the shard to be deleted is present in the list of shards in the Oracle Globally Distributed Database](#confirm-the-shard-to-be-deleted-is-present-in-the-list-of-shards-in-the-oracle-globally-distributed-database)
+  - [Move the chunks out of the shard database which you want to delete](#move-the-chunks-out-of-the-shard-database-which-you-want-to-delete)
+  - [Delete the shard database from the Oracle Globally Distributed Database](#delete-the-shard-database-from-the-oracle-globally-distributed-database)
+  - [Confirm the shard has been successfully deleted from the Oracle Globally Distributed Database](#confirm-the-shard-has-been-successfully-deleted-from-the-oracle-globally-distributed-database) 
+  - [Remove the Podman Container](#remove-the-podman-container)
 - [Environment Variables Explained](#environment-variables-explained)
 - [Support](#support)
 - [License](#license)
@@ -82,23 +93,25 @@ Before creating catalog container, review the following notes carefully:
 
 ```bash
 podman run -d --hostname oshard-catalog-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.102 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=CATCDB \
- -e ORACLE_PDB=CAT1PDB \
- -e OP_TYPE=catalog \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name catalog container-registry.oracle.com/database/free:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.102 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=FREE \
+-e ORACLE_PDB=FREEPDB1 \
+-e ORACLE_FREE_PDB=CAT1PDB \
+-e DB_UNIQUE_NAME=CATCDB \
+-e OP_TYPE=catalog \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name catalog container-registry.oracle.com/database/free:latest
 ```
 
 To check the catalog container/services creation logs, please tail podman logs. It will take 20 minutes to create the catalog container service.
@@ -156,23 +169,25 @@ Before creating shard1 container, review the following notes carefully:
 
 ```bash
 podman run -d --hostname oshard1-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.103 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL1CDB \
- -e ORACLE_PDB=ORCL1PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name shard1 container-registry.oracle.com/database/free:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.103 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=FREE \
+-e ORACLE_PDB=FREEPDB1 \
+-e ORACLE_FREE_PDB=ORCL1PDB \
+-e DB_UNIQUE_NAME=ORCL1CDB \
+-e OP_TYPE=primaryshard \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard1 container-registry.oracle.com/database/free:latest
 ```
 
 To check the shard1 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard1 container service.
@@ -193,23 +208,25 @@ Before creating shard1 container, review the following notes carefully:
 
 ```bash
 podman run -d --hostname oshard2-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.104 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL2CDB \
- -e ORACLE_PDB=ORCL2PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name shard2 container-registry.oracle.com/database/free:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.104 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=FREE \
+-e ORACLE_PDB=FREEPDB1 \
+-e ORACLE_FREE_PDB=ORCL2PDB \
+-e DB_UNIQUE_NAME=ORCL2CDB \
+-e OP_TYPE=primaryshard \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard2 container-registry.oracle.com/database/free:latest
 ```
 
 To check the shard2 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard2 container service
@@ -236,23 +253,25 @@ Before creating shard1 container, review the following notes carefully:
 
 ```bash
 podman run -d --hostname oshard3-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.105 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL3CDB \
- -e ORACLE_PDB=ORCL3PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name shard3 container-registry.oracle.com/database/free:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.105 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=FREE \
+-e ORACLE_PDB=FREEPDB1 \
+-e ORACLE_FREE_PDB=ORCL3PDB \
+-e DB_UNIQUE_NAME=ORCL3CDB \
+-e OP_TYPE=primaryshard \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard3 container-registry.oracle.com/database/free:latest
 ```
 
 To check the shard3 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard3 container service
@@ -289,28 +308,29 @@ restorecon -v /scratch/oradata/dbfiles/GSMDATA
 
 ```bash
 podman run -d --hostname oshard-gsm1 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.100 \
- -e DOMAIN=example.com \
- -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
- -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
- -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=30;repl_type=Native" \
- -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
- -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
- -e COMMON_OS_PWD_FILE=pwdfile.enc \
- -e PWD_KEY=key.pem \
- -e SHARD_SETUP="true" \
- -v /scratch/oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --volume /opt/.secrets:/run/secrets:ro \
- -e OP_TYPE=gsm \
- -e MASTER_GSM="TRUE" \
- --privileged=false \
- --name gsm1 container-registry.oracle.com/database/gsm:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.100 \
+-e DOMAIN=example.com \
+-e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
+-e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=primary;group_region=region1" \
+-e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=12;repl_type=Native" \
+-e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
+-e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
+-e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" \
+-e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
+-e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+-e SHARD_SETUP="true" \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e OP_TYPE=gsm \
+-e MASTER_GSM="TRUE" \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name gsm1 container-registry.oracle.com/database/gsm:latest
 ```
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, PRIMARY_SHARD_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
@@ -341,27 +361,28 @@ restorecon -v /scratch/oradata/dbfiles/GSM2DATA
 
 ```bash
 podman run -d --hostname oshard-gsm2 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.101 \
- -e DOMAIN=example.com \
- -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
- -e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=active_standby;group_region=region2" \
- -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=30;repl_type=Native" \
- -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"  \
- -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
- -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
- -e CATALOG_SETUP="True" \
- -e COMMON_OS_PWD_FILE=pwdfile.enc \
- -e PWD_KEY=key.pem \
- -v /scratch/oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --volume /opt/.secrets:/run/secrets:ro \
- -e OP_TYPE=gsm \
- --privileged=false \
- --name gsm2 container-registry.oracle.com/database/gsm:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.101 \
+-e DOMAIN=example.com \
+-e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
+-e SHARD1_GROUP_PARAMS="group_name=shardgroup1;deploy_as=standby;group_region=region2" \
+-e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;catalog_chunks=12;repl_type=Native" \
+-e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
+-e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
+-e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" \
+-e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
+-e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+-e CATALOG_SETUP="True" \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e OP_TYPE=gsm \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name gsm2 container-registry.oracle.com/database/gsm:latest
 ```
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
@@ -422,23 +443,26 @@ Before creating new shard (shard4 in this case) container, review the following 
 
 ```bash
 podman run -d --hostname oshard4-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.106 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL4CDB \
- -e ORACLE_PDB=ORCL4PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/ORCL4CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name shard4 container-registry.oracle.com/database/free:latest
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.106 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=FREE \
+-e ORACLE_PDB=FREEPDB1 \
+-e ORACLE_FREE_PDB=ORCL4PDB \
+-e DB_UNIQUE_NAME=ORCL4CDB \
+-e OP_TYPE=primaryshard \
+-e SHARD_SETUP="true" \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/ORCL4CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard4 container-registry.oracle.com/database/free:latest
 ```
 
 To check the shard4 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard4 container service.
@@ -465,12 +489,6 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --addsh
 Use the below command to check the status of the newly added shard:
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
-Name                Shard Group         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl3cdb_orcl3pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl4cdb_orcl4pdb   shardgroup1         U         none        region1  
 ```
 
 ### Deploy the new shard
@@ -485,13 +503,6 @@ Use the below command to check the status of the newly added shard and the chunk
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
 
-Name                Shard Group         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl3cdb_orcl3pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl4cdb_orcl4pdb   shardgroup1         Ok        Deployed    region1   ONLINE 
-
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
 
@@ -499,10 +510,10 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 ## Scale-in an existing Oracle Globally Distributed Database
 
-If you want to Scale-in an existing Oracle Globally Distributed Database by removing a particular shard database out of the existing shard databases, then you will to complete the steps in below order:
+If you want to Scale-in an existing Oracle Globally Distributed Database by removing a particular shard database out of the existing shard databases, then you will need to complete the steps in below order:
 
 - Confirm the shard to be deleted is present in the list of shards in the Oracle Globally Distributed Database
-- Move the chunks out of the shard database which you want to delete
+- Move the chunks out of the shard database which you want to delete. In this case, the chunks will be moved automatically during delete operation.
 - Delete the shard database from the Oracle Globally Distributed Database
 - Confirm the shard has been successfully deleted from the Oracle Globally Distributed Database
 
@@ -535,12 +546,6 @@ Once the shard is deleted from the Oracle Globally Distributed Database, use the
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
 
-Name                Shard Group         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl3cdb_orcl3pdb   shardgroup1         Ok        Deployed    region1   ONLINE 
-
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
 
@@ -570,8 +575,10 @@ rm -rf /scratch/oradata/dbfiles/ORCL4CDB
 | PWD_KEY                    | Specify the podman secret for the password key file to decrypt the encrypted password file and read the password | Mandatory          |
 | OP_TYPE                    | Specify the operation type. For shards, it has to be set to primaryshard or standbyshard                         | Mandatory          |
 | DOMAIN                     | Specify the domain name                                                                                        | Mandatory          |
-| ORACLE_SID                 | CDB name                                                                                                       | Mandatory          |
-| ORACLE_PDB                 | PDB name                                                                                                       | Mandatory          |
+| ORACLE_SID                 | CDB name which has to be "FREE" for Oracle Database FREE                                                       | Mandatory          |
+| ORACLE_PDB                 | PDB name which has to be "FREEPDB1" for Oracle Database FREE                                                   | Mandatory          |
+| ORACLE_FREE_PDB            | PDB name which you want to create for the setup                                                                | Mandatory          |
+| DB_UNIQUE_NAME             | DB_UNIQUE_NAME name which you want to set                                                                      | Mandatory          |
 | CUSTOM_SHARD_SCRIPT_DIR    | Specify the location of custom scripts which you want to run after setting up shard setup.                     | Optional           |
 | CUSTOM_SHARD_SCRIPT_FILE   | Specify the file name that must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after shard db setup. | Optional           |
 | CLONE_DB                   | Specify value "true" if you want to avoid db creation and clone it from cold backup of existing Oracle DB. This DB must not have shard setup. Shard script will look for the backup at /opt/oracle/oradata. | Optional           |
