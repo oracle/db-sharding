@@ -5,8 +5,8 @@
 | PODMANVOLLOC                   | Location of podman volume for storing Database Files                                                 | /scratch/oradata   |
 | NETWORK_INTERFACE              | Network interface name on host machines                                                              | ens3               |
 | NETWORK_SUBNET                 | Network subnet                                                                                       | 10.0.20.0/20       |
-| SIDB_IMAGE                     | Podman Image with sharding extension for SIDB container                                              | oracle/database-ext-sharding:23.4.0-ee |
-| GSM_IMAGE                      | Podman Image for GSM container                                                                       | oracle/database-gsm:23.4.0 |
+| SIDB_IMAGE                     | Podman Image with sharding extension for SIDB container                                              | oracle/database-ext-sharding:23.5.0-ee |
+| GSM_IMAGE                      | Podman Image for GSM container                                                                       | oracle/database-gsm:23.5.0 |
 | LOCAL_NETWORK                  | Local network address                                                                                | 10.0.20            |
 | healthcheck_interval           | Interval for health check                                                                            | 30s                |
 | healthcheck_timeout            | Timeout for health check                                                                             | 3s                 |

@@ -46,10 +46,10 @@ It uses Oracle Globally Distributed Database Container Image and bridge network 
   ```bash
   # podman images
   REPOSITORY                                               TAG                 IMAGE ID      CREATED       SIZE
-  localhost/oracle/database-ext-sharding                   23.4.0-ee           1c17b71b710e  21 hours ago  7.06 GB
-  localhost/oracle/database                                23.4.0-ee           ee6a794351a0  22 hours ago  6.74 GB
-  localhost/oracle/gsm                                     23.4.0              8721eee1dbba  23 hours ago  2.14 GB
-  localhost/oracle/database                                23.4.0-ee-base      b40d790f3224  8 days ago    339 MB
+  localhost/oracle/database-ext-sharding                   23.5.0-ee           1c17b71b710e  21 hours ago  7.06 GB
+  localhost/oracle/database                                23.5.0-ee           ee6a794351a0  22 hours ago  6.74 GB
+  localhost/oracle/gsm                                     23.5.0              8721eee1dbba  23 hours ago  2.14 GB
+  localhost/oracle/database                                23.5.0-ee-base      b40d790f3224  8 days ago    339 MB
   ```
 ## Networking in Oracle Globally Distributed Database Podman Container Environment
 - In this Quick Start, we will create below subnets for Oracle Globally Distributed Database Podman Container Environment-  
@@ -182,13 +182,13 @@ You can validate if the environment is setup properly by running the below comma
 ```bash
 # podman ps -a
 CONTAINER ID  IMAGE                                             COMMAND               CREATED         STATUS         PORTS       NAMES
-181a4215b517  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  22 minutes ago  Up 22 minutes              catalog
-2b5ade918112  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  18 minutes ago  Up 18 minutes              shard1
-f4943c6d67ce  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  15 minutes ago  Up 15 minutes              shard2
-fa9611ad2bbe  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  11 minutes ago  Up 11 minutes              shard3
-e19138866b51  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago   Up 7 minutes               shard4
-e88e57c4e442  localhost/oracle/database-gsm:23.4.0              /bin/sh -c exec $...  3 minutes ago   Up 3 minutes               gsm1
-4e751cdfe01e  localhost/oracle/database-gsm:23.4.0              /bin/sh -c exec $...  24 seconds ago  Up 24 seconds              gsm2
+181a4215b517  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  22 minutes ago  Up 22 minutes              catalog
+2b5ade918112  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  18 minutes ago  Up 18 minutes              shard1
+f4943c6d67ce  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  15 minutes ago  Up 15 minutes              shard2
+fa9611ad2bbe  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  11 minutes ago  Up 11 minutes              shard3
+e19138866b51  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago   Up 7 minutes               shard4
+e88e57c4e442  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  3 minutes ago   Up 3 minutes               gsm1
+4e751cdfe01e  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  24 seconds ago  Up 24 seconds              gsm2
 ```
 
 ## Cleanup the environment

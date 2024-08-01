@@ -89,7 +89,7 @@ Before creating catalog container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change `/scratch/oradata/dbfiles/CATALOG` based on your enviornment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name catalog oracle/database:23.4.0-ee` with `--name catalog oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name catalog oracle/database:23.5.0-ee` with `--name catalog oracle/database:23.5.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/CATALOG` must contain the DB backup and it must not be in zipped format. E.g. `/scratch/oradata/dbfiles/CATALOG/SEEDCDB` where SEEDCDB is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -110,7 +110,7 @@ podman run -d --hostname oshard-catalog-0 \
 -v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --privileged=false \
---name catalog oracle/database-ext-sharding:23.4.0-ee
+--name catalog oracle/database-ext-sharding:23.5.0-ee
 ```
 
 To check the catalog container/services creation logs, please tail podman logs. It will take 20 minutes to create the catalog container service.
@@ -169,7 +169,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change `/scratch/oradata/dbfiles/ORCL1CDB` based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard1 oracle/database:23.4.0-ee` with `--name shard1 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard1 oracle/database:23.5.0-ee` with `--name shard1 oracle/database:23.5.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -190,7 +190,7 @@ podman run -d --hostname oshard1-0 \
 -v /scratch/oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --privileged=false \
---name shard1 oracle/database-ext-sharding:23.4.0-ee
+--name shard1 oracle/database-ext-sharding:23.5.0-ee
 ```
 
 To check the shard1 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard1 container service.
@@ -208,7 +208,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/ORCL2CDB based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard2 oracle/database:23.4.0-ee` with `--name shard2 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard2 oracle/database:23.5.0-ee` with `--name shard2 oracle/database:23.5.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -229,7 +229,7 @@ podman run -d --hostname oshard2-0 \
 -v /scratch/oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --privileged=false \
---name shard2 oracle/database-ext-sharding:23.4.0-ee
+--name shard2 oracle/database-ext-sharding:23.5.0-ee
 ```
 
 To check the shard2 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard2 container service
@@ -253,7 +253,7 @@ Before creating shard1 container, review the following notes carefully:
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change `/scratch/oradata/dbfiles/ORCL3CDB` based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard3 oracle/database:23.4.0-ee` with `--name shard3 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard3 oracle/database:23.5.0-ee` with `--name shard3 oracle/database:23.5.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL3CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL3CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -274,7 +274,7 @@ podman run -d --hostname oshard3-0 \
 -v /scratch/oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --privileged=false \
---name shard3 oracle/database-ext-sharding:23.4.0-ee
+--name shard3 oracle/database-ext-sharding:23.5.0-ee
 ```
 
 To check the shard3 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard3 container service
@@ -334,7 +334,7 @@ podman run -d --hostname oshard-gsm1 \
 -v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --privileged=false \
---name gsm1 oracle/database-gsm:23.4.0
+--name gsm1 oracle/database-gsm:23.5.0
 ```
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, PRIMARY_SHARD_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
@@ -388,7 +388,7 @@ podman run -d --hostname oshard-gsm2 \
 -v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --privileged=false \
---name gsm2 oracle/database-gsm:23.4.0
+--name gsm2 oracle/database-gsm:23.5.0
 ```
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
@@ -446,7 +446,7 @@ Before creating new shard (shard4 in this case) container, review the following 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
 * Change /scratch/oradata/dbfiles/ORCL4CDB based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard4 oracle/database:23.4.0-ee` with `--name shard4 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard4 oracle/database:23.5.0-ee` with `--name shard4 oracle/database:23.5.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL4CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL4CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
@@ -468,7 +468,7 @@ podman run -d --hostname oshard4-0 \
  -v /oradata/dbfiles/ORCL4CDB:/opt/oracle/oradata \
  -v /opt/containers/shard_host_file:/etc/hosts \
  --privileged=false \
- --name shard4 oracle/database-ext-sharding:23.4.0-ee
+ --name shard4 oracle/database-ext-sharding:23.5.0-ee
 ```
 
 To check the shard4 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard4 container service.

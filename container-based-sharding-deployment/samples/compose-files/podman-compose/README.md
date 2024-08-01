@@ -67,13 +67,13 @@ Wait for all setup to be ready:
 ```bash
 podman ps -a
 CONTAINER ID  IMAGE                                             COMMAND               CREATED        STATUS        PORTS       NAMES
-56fd25ab3476  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              catalog
-05e1d72ae93e  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard1
-7dbd9ce5564b  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard2
-5e1341e3eeab  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard3
-dad4f89a8aaa  localhost/oracle/database-ext-sharding:23.4.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard4
-a265f8438bb7  localhost/oracle/database-gsm:23.4.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm1
-f155a7f61830  localhost/oracle/database-gsm:23.4.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm2
+56fd25ab3476  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              catalog
+05e1d72ae93e  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard1
+7dbd9ce5564b  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard2
+5e1341e3eeab  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard3
+dad4f89a8aaa  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard4
+a265f8438bb7  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm1
+f155a7f61830  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm2
 ```
 
 ## Check the logs
