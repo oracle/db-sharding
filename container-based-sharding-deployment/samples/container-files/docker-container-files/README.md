@@ -111,7 +111,7 @@ This password key is being used for initial Oracle Globally Distributed Database
 
 Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding or User-Defined Sharding.
 
-### Deploy Oracle Globally Distributed Database with System Sharding
+### Deploy Oracle Globally Distributed Database with System-Managed Sharding
 
 Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding deployed manually using Docker Containers](./docker-sharded-database-with-system-sharding.md) to deploy a sample Oracle Globally Distributed Database with system-managed sharding using docker containers.
 
@@ -126,7 +126,7 @@ Oracle 19c or Oracle 21c GSM and RDBMS is supported for Oracle Linux 7.
 
 ## License
 
-To download and run Oracle GSM and Sharding Database, regardless whether inside or outside a Docker container, you must download the binaries from the Oracle website and accept the license indicated at that page.
+To run Oracle Globally Distributed Database, regardless whether inside or outside a Container, ensure to download the binaries from the Oracle website and accept the license indicated at that page.
 
 All scripts and files hosted in this project and GitHub docker-images/OracleDatabase repository required to build the Docker images are, unless otherwise noted, released under UPL 1.0 license.
 

@@ -439,7 +439,7 @@ cleanup_env(){
     podman rm -f ${STANDBY_GSM_CONTAINER_NAME}
     podman network inspect shard_pub1_nw &> /dev/null && podman network rm shard_pub1_nw
     rm -rf ${PODMANVOLLOC}/*
-    echo "INFO: Oracle Container RAC Environment Cleanup Successfully"
+    echo "INFO: Oracle Globally Distributed Database Container Environment Cleanup Successfully"
     return 0
 }
 

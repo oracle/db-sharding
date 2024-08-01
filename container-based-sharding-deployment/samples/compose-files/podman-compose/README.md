@@ -1,15 +1,15 @@
-# Deploying Sharding Containers on podman-compose
-For Oracle Linux 8 host machines,`podman-compose` can be used for deploying containers to create an Oracle Sharded database. 
+# Deploying Oracle Globally Distributed Database Containers using podman-compose
+For Oracle Linux 8 host machines,`podman-compose` can be used for deploying containers to create an Oracle Globally Distributed database. 
 
 You can use Oracle 23ai GSM and RDBMS Podman Images(Enterprise or FREE) and can deploy with `System-Managed Sharding` or `System-Managed Sharding Topology with Raft replication` or `User Defined Sharding` feature while deploying the Oracle Globally Distributed Database.
 
-Below steps provide an example to `podman-compose` to create the podman network and deploy containers for a Globally Distributed Database on a single Oracle Linux 8 host.
+Below steps provide an example to `podman-compose` to create the podman network and deploy containers for a Oracle Globally Distributed Database on a single Oracle Linux 8 host.
 
 This example deploys an Oracle Globally Distributed Database with `System-Managed Sharding Topology with Raft replication` using Oracle 23ai GSM and RDBMS Images with Four shard containers, a Catalog Container, a Primary GSM container and a Standby GSM Container.
 
 **IMPORTANT:** This example uses 23ai RDBMS and 23ai GSM Podman Images. 
 
-**IMPORTANT:** Also, this example enables the SNR RAFT feature while deploying the Sharded Database. 
+**IMPORTANT:** Also, this example enables the RAFT Replication feature while deploying the Oracle Globally Distributed database. 
 
 - [Step 1: Install Podman compose](#install-podman-compose)
 - [Step 2: Complete the prerequisite steps](#complete-the-prerequisite-steps)
@@ -32,7 +32,7 @@ dnf install podman-compose
 
 ### Create Podman Secrets
 
-Complete steps to create podman secrets from [Password Management](../../container-files/podman-container-files/README.md#password-management). Same podman secrets are going to be used during Oracle Sharding Containers.
+Complete steps to create podman secrets from [Password Management](../../container-files/podman-container-files/README.md#password-management). Same podman secrets are going to be used during Oracle Globally Distributed Database Containers.
 
 ### Prerequisites script file
 Use the script file [podman-compose-prequisites.sh](./podman-compose-prequisites.sh) to export the environment variables, create the network host file and create required directories before running next steps:
@@ -114,7 +114,7 @@ podman logs -f gsm2
 
 You can also use the `podman-compose` command to remove the deployment. To remove the deployment:
 
-- With the environment variables set in [Prerequisites Section](#complete-the-prerequisite-steps), execute the below command to remove the Oracle Sharding Containers and folders:
+- With the environment variables set in [Prerequisites Section](#complete-the-prerequisite-steps), execute the below command to remove the Oracle Globally Distributed Database Containers and folders:
 
 ```bash
 podman-compose down

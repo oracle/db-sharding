@@ -60,11 +60,20 @@ The shard catalog is a special-purpose Oracle Database that is a persistent stor
 
 ### Create Directory
 
-You need to create mountpoint on the podman host to save datafiles for Oracle Sharding Catalog DB and expose as a volume to catalog container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this sample Oracle Globally Distributed Database, we used /scratch/oradata/dbfiles/CATALOG directory and exposed as volume to catalog container.
+You need to create mountpoint on the podman host to save datafiles for Oracle Sharding Catalog DB and expose as a volume to catalog container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this sample Oracle Globally Distributed Database, we used `/scratch/oradata/dbfiles/CATALOG` directory and exposed as volume to catalog container.
 
 ```bash
 mkdir -p /scratch/oradata/dbfiles/CATALOG
 chown -R 54321:54321 /scratch/oradata/dbfiles/CATALOG
+```
+
+* If SELinux is enabled on podman host, then execute the following-
+ 
+```bash
+semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/CATALOG
+restorecon -v /scratch/oradata/dbfiles/CATALOG
+semanage fcontext -a -t container_file_t /opt/containers/shard_host_file
+restorecon -v /opt/containers/shard_host_file
 ```
 
 **Notes:**:
@@ -79,36 +88,30 @@ Before creating catalog container, review the following notes carefully:
 **Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
-* Change /scratch/oradata/dbfiles/CATALOG based on your enviornment.
+* Change `/scratch/oradata/dbfiles/CATALOG` based on your enviornment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID enviornment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name catalog oracle/database:23.4.0-ee` to `--name catalog oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
-  * In this case, /scratch/oradata/dbfiles/CATALOG must contain the DB backup and it must not be in zipped format. E.g. /scratch/oradata/dbfiles/CATALOG/SEEDCDB where SEEDCDB is the cold backup and contains datafiles and PDB.
-  * If SELinux is enabled on podman host, then execute the following-
-  ```bash
-  semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/CATALOG
-  restorecon -v /scratch/oradata/dbfiles/CATALOG
-  semanage fcontext -a -t container_file_t /opt/containers/shard_host_file
-  restorecon -v /opt/containers/shard_host_file
-  ```
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name catalog oracle/database:23.4.0-ee` with `--name catalog oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+  * In this case, `/scratch/oradata/dbfiles/CATALOG` must contain the DB backup and it must not be in zipped format. E.g. `/scratch/oradata/dbfiles/CATALOG/SEEDCDB` where SEEDCDB is the cold backup and contains datafiles and PDB.
 
 ```bash
 podman run -d --hostname oshard-catalog-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.102 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=CATCDB \
- -e ORACLE_PDB=CAT1PDB \
- -e OP_TYPE=catalog \
- -e COMMON_OS_PWD_FILE=pwdfile.enc \
- -e PWD_KEY=key.pem \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- -v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --volume /opt/.secrets:/run/secrets:ro \
- --privileged=false \
- --name catalog oracle/database-ext-sharding:23.4.0-ee
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.102 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=CATCDB \
+-e ORACLE_PDB=CAT1PDB \
+-e OP_TYPE=catalog \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name catalog oracle/database-ext-sharding:23.4.0-ee
 ```
 
 To check the catalog container/services creation logs, please tail podman logs. It will take 20 minutes to create the catalog container service.
@@ -127,7 +130,9 @@ podman logs -f catalog
 
 ## Deploying Shard Containers
 
-A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on podman host to save datafiles for Oracle Globally Distributed Database and expose as a volume to shard container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /scratch/oradata/dbfiles/ORCL1CDB directory and exposed as volume to shard container.
+A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on podman host to save datafiles for Oracle Globally Distributed Database and expose as a volume to shard container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. 
+
+For example: During the setup of this README.md, we used `/scratch/oradata/dbfiles/ORCL1CDB` directory and exposed as volume to shard container `shard1`.
 
 ### Create Directories
 
@@ -157,29 +162,30 @@ Before creating shard1 container, review the following notes carefully:
 **Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
-* Change /scratch/oradata/dbfiles/ORCL1CDB based on your environment.
+* Change `/scratch/oradata/dbfiles/ORCL1CDB` based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name shard1 oracle/database:23.4.0-ee` to `--name shard1 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard1 oracle/database:23.4.0-ee` with `--name shard1 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL1CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL1CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
 podman run -d --hostname oshard1-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.103 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL1CDB \
- -e ORACLE_PDB=ORCL1PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdfile.enc \
- -e PWD_KEY=key.pem \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- -v /scratch/oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --volume /opt/.secrets:/run/secrets:ro \
- --privileged=false \
- --name shard1 oracle/database-ext-sharding:23.4.0-ee
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.103 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=ORCL1CDB \
+-e ORACLE_PDB=ORCL1PDB \
+-e OP_TYPE=primaryshard \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard1 oracle/database-ext-sharding:23.4.0-ee
 ```
 
 To check the shard1 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard1 container service.
@@ -195,30 +201,30 @@ Before creating shard1 container, review the following notes carefully:
 **Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
-* Change /scratch/oradata/dbfiles/ORCL2CDB based on your environment.
+* Change `/scratch/oradata/dbfiles/ORCL2CDB` based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name shard2 oracle/database:23.4.0-ee` to `--name shard2 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard2 oracle/database:23.4.0-ee` with `--name shard2 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL2CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL2CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
 podman run -d --hostname oshard2-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.104 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL2CDB \
- -e ORACLE_PDB=ORCL2PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/ORCL1CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name shard2 oracle/database-ext-sharding:23.4.0-ee
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.104 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=ORCL2CDB \
+-e ORACLE_PDB=ORCL2PDB \
+-e OP_TYPE=primaryshard \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /oradata/dbfiles/ORCL2CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard2 oracle/database-ext-sharding:23.4.0-ee
 ```
 
 **Note**: You can add more shards based on your requirement.
@@ -239,7 +245,7 @@ podman logs -f shard2
 
 ## Deploying GSM Container
 
-The Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases. You need to create mountpoint on podman host to save gsm setup related file for Oracle Global Service Manager and expose as a volume to GSM container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /scratch/oradata/dbfiles/GSMDATA directory and exposed as volume to GSM container.
+The Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases. You need to create mountpoint on podman host to save gsm setup related file for Oracle Global Service Manager and expose as a volume to GSM container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used `/scratch/oradata/dbfiles/GSMDATA` directory and exposed as volume to GSM container.
 
 ### Create Directory for Master GSM Container
 
@@ -247,7 +253,9 @@ The Global Data Services framework consists of at least one global service manag
 mkdir -p /scratch/oradata/dbfiles/GSMDATA
 chown -R 54321:54321 /scratch/oradata/dbfiles/GSMDATA
 ```
+
 If SELinux is enabled on podman host, then execute the following-
+
 ```bash
 semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/GSMDATA
 restorecon -v /scratch/oradata/dbfiles/GSMDATA
@@ -257,26 +265,27 @@ restorecon -v /scratch/oradata/dbfiles/GSMDATA
 
 ```bash
 podman run -d --hostname oshard-gsm1 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.100 \
- -e DOMAIN=example.com \
- -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
- -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardspace1,shardspace2"     \
- -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_space=shardspace1;deploy_as=primary;shard_region=region1" \
- -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;deploy_as=primary;shard_region=region2" \
- -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
- -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- -e OP_TYPE=gsm \
- -e MASTER_GSM="TRUE" \
- --privileged=false \
- --name gsm1 oracle/database-gsm:23.4.0
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.100 \
+-e DOMAIN=example.com \
+-e SHARD_DIRECTOR_PARAMS="director_name=sharddirector1;director_region=region1;director_port=1522" \
+-e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardspace1,shardspace2"     \
+-e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_space=shardspace1;deploy_as=primary;shard_region=region1" \
+-e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;deploy_as=primary;shard_region=region2" \
+-e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
+-e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+-e SHARD_SETUP="true" \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e OP_TYPE=gsm \
+-e MASTER_GSM="TRUE" \
+--secret pwdsecret \
+--secret keysecret \
+-v /oradata/dbfiles/GSMDATA:/opt/oracle/gsmdata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name gsm1 oracle/database-gsm:23.4.0
 ```
 
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, PRIMARY_SHARD_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
@@ -297,7 +306,9 @@ You need standby GSM container to serve the connection when master GSM fails.
 mkdir -p /scratch/oradata/dbfiles/GSM2DATA
 chown -R 54321:54321 /scratch/oradata/dbfiles/GSM2DATA
 ```
+
 If SELinux is enabled on podman host, then execute the following-
+
 ```bash
 semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/GSM2DATA
 restorecon -v /scratch/oradata/dbfiles/GSM2DATA
@@ -307,25 +318,26 @@ restorecon -v /scratch/oradata/dbfiles/GSM2DATA
 
 ```bash
 podman run -d --hostname oshard-gsm2 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.101 \
- -e DOMAIN=example.com \
- -e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
- -e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardspace1,shardspace2" \
- -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_space=shardspace1;"  \
- -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;"  \
- -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
- -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
- -e CATALOG_SETUP="True" \
- -e COMMON_OS_PWD_FILE=pwdfile.enc \
- -e PWD_KEY=key.pem \
- -v /scratch/oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --volume /opt/.secrets:/run/secrets:ro \
- -e OP_TYPE=gsm \
- --privileged=false \
- --name gsm2 oracle/database-gsm:23.4.0
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.101 \
+-e DOMAIN=example.com \
+-e SHARD_DIRECTOR_PARAMS="director_name=sharddirector2;director_region=region2;director_port=1522" \
+-e CATALOG_PARAMS="catalog_host=oshard-catalog-0;catalog_db=CATCDB;catalog_pdb=CAT1PDB;catalog_port=1521;catalog_name=shardcatalog1;catalog_region=region1,region2;sharding_type=USER;shard_space=shardspace1,shardspace2" \
+-e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_space=shardspace1;"  \
+-e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;"  \
+-e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
+-e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+-e CATALOG_SETUP="True" \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e OP_TYPE=gsm \
+--secret pwdsecret \
+--secret keysecret \
+-v /oradata/dbfiles/GSM2DATA:/opt/oracle/gsmdata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name gsm2 oracle/database-gsm:23.4.0
 ```
 **Note:** Change environment variables such as DOMAIN, CATALOG_PARAMS, COMMON_OS_PWD_FILE and PWD_KEY according to your environment.
 
@@ -365,7 +377,9 @@ Create the required directories for the new shard (shard3 in this case) containe
 mkdir -p /scratch/oradata/dbfiles/ORCL3CDB
 chown -R 54321:54321 /scratch/oradata/dbfiles/ORCL3CDB
 ```
+
 If SELinux is enabled on podman host, then execute the following-
+
 ```bash
 semanage fcontext -a -t container_file_t /scratch/oradata/dbfiles/ORCL3CDB
 restorecon -v /scratch/oradata/dbfiles/ORCL3CDB
@@ -373,7 +387,7 @@ restorecon -v /scratch/oradata/dbfiles/ORCL3CDB
 
 **Notes:**:
 
-* Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL3CDB` and `/scratch/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
+* Change the ownership for data volume `/scratch/oradata/dbfiles/ORCL3CDB` exposed to shard container as it has to be writable by oracle "oracle" (uid: 54321) user inside the container.
 * If this is not changed then database creation will fail. For details, please refer, [oracle/docker-images for Single Instace Database](https://github.com/oracle/docker-images/tree/master/OracleDatabase/SingleInstance).
 
 ### Create Podman Container for new shard
@@ -383,30 +397,30 @@ Before creating new shard (shard3 in this case) container, review the following 
 **Notes:**
 
 * Change environment variable such as ORACLE_SID, ORACLE_PDB based on your env.
-* Change /scratch/oradata/dbfiles/ORCL3CDB based on your environment.
+* Change `/scratch/oradata/dbfiles/ORCL3CDB` based on your environment.
 * By default, Oracle Globally Distributed Database setup creates new database under `/opt/oracle/oradata` based on ORACLE_SID environment variable.
-* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace following `--name shard3 oracle/database:23.4.0-ee` to `--name shard3 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
+* If you are planing to perform seed cloning to expedite the Oracle Globally Distributed Database setup using existing cold DB backup, you need to replace `--name shard3 oracle/database:23.4.0-ee` with `--name shard3 oracle/database:23.4.0-ee /opt/oracle/scripts/setup/runOraShardSetup.sh`
   * In this case, `/scratch/oradata/dbfiles/ORCL3CDB` must contain the DB backup and it must not be zipped. E.g. `/scratch/oradata/dbfiles/ORCL3CDB/SEEDCDB` where `SEEDCDB` is the cold backup and contains datafiles and PDB.
 
 ```bash
 podman run -d --hostname oshard3-0 \
- --dns-search=example.com \
- --network=shard_pub1_nw \
- --ip=10.0.20.105 \
- -e DOMAIN=example.com \
- -e ORACLE_SID=ORCL3CDB \
- -e ORACLE_PDB=ORCL3PDB \
- -e OP_TYPE=primaryshard \
- -e COMMON_OS_PWD_FILE=pwdsecret \
- -e PWD_KEY=keysecret \
- -e SHARD_SETUP="true" \
- -e ENABLE_ARCHIVELOG=true \
- --secret pwdsecret \
- --secret keysecret \
- -v /scratch/oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
- -v /opt/containers/shard_host_file:/etc/hosts \
- --privileged=false \
- --name shard3 oracle/database-ext-sharding:23.4.0-ee
+--dns-search=example.com \
+--network=shard_pub1_nw \
+--ip=10.0.20.105 \
+-e DOMAIN=example.com \
+-e ORACLE_SID=ORCL3CDB \
+-e ORACLE_PDB=ORCL3PDB \
+-e OP_TYPE=primaryshard \
+-e COMMON_OS_PWD_FILE=pwdsecret \
+-e PWD_KEY=keysecret \
+-e SHARD_SETUP="true" \
+-e ENABLE_ARCHIVELOG=true \
+--secret pwdsecret \
+--secret keysecret \
+-v /oradata/dbfiles/ORCL3CDB:/opt/oracle/oradata \
+-v /opt/containers/shard_host_file:/etc/hosts \
+--privileged=false \
+--name shard3 oracle/database-ext-sharding:23.4.0-ee
 ```
 
 To check the shard3 container/services creation logs, please tail podman logs. It will take 20 minutes to create the shard1 container service.
@@ -433,13 +447,6 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --addsh
 Use the below command to check the status of the newly added shard:
 ``` bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
-
-
-Name                Shard space         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardspace1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardspace2         Ok        Deployed    region2   ONLINE       
-orcl3cdb_orcl3pdb   shardspace3         U         none        region3  
 ```
 
 ### Deploy the new shard
@@ -453,13 +460,6 @@ podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py --deplo
 Use the below command to check the status of the newly added shard and the chunks distribution:
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
-
-
-Name                Shard space         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardspace1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardspace2         Ok        Deployed    region2   ONLINE       
-orcl3cdb_orcl3pdb   shardspace3         Ok        Deployed    region3   ONLINE
 
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```

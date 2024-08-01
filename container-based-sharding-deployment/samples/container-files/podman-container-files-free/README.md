@@ -11,7 +11,7 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
   - [Password Management](#password-management)
   - [SELinux Configuration on Podman Host](#selinux-configuration-on-podman-host)
   - [Oracle Database FREE Images](#oracle-database-free-images)
-  - [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-containers)
+  - [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-containers-using-oracle-database-free-images)
     - [Deploy Oracle Globally Distributed Database with System-Managed Sharding using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-using-oracle-database-free-images)
     - [Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-with-raft-replication-enabled-using-oracle-database-free-images)
     - [Deploy Oracle Globally Distributed Database with User-Defined Sharding using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-with-user-defined-sharding-using-oracle-database-free-images)
@@ -142,7 +142,11 @@ While using Oracle Database FREE Images, you need to consider the following:
 - There is a limit of 2 CPUs for foreground processes, 2 GB of RAM and 12 GB of user data on disk.
 - Total number of chunks for FREE Database defaults to 12 if `CATALOG_CHUNKS` value is not specified. This default value is determined considering limitation of 12 GB of user data on disk for oracle free database.
 - `INIT_SGA_SIZE` and `INIT_PGA_SIZE` to control the SGA and PGA allocation at the database level are not supported.
-- Provisioning the Sharded Database using Cloning from Database Gold Image is NOT supported with Oracle Database Free Image.
+- Provisioning the Oracle Globally Distributed Database using Cloning from Database Gold Image is NOT supported with Oracle Database Free Image.
+- `ORACLE_SID` has to be `FREE`
+- The PDB specified using parameter `ORACLE_PDB`, to be created along with the Database deployment in a container, has to be `FREEPDB1`
+- Additional PDB can be specified using parameter `ORACLE_FREE_PDB`
+- You can specify a database unique name different from `ORACLE_SID`, which has to be `FREE`, by using the parameter `DB_UNIQUE_NAME`
 
 
 ## Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images

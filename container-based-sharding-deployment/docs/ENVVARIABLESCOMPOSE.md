@@ -1,4 +1,4 @@
-## ENVIRONMENT VARIABLES EXPLAINED FOR ORACLE SHARDING ON PODMON COMPOSE
+## ENVIRONMENT VARIABLE DETAILS FOR ORACLE GLOBALLY DISTRIBUTED DATABASE USING PODMAN COMPOSE
 
 | Environment Variable           | Description                                                                                          | Default Value      |
 |--------------------------------|------------------------------------------------------------------------------------------------------|--------------------|

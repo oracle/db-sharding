@@ -16,7 +16,7 @@ This page covers the steps to manually deploy a sample Oracle Globally Distribut
   - [Master GSM Container](#master-gsm-container)
 - [Deploying Standby GSM Container](#deploying-standby-gsm-container)  
   - [Create Directory for Standby GSM Container](#create-directory-for-standby-gsm-container)
-  - [Standby GSM Container](#standby-gsm-container)   
+  - [Standby GSM Container](#create-standby-gsm-container)   
 - [Scale-out an existing Oracle Globally Distributed Database](#scale-out-an-existing-oracle-globally-distributed-database)
   - [Complete the prerequisite steps before creating Podman Container for new shard](#complete-the-prerequisite-steps-before-creating-podman-container-for-new-shard) 
   - [Create Podman Container for new shard](#create-podman-container-for-new-shard)
@@ -126,7 +126,9 @@ podman logs -f catalog
 
 ## Deploying Shard Containers
 
-A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on podman host to save datafiles for Oracle Globally Distributed Database and expose as a volume to shard container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. During the setup of this README.md, we used /scratch/oradata/dbfiles/ORCL1CDB directory and exposed as volume to shard container.
+A database shard is a horizontal partition of data in a database or search engine. Each individual partition is referred to as a shard or database shard. You need to create mountpoint on podman host to save datafiles for Oracle Globally Distributed Database and expose as a volume to shard container. This volume can be local on a podman host or exposed from your central storage. It contains a file system such as EXT4. 
+
+For example: During the setup of this README.md, we used `/scratch/oradata/dbfiles/ORCL1CDB` directory and exposed as volume to shard container `shard1`.
 
 ### Create Directories
 
@@ -454,22 +456,7 @@ Use the below command to check the status of the newly added shard and the chunk
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
 
-Name                Shard Group         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl3cdb_orcl3pdb   shardgroup1         Ok        Deployed    region1   ONLINE  
-
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
-
-Chunks
-------------------------
-Database                      From      To        
---------                      ----      --        
-orcl1cdb_orcl1pdb             1         80        
-orcl2cdb_orcl2pdb             121       200       
-orcl3cdb_orcl3pdb             81        120       
-orcl3cdb_orcl3pdb             201       240    
 ```
 
 **NOTE:** The chunks redistribution after deploying the new shard may take some time to complete.
@@ -489,12 +476,6 @@ If you want to Scale-in an existing Oracle Globally Distributed Database by remo
 Use the below commands to check the status of the shard which you want to delete and status of chunks present in this shard:
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
-
-Name                Shard Group         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl3cdb_orcl3pdb   shardgroup1         Ok        Deployed    region1   ONLINE   
 
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
@@ -521,7 +502,7 @@ podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2
 
 ### Delete the shard database from the Oracle Globally Distributed Database
 
-Once you have confirmed that no chunk is present in the shard to be deleted in earlier step, you can use the below command to delete that shard(shard4 in this case):
+Once you have confirmed that no chunk is present in the shard to be deleted in earlier step, you can use the below command to delete that shard(shard3 in this case):
 
 ```bash
 podman exec -it gsm1 python /opt/oracle/scripts/sharding/scripts/main.py  --deleteshard="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1"
@@ -537,11 +518,6 @@ Once the shard is deleted from the Oracle Globally Distributed Database, use the
 ```bash
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config shard
 
-Name                Shard Group         Status    State       Region    Availability 
-----                -----------         ------    -----       ------    ------------ 
-orcl1cdb_orcl1pdb   shardgroup1         Ok        Deployed    region1   ONLINE       
-orcl2cdb_orcl2pdb   shardgroup1         Ok        Deployed    region1   ONLINE   
-
 podman exec -it gsm1 $(podman exec -it gsm1 env | grep ORACLE_HOME | cut -d= -f2 | tr -d '\r')/bin/gdsctl config chunks
 ```
 
@@ -552,12 +528,14 @@ Once the shard is deleted from the Oracle Globally Distributed Database, you can
 If the deleted shard was "shard3", to remove its Podman Container, please use the below steps:
 
 - Stop and remove the Docker Container for shard3:
+
 ```bash
 podman stop shard3
 podman rm shard3
 ```
 
 - Remove the directory containing the files for this deleted Podman Container:
+
 ```bash
 rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 ```
