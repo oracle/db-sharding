@@ -1,4 +1,4 @@
-# Create Containers using docker compose
+# Deploying Oracle Globally Distributed Database Containers using docker-compose
 
 Below steps provide an example to use `docker-compose` to create the docker network and to create the containers for a Oracle Globally Distributed Database Deployment on a single Oracle Linux 7 host using Docker Containers.
 
