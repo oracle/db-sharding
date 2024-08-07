@@ -1,6 +1,6 @@
 # Deploying Oracle Globally Distributed Database Containers using docker-compose
 
-Below steps provide an example to use `docker-compose` to create the docker network and to create the containers for a Oracle Globally Distributed Database Deployment on a single Oracle Linux 7 host using Docker Containers.
+This document provides an example of how to use `docker-compose` to create the Docker network and to create the containers for an Oracle Globally Distributed Database Deployment on a single Oracle Linux 7 host using Docker Containers.
 
 **IMPORTANT:** This example uses 21c RDBMS and 21c GSM Docker Images.
 
@@ -25,15 +25,15 @@ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 
 ## Complete the prerequisite steps
 
-Use the file [docker-compose-prerequisites.sh](./docker-compose-prerequisites.sh) to export the environment variables, create the network host file and create required directories before running next steps:
+Use the file [docker-compose-prerequisites.sh](./docker-compose-prerequisites.sh) to export the environment variables, create the network host file, and create required directories.
 
-**NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images you want to use for the deployment.
+**NOTE:** Change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images that you want to use for the deployment.
 
 ```bash
 source docker-compose-env-variables
 ```
 
-Use below steps to create an encrypted password file:
+Use the following commands to create an encrypted password file:
 
 ```bash
 rm -rf /opt/.secrets/
@@ -58,11 +58,11 @@ chmod 400 /opt/.secrets/key.pub
 
 ## Create Docker Compose file 
 
-In this step, copy a Docker Compose file named [docker-compose.yaml](./docker-compose.yml) in your working directory.
+Copy a Docker Compose file named [docker-compose.yaml](./docker-compose.yml) in your working directory.
 
 
 ## Create services using "docker compose" command
-Once you have completed the prerequisties, run below commands to create the services:
+After you have successfully completed the prerequisties for deployment, run these commands to create the services:
 ```bash
 # Switch to location with the `docker-compose.yaml` file and run:
  
@@ -77,7 +77,7 @@ docker compose up -d
 docker compose logs -f
 ```
 
-Wait for all setup to be ready:
+Wait for all the Docker setup processes to complete, and each component indicates that it is up and ready. For example:
 ```
 # docker compose up -d
 [+] Running 6/6
@@ -91,10 +91,10 @@ Wait for all setup to be ready:
 
 ## Remove the deployment
 
-You can also use the `docker-compose` command to remove the deployment. To remove the deployment:
+If you want to remove the deployment, use the `docker-compose` command. To remove the deployment:
 
 - First export all the variables from the Prerequisites Sesion.
-- Use the below command to remove the deployment:
+- Use the following command to remove the deployment:
 
 ```bash
 docker-compose down
@@ -102,5 +102,5 @@ docker-compose down
 
 ## Copyright
 
-Copyright (c) 2022, 2023 Oracle and/or its affiliates.
+Copyright (c) 2022, 2024 Oracle and/or its affiliates.
 Released under the Universal Permissive License v1.0 as shown at https://oss.oracle.com/licenses/upl/
