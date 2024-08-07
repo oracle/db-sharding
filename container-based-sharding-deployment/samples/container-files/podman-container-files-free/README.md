@@ -23,16 +23,16 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
 
 ## Prerequisites
 
-This section provides the prerequisite steps to be completed before deploying an Oracle Globally Distributed Database using Podman Containers using Oracle Database FREE Images. In involves the podman network creation, creation of encrypted file with secrets etc. 
+You must complete all of the prerequisites before deploying an Oracle Globally Distributed Database using Podman Containers. These prerequisites include creating the Docker network, creating the encrypted file with secrets, and other steps required before deployment. 
 
 
 ### Network Management
 
-Before creating a container, create the podman network by creating podman network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md then you can use the same IPs mentioned in [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#create-containers) section.
+Before creating a container, create the Podman network by creating the Podman network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md, then you can use the same IPs mentioned in [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#create-containers) section.
 
 #### Macvlan Network
 
-To create a podman network with `macvlan` driver:
+To create a podman network with `macvlan` driver, run the following command:
 
 ```bash
 podman network create -d macvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=ens5 shard_pub1_nw
@@ -40,29 +40,29 @@ podman network create -d macvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o pa
 
 #### Ipvlan Network
 
-To create a podman network with `ipvlan` driver:
+To create a podman network with `ipvlan` driver, run the following command:
 
 ```bash
 podman network create -d ipvlan --subnet=10.0.20.0/24 --gateway=10.0.20.1 -o parent=ens5 shard_pub1_nw
 ```
 
-If you are planning to create a test env within a single machine, you can use a podman bridge but these IPs will not be reachable on the user network.
+If you are planning to create a test environment within a single machine, then you can use a Podman bridge. However, these IPs will not be reachable on the user network.
 
 #### Bridge Network
 
-To create a podman network with `bridge` driver:
+To create a podman network with `bridge` driver, run the following command:
 
 ```bash
 podman network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
 
-**Note:** You can change subnet and choose one of the above mentioned podman network bridge based on your environment.
+**Note:** You can change subnet and choose one of the above mentioned podman network bridges based on your environment.
 
 ### Setup Hostfile
 
 **Note:** You can skip this step of creating a Hostfile when you are using a DNS for the IP resolution.
 
-All containers will share a host file for name resolution.  The shared hostfile must be available to all containers. Create the empty shared host file (if it doesn't exist) at `/opt/containers/shard_host_file`:
+All containers will share a host file for name resolution.  The shared hostfile must be available to all containers. Create the empty shared host file (if it doesn't exist) at `/opt/containers/shard_host_file`.
 
 For example:
 
@@ -71,7 +71,7 @@ mkdir /opt/containers
 rm -rf /opt/containers/shard_host_file && touch /opt/containers/shard_host_file
 ```
 
-Add the following host entries in `/opt/containers/shard_host_file` as Oracle Database Containers do not have root access to modify the /etc/hosts file. This file must be pre-populated. You can change these entries based on your environment and network setup.
+Because Oracle Database Containers do not have root access to modify the `/etc/hosts` file, add the following host entries in `/opt/containers/shard_host_file`. This file must be prepopulated. You can change these entries based on your environment and network setup.
 
 ```text
 127.0.0.1       localhost.localdomain           localhost
@@ -86,7 +86,7 @@ Add the following host entries in `/opt/containers/shard_host_file` as Oracle Da
 
 ### Password Management
 
-* Specify the secret volume for resetting database users password during catalog and shard setup. It can be a shared volume among all the containers
+* Specify the secret volume for resetting database user passwords during catalog and shard setup. The secret volume can be a shared volume among all the containers
 
   ```bash
   mkdir /opt/.secrets/
@@ -102,12 +102,12 @@ Add the following host entries in `/opt/containers/shard_host_file` as Oracle Da
   ```
   **Note**: Enter your secure password in the above file and save the file.
 
-* After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, execute following command:
+* After seeding password and saving the `/opt/.secrets/pwdfile.txt` file, run the following commands:
   ```bash
   openssl pkeyutl -in /opt/.secrets/pwdfile.txt -out /opt/.secrets/pwdfile.enc -pubin -inkey /opt/.secrets/key.pub -encrypt
   rm -rf /opt/.secrets/pwdfile.txt
   ```
-  We recommend using Podman secrets to be used inside the containers. Execute the following command to create podman secrets:
+  Oracle recommends using Podman secrets inside the containers. Run the following commands to create the Podman secrets:
   
   ```bash
   podman secret create pwdsecret /opt/.secrets/pwdfile.enc
@@ -119,15 +119,15 @@ Add the following host entries in `/opt/containers/shard_host_file` as Oracle Da
   8ad6e8e519c26e9234dbcf60a  pwdsecret   file        8 seconds ago  8 seconds ago
   ```
 
-**Note:** This password and key secrets are being used for initial Oracle Globally Distributed Database topology setup. Once the Oracle Globally Distributed Database topology setup is completed, user must change the topology passwords based on his enviornment.
+**Note:** This password and key secrets are used for the initial Oracle Globally Distributed Database topology setup. After the Oracle Globally Distributed Database topology setup is complete, you must change the topology passwords based on your enviornment.
 
 ## SELinux Configuration on Podman Host
-To run Podman containers in an environment with SELinux enabled, you must configure an SELinux policy for the containers. To check if your SELinux is enabled or not, run the `getenforce` command.
-With Security-Enhanced Linux (SELinux), you must set a policy to implement permissions for your containers. If you do not configure a policy module for your containers, then they can end up restarting indefinitely or other permission errors. You must add all Podman host nodes for your cluster to the policy module `shard-podman`, by installing the necessary packages and creating a type enforcement file (designated by the .te suffix) to build the policy, and load it into the system. 
+To run Podman containers in an environment with Security-Enhanced Linux (SELinux) enabled, you must configure an SELinux policy for the containers. To check if your SELinux is enabled or not, run the `getenforce` command.
+With SELinux, you must set a policy to implement permissions for your containers. If you do not configure a policy module for your containers, then they can end up restarting indefinitely or generate other permission errors. You must add all Podman host nodes for your cluster to the policy module `shard-podman`, by installing the necessary packages and creating a type enforcement file (designated by the `.te` suffix) to build the policy, and load the policy into the system. 
 
 In the following example, the Podman host `podman-host` is configured in the SELinux policy module `shard-podman`: 
 
-Copy [shard-podman.te](../../../containerfiles/shard-podman.te) to `/var/opt` folder in your host and then execute below-
+Copy [shard-podman.te](../../../containerfiles/shard-podman.te) to `/var/opt` folder in your host and then run the following commands-
 ```bash
 cd /var/opt
 make -f /usr/share/selinux/devel/Makefile shard-podman.pp
@@ -137,21 +137,21 @@ semodule -l | grep shard-pod
 
 ## Oracle Database FREE Images
 
-While using Oracle Database FREE Images, you need to consider the following:
+While using Oracle Database FREE Images, be aware of the following restrictions, defaults, and options:
 
 - There is a limit of 2 CPUs for foreground processes, 2 GB of RAM and 12 GB of user data on disk.
-- Total number of chunks for FREE Database defaults to 12 if `CATALOG_CHUNKS` value is not specified. This default value is determined considering limitation of 12 GB of user data on disk for oracle free database.
-- `INIT_SGA_SIZE` and `INIT_PGA_SIZE` to control the SGA and PGA allocation at the database level are not supported.
+- The Total number of chunks for FREE Database defaults to 12 if `CATALOG_CHUNKS` value is not specified. This default value is determined with consideration of the 12 GB limit of user data on disk for Oracle Database FREE.
+- Using `INIT_SGA_SIZE` and `INIT_PGA_SIZE` to control the SGA and PGA allocation at the database level is not supported.
 - Provisioning the Oracle Globally Distributed Database using Cloning from Database Gold Image is NOT supported with Oracle Database Free Image.
-- `ORACLE_SID` has to be `FREE`
-- The PDB specified using parameter `ORACLE_PDB`, to be created along with the Database deployment in a container, has to be `FREEPDB1`
-- Additional PDB can be specified using parameter `ORACLE_FREE_PDB`
-- You can specify a database unique name different from `ORACLE_SID`, which has to be `FREE`, by using the parameter `DB_UNIQUE_NAME`
+- `ORACLE_SID` must be `FREE`
+- The PDB specified using parameter `ORACLE_PDB` that is created with the Database deployment in a container must be `FREEPDB1`
+- Additional PDBs can be specified using the parameter `ORACLE_FREE_PDB`
+- You can specify a database unique name that is different from `ORACLE_SID` (which must be `FREE`) by using the parameter `DB_UNIQUE_NAME`
 
 
 ## Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images
 
-Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding, System-Managed Sharding with RAFT Replication enabled or User-Defined Sharding.
+Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding, System-Managed Sharding with RAFT Replication enabled, or User-Defined Sharding.
 
 ### Deploy Oracle Globally Distributed Database with System-Managed Sharding using Oracle Database FREE Images
 
@@ -160,9 +160,9 @@ Refer to [Sample Oracle Globally Distributed Database with System-Managed Shardi
 
 ### Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication Enabled using Oracle Database FREE Images
 
-Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled deployed manually using Podman Containers and Oracle Database FREE Images](./podman-sharded-database-free-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding with RAFT Replication enabled using podman containers and Oracle Database FREE Images.
+Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled deployed manually using Podman Containers and Oracle Database FREE Images](./podman-sharded-database-free-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding with RAFT Replication enabled using Podman containers and Oracle Database FREE Images.
 
-**NOTE:** RAFT Replication Feature is available only for Oracle 23ai RDBMS and Oracle 23ai GSM version.
+**NOTE:** The RAFT Replication Feature is available only for the Oracle Database 23ai RDBMS and the Oracle 23ai GSM version.
 
 ### Deploy Oracle Globally Distributed Database with User-Defined Sharding using Oracle Database FREE Images
 
@@ -172,12 +172,12 @@ Refer to [Sample Oracle Globally Distributed Database with User-Defined Sharding
 ## Support
 
 Oracle Globally Distributed Database on Docker is supported on Oracle Linux 7. 
-Oracle Globally Distributed Database on Podman is supported on Oracle Linux 8 and onwards.
+Oracle Globally Distributed Database on Podman is supported on Oracle Linux 8 and later releases.
 
 
 ## License
 
-To run Oracle Globally Distributed Database, regardless whether inside or outside a Container, ensure to download the binaries from the Oracle website and accept the license indicated at that page.
+To run Oracle Globally Distributed Database, whether inside or outside a Container, you must download the binaries from the Oracle website and accept the license indicated at that page.
 
 All scripts and files hosted in this project and GitHub docker-images/OracleDatabase repository required to build the Docker and Podman images are, unless otherwise noted, released under UPL 1.0 license.
 
