@@ -1,15 +1,14 @@
 # Deploying Oracle Globally Distributed Database Containers using podman-compose
-For Oracle Linux 8 host machines,`podman-compose` can be used for deploying containers to create an Oracle Globally Distributed database. 
+For Oracle Linux 8 host machines,`podman-compose` can be used for deploying containers to create an Oracle Globally Distributed Database. 
 
-You can use Oracle 23ai GSM and RDBMS Podman Images(Enterprise or FREE) and can deploy with `System-Managed Sharding` or `System-Managed Sharding Topology with Raft replication` or `User Defined Sharding` feature while deploying the Oracle Globally Distributed Database.
+You can use Oracle 23ai GSM and RDBMS Podman Images (Enterprise or FREE) and deploy with the sharding option of your choice: `System-Managed Sharding`, `System-Managed Sharding Topology with Raft replication`, or `User Defined Sharding`. The sharding optoin is deployed with Oracle Globally Distributed Database.
 
-Below steps provide an example to `podman-compose` to create the podman network and deploy containers for a Oracle Globally Distributed Database on a single Oracle Linux 8 host.
+The example that follows shows how to use `podman-compose` to create the Podman network and to deploy containers for an Oracle Globally Distributed Database on a single Oracle Linux 8 host.
 
-This example deploys an Oracle Globally Distributed Database with `System-Managed Sharding Topology with Raft replication` using Oracle 23ai GSM and RDBMS Images with Four shard containers, a Catalog Container, a Primary GSM container and a Standby GSM Container.
+In this example, we deploy an Oracle Globally Distributed Database with `System-Managed Sharding Topology with Raft replication` using Oracle 23ai GSM and RDBMS Images with Four shard containers, a Catalog Container, a Primary GSM container, and a Standby GSM Container.
 
-**IMPORTANT:** This example uses 23ai RDBMS and 23ai GSM Podman Images. 
+**IMPORTANT:** This example uses 23ai RDBMS and 23ai GSM Podman Images, and enables the RAFT Replication feature while deploying the Oracle Globally Distributed database. 
 
-**IMPORTANT:** Also, this example enables the RAFT Replication feature while deploying the Oracle Globally Distributed database. 
 
 - [Step 1: Install Podman compose](#install-podman-compose)
 - [Step 2: Complete the prerequisite steps](#complete-the-prerequisite-steps)
@@ -29,41 +28,42 @@ dnf install podman-compose
 ```
 
 ## Complete the prerequisite steps
+Complete each of these steps before proceeding with deployment. 
 
 ### Create Podman Secrets
 
-Complete steps to create podman secrets from [Password Management](../../container-files/podman-container-files/README.md#password-management). Same podman secrets are going to be used during Oracle Globally Distributed Database Containers.
+Complete the procedure to create Podman secrets from [Password Management](../../container-files/podman-container-files/README.md#password-management). These Podman secrets are also used during the deployment of Oracle Globally Distributed Database Containers.
 
 ### Prerequisites script file
-Use the script file [podman-compose-prequisites.sh](./podman-compose-prequisites.sh) to export the environment variables, create the network host file and create required directories before running next steps:
+Run the script file [podman-compose-prequisites.sh](./podman-compose-prequisites.sh). This script exports the environment variables, creates the network host file, and creates required directories.
 
-**NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images you want to use for the deployment.
+**NOTE:** You must change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images that you want to use for the deployment.
 
 ```bash
 source podman-compose-prequisites.sh
 ```
 
 ## SELinux Configuration Management for Podman Host
-If SELinux is enabled on podman-host then load the necessary `shard-podman` policy as explained in [SELinux Configuration on Podman Host](../container-files/podman-container-files/README.md#selinux-configuration-on-podman-host)
+If SELinux is enabled on your podman-host, then load the necessary `shard-podman` policy, as explained in [SELinux Configuration on Podman Host](../container-files/podman-container-files/README.md#selinux-configuration-on-podman-host)
 
-Additionally, execute below command to set SELinux contexts for required files and folders using the file [set-file-context.sh](./set-file-context.sh)
+To set SELinux contexts for required files and folders, run the file [set-file-context.sh](./set-file-context.sh)
 ```bash
 source set-file-context.sh
 ```
 
 ## Create Podman Compose file
 
-In this step, copy the [podman-compose.yml](podman-compose.yml) in your working directory. In this guide, our working directory is [<github_cloned_path>/db-sharding/container-based-sharding-deployment/containerfiles]
+Copy the [podman-compose.yml](podman-compose.yml) into your working directory. In this example, our working directory is [<github_cloned_path>/db-sharding/container-based-sharding-deployment/containerfiles]
 
 ## Create services using "podman-compose" command
-Once you have completed the prerequisties, run below commands to create the services:
+After you have completed all the prerequisties successfully, run the following command to create the services: 
 ```bash
-# Ensure "podman-compose.yml" file is present in your working directory and then execute below:
+# Ensure "podman-compose.yml" file is present in your working directory and then run the following command:
  
 podman-compose up -d
 ```
 
-Wait for all setup to be ready:
+Wait for all the services setup to be complete and ready:
 ```bash
 podman ps -a
 CONTAINER ID  IMAGE                                             COMMAND               CREATED        STATUS        PORTS       NAMES
@@ -78,11 +78,11 @@ f155a7f61830  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec 
 
 ## Check the logs
 ```bash
-# You can monitor the logs for all the containers using below command:
+# You can monitor the logs for all the containers using the following command:
  
 podman-compose logs -f
 ```
-Look for successful message in all containers-
+Look for successful message in all containers. For example:-
 ```bash
 podman logs -f catalog
 ==============================================
@@ -112,9 +112,9 @@ podman logs -f gsm2
 
 ## Remove the deployment
 
-You can also use the `podman-compose` command to remove the deployment. To remove the deployment:
+If you want to remove the deployment, then run the `podman-compose` command. To remove the deployment:
 
-- With the environment variables set in [Prerequisites Section](#complete-the-prerequisite-steps), execute the below command to remove the Oracle Globally Distributed Database Containers and folders:
+- With the environment variables set in [Prerequisites Section](#complete-the-prerequisite-steps), run the following command to remove the Oracle Globally Distributed Database Containers and folders:
 
 ```bash
 podman-compose down
@@ -123,13 +123,13 @@ rm -rf ${PODMANVOLLOC}
 
 ## Oracle 23ai FREE Database and GSM Images
 
-In case you are going to use Oracle 23ai FREE Database and GSM Images for deploying the Oracle Globally Distributed Database, then you need to:
+If you plan to use Oracle 23ai FREE Database and GSM Images for deploying the Oracle Globally Distributed Database, then complete these steps:
 
-- Use file [podman-compose-prequisites-free.sh](./podman-compose-prequisites-free.sh) as the prerequisites script file before running the above setup.
+- Use file [podman-compose-prequisites-free.sh](./podman-compose-prequisites-free.sh) as the prerequisites script file before running the setup as described above.
 
-**NOTE:** You will need to change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the Oracle 23ai FREE Images you want to use for the deployment.
+**NOTE:** You must change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the Oracle 23ai FREE Images you want to use for the deployment.
 
-- Take the file [podman-compose-free.yml](./podman-compose-free.yml) and rename as `podman-compose.yml` to deploy the setup using `podman-compose` command.
+- Take the file [podman-compose-free.yml](./podman-compose-free.yml) and rename it as `podman-compose.yml` to deploy the setup using the `podman-compose` command.
 
 ## Copyright
 
