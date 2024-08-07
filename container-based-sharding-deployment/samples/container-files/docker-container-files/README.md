@@ -20,7 +20,7 @@ Docker is used on Oracle Linux 7 Host Machines to create containers. This docume
 
 ## Prerequisites
 
-YOu must complete all of the prerequisites before deploying an Oracle Globally Distributed Database using Docker Containers. These prerequisites include creating the Docker network, creating the encrypted file with secrets, and other steps required before deployment. 
+You must complete all of the prerequisites before deploying an Oracle Globally Distributed Database using Docker Containers. These prerequisites include creating the Docker network, creating the encrypted file with secrets, and other steps required before deployment. 
 
 
 ### Create Network Bridge
