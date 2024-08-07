@@ -33,12 +33,12 @@
 
 This repository provides deployment automation and tools for Oracle Database using Oracle Globally Distributed Database. It includes the following:
 
-* Terraform based deployment of Oracle Globally Distributed Database.
-* Mid-tier routing for use in Oracle Globally Distributed Database applications.
-* OKE based deployment of Oracle Globally Distributed Database database.
-* Fast data ingest for sharding applications.
+* Terraform based deployment of Oracle Globally Distributed Database
+* Mid-tier routing for use in Oracle Globally Distributed Database applications
+* OKE based deployment of Oracle Globally Distributed Database
+* Fast data ingest for sharding applications
 
-To learn more about Oracle Globally Distributed Database (also referred to as Oracle Sharded Database), review the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
+To learn more about Oracle Globally Distributed Database (previously referred to as Oracle Sharded Database), review the [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
 
 <strong> Note </strong> : Globally Distributed Database, Oracle Sharding, Sharded database, and Oracle Sharded Database (SDB) are interchangeably used names in the documentation and refer to the same entity. 
 

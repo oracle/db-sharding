@@ -1,4 +1,4 @@
- # Sharded Database Mid-Tier Routing
+ # Oracle Globally Distributed Databasease Mid-Tier Routing
  
  
  - **Mid-Tier routing** : https://github.com/oracle/db-sharding/wiki/Sharded-Database-Mid-Tier-Routing 

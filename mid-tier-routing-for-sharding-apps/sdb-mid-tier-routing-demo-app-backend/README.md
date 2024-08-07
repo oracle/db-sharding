@@ -1,6 +1,6 @@
 ## Sharded database Mid-Tier routing - Demo app backend 
 
-### Pre-Requisites
+### Prerequisites
 
 - Download and install node js and npm if you don't already have it installed on the target machine.
 

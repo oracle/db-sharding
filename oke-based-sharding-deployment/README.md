@@ -5,10 +5,10 @@ Oracle Cloud Infrastructure Container Engine for Kubernetes is a fully-managed, 
 
 Helm is the package manager (analogous to yum and apt). Charts are packages (analogous to debs and rpms). The home for these Charts is the Kubernetes Charts repository which provides continuous integration for pull requests, as well as automated releases of Charts in the master branch. For details, refer [Helm Charts: making it simple to package and deploy common applications on Kubernetes](https://kubernetes.io/blog/2016/10/helm-charts-making-it-simple-to-package-and-deploy-apps-on-kubernetes/).
 
-To deploy Oracle Globally Distributed Database on OKE using Helm and Chart, execute following steps in the order given:
+To deploy Oracle Globally Distributed Database on OKE using Helm and Chart, complete the following steps in the order given:
 * [Create Container Engine for Kubernetes](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm)
    * You must have one node in each AD to distribute the shards across ADs
-   * If you want to automate OKE deployment, then see the following documentation:
+   * If you want to automate OKE deployment, you can refer following:
      * [Ansible Collection](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/ansible.htm)
      * [Terraform Provider](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/terraform.htm)
 * [Deploy Oracle Globally Distributed Database using Helm and Chart](./oracle-sharding-si-chart/README.md)

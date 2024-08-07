@@ -22,16 +22,16 @@ This library provides the following Oracle Globally Distributed Database deploym
 * Terraform based deployment of Oracle Globally Distributed Database on Oracle Cloud Infrastructure.
 * Terraform based deployment of Oracle Globally Distributed Database On-Premise.
 
-If you want to learn more about Oracle Globally Distributed Database (previously known as Oracle Sharded Database), see: [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
+If you want to learn more about Oracle Globally Distributed Database, previously known as Oracle Sharded Database, see: [product page][SDB-prod-page] and [product documentation][SDB-prod-doc].
 
-<strong> Note </strong> : Oracle Sharding (SDB) and Oracle Globally Distributed Database are interchangeably used names in the documentation and refer to the same entity. 
+<strong> Note </strong> : Oracle Sharding, SDB and Oracle Globally Distributed Database are interchangeably used names in the documentation and refer to the same entity. 
 
  
 ## Terraform based deployment of Oracle Globally Distributed Database on Oracle Cloud Infrastructure
 
 ### Overview 
 
-This deployment provides Terraform scripts that provision the necessary components and resources for a quick and easy setup of [Oracle Globally Distributed Database][SDB] (SDB) on [Oracle Cloud Infrastructure][OCI] (OCI). It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Directors, Shard Catalogs, and Shards. It also gives you the option to create Shard Standbys as well as Catalog standby using Oracle Data Guard for replication to provide high-availability and disaster recovery of the sharded data.
+Provides Terraform scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Globally Distributed Database][SDB] (SDB) on [Oracle Cloud Infrastructure][OCI] (OCI). It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Directors, Shard Catalogs, Shards. You have the option also to configure Shard Standbys as well as Catalog standby using Oracle Data Guard for replication to provide high-availability and disaster recovery of the sharded data.
 
 ### Details
 
@@ -41,9 +41,8 @@ For more details, see: [SDB-Terraform-OCI][SDB-terraform-oci] documentation.
 
 ### Overview 
 
-Provides [Oracle Globally Distributed Database][SDB] (SDB) Terraform modules and scripts that provisions the necessary components and resources required for a quick and easy setup of Oracle Sharded Database on-prem. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Directors, Shard Catalogs, and Shards. It also gives you the option to deploy Shard Standbys as well as Catalog standby using Oracle Data Guard for replication to provide high-availability and disaster recovery of the sharded data.
+Provides [Oracle Globally Distributed Database][SDB] (SDB) Terraform modules and scripts that provisions the necessary components and resources required for a quick and easy setup of Oracle Globally Distributed Database on-prem. It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Directors, Shard Catalogs, Shards. You have the option also to configure Shard Standbys as well as Catalog standby using Oracle Data Guard for replication to provide high-availability and disaster recovery of the sharded data.
 
 ### Details
 
-For more details, see: [SDB-Terraform-OnPrem][SDB-terraform-onprem] documentation.
-
+For more details, see [SDB-Terraform-OnPrem][SDB-terraform-onprem] documentation.
