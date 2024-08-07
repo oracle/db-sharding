@@ -1,4 +1,4 @@
-## Routing implementations for use in Oracle sharding client applications 
+## Routing implementations for use in Oracle Globally Distributed Database client applications 
 
 NOTE: this is a *beta* 0.1 version of the library.
 
