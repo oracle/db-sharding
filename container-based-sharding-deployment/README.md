@@ -1,10 +1,10 @@
 # Oracle Globally Distributed Database in Linux Containers
 
-Learn about container deployment options for Oracle Globally Distributed Database in Linux Containers Release 23ai (v23.4)
+Learn about container deployment options for Oracle Globally Distributed Database in Linux Containers Release 23ai (v23.5).
 
 ## Overview of Oracle Globally Distributed Database in Linux Containers
 
-Oracle Globally Distributed Database is a scalability and availability feature for custom-designed OLTP applications that enables the distribution and replication of data across a pool of Oracle Databases that do not share hardware or software. The pool of databases is presented to the application as a single logical database.
+Oracle Globally Distributed Database is a scalability and availability feature for custom-designed OLTP applications that enables the distribution and replication of data across a pool of Oracle Databases that do not share hardware or software. The pool of databases is presented to the application as a single logical database. 
 
 This project offers sample container files to facilitate installation, configuration, and environment setup for DevOps users. For more information about Oracle Database, see: [Oracle Globally Distributed Database Management Documentation](http://docs.oracle.com/en/database/).
 
@@ -12,7 +12,7 @@ Review each of the sections of this README in the order given. After reviewing e
 
 This project offers example container files for the following: 
 
-* Oracle Database 23ai Global Service Manager (GSM/GDS) (23.4.0) for Linux x86-64
+* Oracle Database 23ai Global Service Manager (GSM/GDS) (23.5.0) for Linux x86-64
 * Older Releases: Oracle 19c (19.3) and Oracle 21c (21.3) for Linux x86-64
 
 

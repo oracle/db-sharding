@@ -59,7 +59,7 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
   | shard_pub1_nw    | 10.0.20.0/20 | Public network for Oracle lobally Distributed Database Podman Container Environment|
 
 ## Deploy Oracle Globally Distributed Database on Podman Container Environment
-- Copy `podman-compose.yml` file from this [<GITHUB_REPO_CLONED_PATH>/db-sharding/container-based-sharding-deployment/samples/compose-files/podman-compose.yml](../samples/compose-files/podman-compose.yml) in your working directory.
+- Copy the `podman-compose.yml` file from this [<GITHUB_REPO_CLONED_PATH>/db-sharding/container-based-sharding-deployment/samples/compose-files/podman-compose.yml](../samples/compose-files/podman-compose.yml) in your working directory.
 - Run the following command from your working directory to export the required environment variables required by the compose file in this quickstart-
   ```bash
   source ./setup_gdd_host.sh -export-sharding-env
@@ -69,7 +69,7 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
   INFO: Sharding Environment Variables are setup successfully.
   ```
   Note:
-  * This Quickstart guide uses `export PODMANVOLLOC='/scratch/oradata'` variable for storing all data files related to Oracle Globally Distributed Database containers. You can change this as needed in your environment where required free space is available.
+  * This Quickstart guide uses the variable `export PODMANVOLLOC='/scratch/oradata'` for storing all data files related to Oracle Globally Distributed Database containers. You can change this as needed in your environment where required free space is available.
 
 - Run the following command to deploy the Catalog Container-
   ```bash
@@ -125,7 +125,7 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
   podman-compose logs -f shard3_db
   ```
 
-  Wait for the below message:
+  Wait for the following message:
   ```
   ==============================================
      GSM Shard Setup Completed                
@@ -140,13 +140,13 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
   podman-compose logs -f shard4_db
   ```
 
-  Wait for the below message:
+  Wait for the following message:
   ```
   ==============================================
      GSM Shard Setup Completed                
   ==============================================
   ```
-- Run the follwoing to deploy the Primary GSM Container-
+- Run the following commanda to deploy the Primary GSM Container-
   ```bash
   ./setup_gdd_host.sh -deploy-gsm-primary
   ```
@@ -198,7 +198,7 @@ If you want to clean up the Oracle Globally Distributed Database Container envir
 ./setup_gdd_host.sh -cleanup
 ```
 
-This will clean up the Oracle Globally Distributed Database Containers, Oracle Storage Volume,  Oracle Globally Distributed Database Podman Networks, and so on.
+This command will clean up the Oracle Globally Distributed Database Containers, Oracle Storage Volume, Oracle Globally Distributed Database Podman Networks, and so on.
 
 Logs-
 ```bash
