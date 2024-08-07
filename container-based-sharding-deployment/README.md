@@ -12,7 +12,7 @@ Review each of the sections of this README in the order given. After reviewing e
 
 This project offers example container files for the following: 
 
-* Oracle Database 23ai Global Service Manager (GSM/GDS) (23.4.0) for Linux x86-64
+* Oracle Database 23ai Global Service Manager (GSM/GDS) (23.5.0) for Linux x86-64
 * Older Releases: Oracle 19c (19.3) and Oracle 21c (21.3) for Linux x86-64
 
 
