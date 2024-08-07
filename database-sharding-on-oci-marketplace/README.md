@@ -1,54 +1,54 @@
-- [Deploying Oracle Database Sharding on Oracle Cloud Marketplace](#deploying-oracle-database-sharding-on-oracle-cloud-marketplace)
-  * [Finding Oracle Database Sharding on Oracle Cloud (OCI) Marketplace](#finding-oracle-database-sharding-on-oracle-cloud--oci--marketplace)
-    + [Finding Oracle Database Sharding  on Public cloud marketplace](#finding-oracle-database-sharding--on-public-cloud-marketplace)
-    + [Finding Oracle Database Sharding on OCI console](#finding-oracle-database-sharding-on-oci-console)
-  * [Pre-Requisites for creating an Oracle Database Sharding instance on OCI marketplace](#pre-requisites-for-creating-an-oracle-database-sharding-instance-on-oci-marketplace)
+- [Deploying Oracle Globally Distributed Database on Oracle Cloud Marketplace](#deploying-oracle-globally-distributed-database-on-oracle-cloud-marketplace)
+  * [Finding Oracle Globally Distributed Database on Oracle Cloud (OCI) Marketplace](#finding-oracle-globally-distributed-database-on-oracle-cloud--oci--marketplace)
+    + [Finding Oracle Globally Distributed Database on Public cloud marketplace](#finding-oracle-globally-distributed-database-on-public-cloud-marketplace)
+    + [Finding Oracle Globally Distributed Database on OCI console](#finding-oracle-globally-distributed-database-on-oci-console)
+  * [Prerequisites for creating an Oracle Globally Distributed Database instance on OCI marketplace](#prerequisites-for-creating-an-oracle-globally-distributed-database-instance-on-oci-marketplace)
   * [Fill in the required Stack information](#fill-in-the-required-stack-information)
   * [Fill in the Sharding configuration details](#fill-in-the-sharding-configuration-details)
-  * [Oracle Database Sharding Deployment job](#oracle-database-sharding-deployment-job)
-    + [Oracle Database Sharding Deployment job status](#oracle-database-sharding-deployment-job-status)
-    + [Oracle Database Sharding Deployment job outputs](#oracle-database-sharding-deployment-job-outputs)
-    + [Oracle Database Sharding Deployment job associated resources](#oracle-database-sharding-deployment-job-associated-resources)
+  * [Oracle Globally Distributed Database Deployment job](#oracle-globally-distributed-database-deployment-job)
+    + [Oracle Globally Distributed Database Deployment job status](#oracle-globally-distributed-database-deployment-job-status)
+    + [Oracle Globally Distributed Database Deployment job outputs](#oracle-globally-distributed-database-deployment-job-outputs)
+    + [Oracle Globally Distributed Database Deployment job associated resources](#oracle-globally-distributed-database-deployment-job-associated-resources)
       - [Navigating to a Shard Director from associated resources](#navigating-to-a-shard-director-from-associated-resources)
       - [Navigating to a Shard from associated resources](#navigating-to-a-shard-from-associated-resources)
-    + [Oracle Database Sharding initial random credentials](#oracle-database-sharding-initial-random-credentials)
-- [Managing Oracle Database Sharding previously created from OCI Marketplace](#managing-oracle-database-sharding-previously-created-from-oci-marketplace)
+    + [Oracle Globally Distributed Database initial random credentials](#oracle-globally-distributed-database-initial-random-credentials)
+- [Managing Oracle Globally Distributed Databasepreviously created from OCI Marketplace](#managing-oracle-globally-distributed-database-previously-created-from-oci-marketplace)
   * [Scaling Shards](#scaling-shards)
-    + [Oracle Database Sharding edit stack apply job](#oracle-database-sharding-edit-stack-apply-job)
-      - [Oracle Database Sharding edit stack job running](#oracle-database-sharding-edit-stack-job-running)
-      - [Oracle Database Sharding edit stack job completion](#oracle-database-sharding-edit-stack-job-completion)
-      - [Oracle Database Sharding edit stack job outputs](#oracle-database-sharding-edit-stack-job-outputs)
+    + [Oracle Globally Distributed Database edit stack apply job](#oracle-globally-distributed-database-edit-stack-apply-job)
+      - [Oracle Globally Distributed Database edit stack job running](#oracle-globally-distributed-database-edit-stack-job-running)
+      - [Oracle Globally Distributed Database edit stack job completion](#oracle-globally-distributed-database-edit-stack-job-completion)
+      - [Oracle Globally Distributed Database edit stack job outputs](#oracle-globally-distributed-database-edit-stack-job-outputs)
   * [Scaling Shard Directors](#scaling-shard-directors)
-- [Terminating Oracle Database Sharding created from Oracle Cloud Marketplace](#terminating-oracle-database-sharding-created-from-oracle-cloud-marketplace)
-- [Oracle Database Sharding Resources](#oracle-database-sharding-resources)
+- [Terminating Oracle Globally Distributed Database created from Oracle Cloud Marketplace](#terminating-oracle-globally-distributed-database-created-from-oracle-cloud-marketplace)
+- [Oracle Globally Distributed Database Resources](#oracle-database-sharding-resources)
 
 
-# Deploying Oracle Database Sharding on Oracle Cloud Marketplace
+# Dracle Globally Distributed Database on Oracle Cloud Marketplace
 
-## Finding Oracle Database Sharding on Oracle Cloud (OCI) Marketplace
+## Finding Oracle Globally Distributed Database on Oracle Cloud (OCI) Marketplace
 
-### Finding Oracle Database Sharding  on Public cloud marketplace
+### Finding Oracle Globally Distributed Database on Public cloud marketplace
 
 * Choose IaaS 
 * Choose Oracle Cloud Infrastructure
-* Select Oracle Database Sharding from the list of Featured Apps.
+* Select Oracle Globally Distributed Database from the list of Featured Apps.
 
-Oracle Database Sharding can be found on the featured list right at the top of the OCI applications on Oracle public marketplace.
+Oracle Globally Distributed Database can be found on the featured list right at the top of the OCI applications on Oracle public marketplace.
 
-![Oracle Database Sharding on OCI Public Marketplace](
+![Oracle Globally Distributed Database on OCI Public Marketplace](
         https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/ODS-Featured-App-on-Public-Marketplace.png
       )
 
-![Oracle Database Sharding on OCI Public Marketplace Featured Applications](
+![Oracle Globally Distributed Database on OCI Public Marketplace Featured Applications](
         https://github.com/oracle/db-sharding/blob/master/database-sharding-on-oci-marketplace/static-assets/Oracle-Database-Sharding-on-OCI-Public-Marketplace-featured.png
       )
 
-2. Go directly to the following listing link at :  
+2. Go to the following listing link:  
 [Oracle Database Sharding Listing on Oracle Cloud Public Marketplace ](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/74654105) 
 
-### Finding Oracle Database Sharding on OCI console
+### Finding Oracle Globally Distributed Database on OCI console
 
-1. Once you login to the OCI console, Click on the left hamburger navigation menu.
+1. Log in to the OCI console, Click on the left hamburger navigation menu.
 2. Next, select OCI marketplace under solutions & marketplace section in the left navigation menu.
 3. Next, you should be able to immediately find Oracle Database Sharding in the Featured Apps.
 4. If you don't find Oracle Database Sharding for some reason, then search for it in the marketplace search bar.
