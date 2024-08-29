@@ -82,7 +82,7 @@ To assist with building the images, you can use the [buildContainerImage.sh](con
 
 ### Building Oracle Global Service Manager Image
 
-**IMPORTANT:** To create an Oracle Global Service Manager image (GSM image), you must provide the installation binaries of `Oracle Global Service Manager Oracle Database 23ai (23.4) for Linux x86-64` and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
+**IMPORTANT:** To create an Oracle Global Service Manager image (GSM image), you must provide the installation binaries of `Oracle Global Service Manager Oracle Database 23ai (23.5) for Linux x86-64` and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
 
 **Note:** Do not uncompress the binaries.
 
@@ -90,7 +90,7 @@ The `buildContainerImage.sh` script is just a utility shell script that performs
 
 ```bash
 ./buildContainerImage.sh -v (Software Version)
-./buildContainerImage.sh -v 23.4.0
+./buildContainerImage.sh -v 23.5.0
 ```
 
 For detailed usage information for `buildContainerImage.sh`, run the following command:
@@ -113,7 +113,7 @@ Copyright (c) 2014,2024 Oracle and/or its affiliates.
 
 ### Building Oracle Database Image
 
-To build Oracle Globally Distributed Database on a container, download and build an Oracle 23.4.0 Database Image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
+To build Oracle Globally Distributed Database on a container, download and build an Oracle 23.5.0 Database Image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
 
 **Note**: Use the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md) to create the image, and do not use the container instructions. For the container, use the steps given in this document under the [Oracle Globally Distributed Database in Containers Deployment Scenarios](#oracle-globally-distributed-database-in-containers-deployment-scenarios) section.
 
@@ -124,13 +124,13 @@ After creating the base image using `buildContainerImage.sh` in the previous ste
 For example:
 
 ```bash
-./buildExtensions.sh -a -x sharding -b oracle/database:23.4.0-ee  -t oracle/database-ext-sharding:23.4.0-ee -o "--build-arg BASE_IMAGE_VERSION=23.4.0"
+./buildExtensions.sh -a -x sharding -b oracle/database:23.5.0-ee  -t oracle/database-ext-sharding:23.5.0-ee -o "--build-arg BASE_IMAGE_VERSION=23.5.0"
 
 Where:
 "-x sharding"                                   is to specify to have sharding feature in the extended image
-"-b oracle/database:23.4.0-ee"                  is to specify the Base image created in previous step
-"oracle/database-ext-sharding:23.4.0-ee"        is to specify the name:tag for the extended image with Sharding Feature
--o "--build-arg BASE_IMAGE_VERSION=23.4.0"      is to specify the BASE_IMAGE_VERSION to clone from db-sharding git repo
+"-b oracle/database:23.5.0-ee"                  is to specify the Base image created in previous step
+"oracle/database-ext-sharding:23.5.0-ee"        is to specify the name:tag for the extended image with Sharding Feature
+-o "--build-arg BASE_IMAGE_VERSION=23.5.0"      is to specify the BASE_IMAGE_VERSION to clone from db-sharding git repo
 ```
 
 To see more usage instructions for the `buildExtensions.sh` script, run the following command: 
