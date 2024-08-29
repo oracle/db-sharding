@@ -19,7 +19,7 @@
 # -----------------------
 # Put all downloaded files in the same directory as this Dockerfile
 # Run:
-#      $ docker build -t oracle/gsm:23.3.0 .
+#      $ docker build -t oracle/gsm:23.5.0 .
 #
 
 ARG BASE_OL_IMAGE=oraclelinux:8
