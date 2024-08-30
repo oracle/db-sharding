@@ -44,6 +44,8 @@ class OraPCatalog:
           """
            This function setup the catalog on Primary DB.
           """
+          if self.ocommon.check_key("ORACLE_FREE_PDB",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_FREE_PDB"],self.ora_env_dict)
           if self.ocommon.check_key("CHECK_LIVENESS",self.ora_env_dict):
              create_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".create_lck"
              exist_db_file_lck=self.ocommon.get_db_lock_location() + self.ora_env_dict["ORACLE_SID"] + ".exist_lck"
@@ -99,6 +101,8 @@ class OraPCatalog:
                self.ocommon.set_events("spfile")
                self.set_dbparams_version()
                self.restart_db()
+               self.restart_for_db_unique_name()
+               self.create_pdb()
                self.alter_db()
                self.setup_pdb_catalog()
                self.set_primary_listener()
@@ -129,7 +133,7 @@ class OraPCatalog:
           self.passwd_check()
           self.set_user()
           self.sid_check()
-          self.dbuinque_name_check() 
+          self.dbunique_name_check() 
           self.hostname_check()
           self.dbport_check()
           self.dbr_dest_checks()
@@ -194,13 +198,18 @@ class OraPCatalog:
                self.ocommon.log_error_message(msg,self.file_name)
                self.ocommon.prog_exit()
 
-      def dbuinque_name_check(self):
+      def dbunique_name_check(self):
            """
            This funnction check and set the db unique name for standby
            """
            if self.ocommon.check_key("DB_UNIQUE_NAME",self.ora_env_dict):
                msg='''DB_UNIQUE_NAME {0} is passed as an env variable. Check Passed!'''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
                self.ocommon.log_info_message(msg,self.file_name)
+
+               msg='''Setting the Flag to restart the DB to set DB_UNIQUE_NAME to {0}! '''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
+               self.ocommon.log_info_message(msg,self.file_name)
+               restart_db_to_set_db_unique_name='true'
+               self.ora_env_dict=self.ocommon.add_key("RESTART_DB_TO_SET_DB_UNIQUE_NAME",restart_db_to_set_db_unique_name,self.ora_env_dict)
            else:
                msg="DB_UNIQUE_NAME is not set. Setting DB_UNIQUE_NAME to Oracle_SID"
                self.ocommon.log_info_message(msg,self.file_name)
@@ -400,6 +409,7 @@ class OraPCatalog:
              alter user gsmcatuser account unlock;
              alter user gsmcatuser identified by HIDDEN_STRING;
              alter system set local_listener='{4}:{5}' scope=both;
+             alter system set db_unique_name='{8}' scope=spfile;
            '''.format(dbf_dest,dbr_dest_size,dbr_dest,dpump_dir,host_name,db_port,obase,"dbconfig",dbuname)
 
            output,error,retcode=self.ocommon.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
@@ -487,6 +497,38 @@ class OraPCatalog:
             #self.ocommon.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
             #self.ocommon.check_sql_err(output,error,retcode,True)
 
+      def restart_for_db_unique_name(self):
+          """
+          restarting the db, when db_unique_name is passed explicitly
+          """
+          if self.ocommon.check_key("RESTART_DB_TO_SET_DB_UNIQUE_NAME",self.ora_env_dict):
+              if self.ora_env_dict["RESTART_DB_TO_SET_DB_UNIQUE_NAME"] == 'true':
+                  msg='''DB_UNIQUE_NAME {0} is passed as an env variable. Restarting the Database to set the DB_UNIQUE_NAME! '''.format(self.ora_env_dict["DB_UNIQUE_NAME"])
+                  self.ocommon.log_info_message(msg,self.file_name)
+
+                  ohome=self.ora_env_dict["ORACLE_HOME"]
+                  inst_sid=self.ora_env_dict["ORACLE_SID"]
+                  sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)
+                  self.ocommon.log_info_message("Calling shutdown_db() to shutdown the database",self.file_name)
+                  self.ocommon.shutdown_db(self.ora_env_dict)
+                  self.ocommon.log_info_message("Calling startup_mount() to mount the database",self.file_name)
+                  self.ocommon.start_db(self.ora_env_dict)
+
+
+      def create_pdb(self):
+         """
+         This function creates the PDB
+         """
+         inst_sid=self.ora_env_dict["ORACLE_SID"]
+         ohome=self.ora_env_dict["ORACLE_HOME"]
+         if self.ocommon.check_key("ORACLE_FREE_PDB",self.ora_env_dict):
+            self.ora_env_dict=self.ocommon.update_key("ORACLE_PDB",self.ora_env_dict["ORACLE_FREE_PDB"],self.ora_env_dict)
+            opdb=self.ora_env_dict["ORACLE_PDB"]
+            status=self.ocommon.check_pdb(opdb)
+            if not status:
+             self.ocommon.create_pdb(ohome,opdb,inst_sid)
+             self.ocommon.create_pdb_tns_entry(ohome,opdb)
+                                     
       def alter_db(self):
           """
           Alter db 

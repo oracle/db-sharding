@@ -124,7 +124,7 @@ After creating the base image using `buildContainerImage.sh` in the previous ste
 For example:
 
 ```bash
-./buildExtensions.sh -a -x sharding -b oracle/database:23.5.0-ee  -t oracle/database-ext-sharding:23.5.0-ee -o "--build-arg BASE_IMAGE_VERSION=23.5.0"
+./buildExtensions.sh -x sharding -b oracle/database:23.5.0-ee  -t oracle/database-ext-sharding:23.5.0-ee -o "--build-arg BASE_IMAGE_VERSION=23.5.0"
 
 Where:
 "-x sharding"                                   is to specify to have sharding feature in the extended image
@@ -145,7 +145,7 @@ Parameters:
    -x: Space separated extensions to build. Defaults to all
        Choose from : k8s  patching  prebuiltdb  sharding  
    -b: Base image to use
-   -v: Base version to extend (example 21.3.0)
+   -v: Base version to extend (example 23.5.0)
    -t: name:tag for the extended image
    -o: passes on Container build option
 
