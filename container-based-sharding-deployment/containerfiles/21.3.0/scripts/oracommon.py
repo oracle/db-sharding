@@ -328,6 +328,20 @@ class OraCommon:
           f1.write(fdata)
           f1.close
 
+      def append_file(self,fname,fdata):
+          """
+            append the contents to a file
+            Attributes:
+               fname (string): file to be appended
+               fdata (string): COnetents to be appended
+
+            Return:
+               file data (string)
+          """
+          f1 = open(fname, 'a')
+          f1.write(fdata)
+          f1.close
+
       def create_dir(self,dir,local,remote,user):
           """
             Create dir locally or remotely
@@ -805,8 +819,15 @@ class OraCommon:
                self.remove_file(fname)
                
             if self.check_key("ORACLE_PWD",self.ora_env_dict):
-               msg="ORACLE_PWD is passed as an env variable. Check Passed!"
-               self.log_info_message(msg,self.file_name)
+               if len(self.ora_env_dict["ORACLE_PWD"]) > 0:
+                  msg="ORACLE_PWD is passed as an env variable. Check Passed!"
+                  self.log_info_message(msg,self.file_name)
+               else:
+                 msg="ORACLE_PWD passed as 0 length string"
+                 self.log_info_message(msg,self.file_name)
+                 self.ora_env_dict=self.update_key("ORACLE_PWD",password,self.ora_env_dict)
+                 msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
+                 self.log_info_message(msg,self.file_name)                  
             else:
                self.ora_env_dict=self.add_key("ORACLE_PWD",password,self.ora_env_dict)
                msg="ORACLE_PWD set to HIDDEN_STRING generated using encrypted password file"
@@ -866,7 +887,66 @@ class OraCommon:
          self.log_info_message("Running the sqlplus command to import the tde key: " + sqlcmd,self.file_name)
          output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
          self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
-         self.check_sql_err(output,error,retcode,True)         
+         self.check_sql_err(output,error,retcode,True)
+
+####### Check PDB if it exist ###############
+      def check_pdb(self,pdbname):
+         """
+         This function check the PDB.
+         """
+         self.log_info_message("Inside check_pdb()",self.file_name)
+         sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
+         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         sqlcmd='''
+         set heading off
+         set feedback off
+         select NAME from gv$pdbs;
+         '''
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.check_sql_err(output,error,retcode,None)
+         pdblist=output.splitlines()
+         self.log_info_message("Checking pdb " + pdbname, self.file_name)
+         if pdbname in pdblist:
+            return True
+         else:
+            return False
+
+####### Create PDB if it does not exist ###############
+      def create_pdb(self,ohome,opdb,inst_sid):
+         """
+         This function create the PDB.
+         """
+         self.log_info_message("Inside create_pdb()",self.file_name)
+         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         cmd='''{0}/bin/dbca -silent -createPluggableDatabase -pdbName {1}  -sourceDB {2} <<< HIDDEN_STRING'''.format(ohome,opdb,inst_sid)
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.unset_mask_str()
+         self.check_os_err(output,error,retcode,True)
+
+
+
+####### Create PDB tnsnames.ora entry ###############
+      def create_pdb_tns_entry(self,ohome,opdb):
+         """
+         This function create the PDB tnsnames.ora entry.
+         """
+         self.log_info_message("Inside create_pdb_tns_entry()",self.file_name)
+         tns_entry_string="""
+{0} =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 0.0.0.0)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = {0})
+    )
+  )
+
+""".format(opdb)
+
+         tns_file='''{0}/network/admin/tnsnames.ora'''.format(ohome)
+         self.append_file(tns_file,tns_entry_string)
+      
 ######## Reset the DB Password in database ########
       def reset_passwd(self):
          """

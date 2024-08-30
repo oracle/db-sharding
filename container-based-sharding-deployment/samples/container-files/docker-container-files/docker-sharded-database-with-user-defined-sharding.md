@@ -97,7 +97,7 @@ docker run -d --hostname oshard-catalog-0 \
 -e PWD_KEY=key.pem \
 -e SHARD_SETUP="true" \
 -e ENABLE_ARCHIVELOG=true \
--v /oradata/dbfiles/CATALOG:/opt/oracle/oradata \
+-v /scratch/oradata/dbfiles/CATALOG:/opt/oracle/oradata \
 -v /opt/containers/shard_host_file:/etc/hosts \
 --volume /opt/.secrets:/run/secrets:ro \
 --privileged=false \
