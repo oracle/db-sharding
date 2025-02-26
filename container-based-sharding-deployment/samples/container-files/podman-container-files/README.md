@@ -1,6 +1,6 @@
-# Oracle Globally Distributed Database Containers on Podman
+# Oracle Globally Distributed Database Containers on Podman using Extended Oracle Single Instance Database Image
 
-In this installation guide, we deploy Oracle Globally Distributed Database Containers on Podman. This document provides detailed steps for various deployment scenarios of Oracle Globally Distributed Database using Podman Containers.
+In this installation guide, we deploy Oracle Globally Distributed Database Containers on Podman. This document provides detailed steps for various deployment scenarios of Oracle Globally Distributed Database using Podman Containers deployed using Extended Oracle Single Instance Database Image with Enterprise Edition Software.
 - [Oracle Globally Distributed Database Containers on Podman](#oracle-globally-distributed-database-containers-on-podman)
   - [Prerequisites](#prerequisites)
   - [Network Management](#network-management)
@@ -11,9 +11,8 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
   - [Password Management](#password-management)
   - [SELinux Configuration on Podman Host](#selinux-configuration-on-podman-host)
   - [Deploy Oracle Globally Distributed Database Containers](#deploy-oracle-globally-distributed-database-containers)
-    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding](#deploy-oracle-globally-distributed-database-with-system-managed-sharding)
-    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled](#deploy-oracle-globally-distributed-database-with-system-managed-sharding-with-raft-replication-enabled)
-    - [Deploy Oracle Globally Distributed Database with User-Defined Sharding](#deploy-oracle-globally-distributed-database-with-user-defined-sharding)
+    - [Deploy Oracle Globally Distributed Database with System-Managed Sharding](#deploy-oracle-globally-distributed-database-using-extended-oracle-single-instance-database-image-with-system-managed-sharding)
+    - [Deploy Oracle Globally Distributed Database with User-Defined Sharding](#deploy-oracle-globally-distributed-database-using-extended-oracle-single-instance-database-image-with-user-defined-sharding)
 - [Support](#support)
 - [License](#license)
 - [Copyright](#copyright)
@@ -22,12 +21,12 @@ In this installation guide, we deploy Oracle Globally Distributed Database Conta
 
 ## Prerequisites
 
-You must complete all of the prerequisites before deploying an Oracle Globally Distributed Database using Podman Containers. These prerequisites include creating the Docker network, creating the encrypted file with secrets, and other steps required before deployment. 
+You must complete all of the prerequisites before deploying an Oracle Globally Distributed Database using Podman Containers. These prerequisites include creating the Podman network, creating the encrypted file with secrets, and other steps required before deployment. 
 
 
 ### Network Management
 
-Before creating a container, create the podman network by creating the Podman network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md, then you can use the same IPs mentioned in the [Deploy Oracle Globally Distributed Database Containers](#create-containers) section.
+Before creating a container, create the podman network by creating the Podman network bridge based on your environment. If you are using the podman network with the same subnet mentioned in this README.md, then you can use the same IPs mentioned in the [Deploy Oracle Globally Distributed Database Containers](#deploy-oracle-globally-distributed-database-containers) section.
 
 #### Macvlan Network
 
@@ -55,7 +54,7 @@ To create a podman network with `bridge` driver, run the following command:
 podman network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
 
-**Note:** You can change subnet and choose one of the above mentioned podman network bridge based on your environment.
+**Note:** You can change subnet and choose one of the above mentioned podman network configuration based on your environment.
 
 ### Setup Hostfile
 
@@ -135,20 +134,13 @@ semodule -l | grep shard-pod
 ```
 ## Deploy Oracle Globally Distributed Database Containers
 
-Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding, System-Managed Sharding with RAFT Replication enabled, or User-Defined Sharding.
+Refer to the relevant section depending on whether you want to deploy the Oracle Globally Distributed Database using System-Managed Sharding or User-Defined Sharding.
 
-### Deploy Oracle Globally Distributed Database with System-Managed Sharding
+### Deploy Oracle Globally Distributed Database using Extended Oracle Single Instance Database Image with System-Managed Sharding
 
 Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding using podman containers.
 
-
-### Deploy Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication Enabled
-
-Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled deployed manually using Podman Containers](./podman-sharded-database-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding with RAFT Replication enabled using podman containers.
-
-**NOTE:** The RAFT Replication Feature is available only for Oracle 23ai RDBMS and Oracle 23ai GSM version.
-
-### Deploy Oracle Globally Distributed Database with User-Defined Sharding
+### Deploy Oracle Globally Distributed Database using Extended Oracle Single Instance Database Image with User-Defined Sharding
 
 Refer to [Sample Oracle Globally Distributed Database with User-Defined Sharding deployed manually using Podman Containers](./podman-sharded-database-with-user-defined-sharding.md) to deploy a sample Oracle Globally Distributed Database with User-Defined sharding using Podman containers.
 

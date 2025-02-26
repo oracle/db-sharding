@@ -16,13 +16,13 @@ Terraform for deployment of [Oracle Sharded Database][SDB] on [Oracle Cloud Infr
 [api-signing-key]: https://docs.cloud.oracle.com/iaas/Content/API/Concepts/apisigningkey.htm#How
 [adding-users]: https://docs.cloud.oracle.com/iaas/Content/GSG/Tasks/addingusers.htm
 
-# Terraform for deploying Oracle Sharded Database on [OCI][OCI]
+# Terraform for deploying Oracle Globally Distributed Database on [OCI][OCI]
 
 ## About
 
-Provides Terraform scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Sharded Database][SDB] (SDB) on [Oracle Cloud Infrastructure][OCI] (OCI). It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
+Provides Terraform scripts that provisions the necessary components and resources for a quick and easy setup of [Oracle Globally Distributed Database][SDB] (SDB) on [Oracle Cloud Infrastructure][OCI] (OCI). It creates and configures SDB infrastructure components necessary for a successful SDB setup, such as Oracle Shard Director(s), Shard Catalog(s), Shard(s) and optionally Shard Standby(s) as well as Catalog standby using Data Guard for replication to provide high-availability and/or disaster recovery of the sharded data.
 
-## Pre-requisites
+## Prerequisites
 
 1. An Oracle Cloud Infrastructure account
 
@@ -38,7 +38,7 @@ NOTE: regional subnets are not supported at this time.
    and extract the <em>terraform</em> binary to any directory on the machine 
    (will be referred to as current machine in the rest of the documentation) where you are going to clone or download the sdb-terraform repository and want to invoke the SDB terraform.
 
-6. Download the Global Service Manager(GSM) zip from OTN onto the current machine and provide 
+6. Download the Global Service Manager (GSM) zip from OTN onto the current machine and provide 
    the full path for the same in terraform.tfvars
 
 7. Ensure that you have ssh rsa key pair generated on your current/local machine. If not generate them with empty   
@@ -84,9 +84,9 @@ Note: Make sure terraform -v works and shows a version later than 0.12
 
 2. Optionally, if you also want to setup the [SDB Demo application][SDB-Demo] with sample (dummy) data in all the shards and monitor the shards, copy the [SDB demo zip][SDB-Demo-zip] and place the sdb_demo_app.zip file into a directory on the current machine and point the full path to it in the optional-variables.auto.tfvars input file.
     
-3. Override the values in the *.tfvars as per your sharding needs. Refer to the variables.tf file for more details on each of the variables found in the *.tfvars files.
+3. Override the values in the *.tfvars as required for your sharding needs. Refer to the variables.tf file for details about each of the variables found in the *.tfvars files.
 
-4. Execute these following steps for SDB deployment on OCI (planning step is optional: Refer ./sdb-setup.sh -h for all the options).
+4. Complete the following steps for SDB deployment on OCI (planning step is optional: run ./sdb-setup.sh -h to see all of the options).
 
    ```
    $  terraform init

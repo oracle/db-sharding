@@ -1,14 +1,13 @@
 # Deploying Oracle Globally Distributed Database Containers using podman-compose
 For Oracle Linux 8 host machines,`podman-compose` can be used for deploying containers to create an Oracle Globally Distributed Database. 
 
-You can use Oracle 23ai GSM and RDBMS Podman Images (Enterprise or FREE) and deploy with the sharding option of your choice: `System-Managed Sharding`, `System-Managed Sharding Topology with Raft replication`, or `User Defined Sharding`. The sharding optoin is deployed with Oracle Globally Distributed Database.
+For Example: You can use GSM and RDBMS Podman Images with Oracle 21c Enterprise Edition Software and deploy with the sharding option of your choice: `System-Managed Sharding` or `User Defined Sharding`.
 
 The example that follows shows how to use `podman-compose` to create the Podman network and to deploy containers for an Oracle Globally Distributed Database on a single Oracle Linux 8 host.
 
-In this example, we deploy an Oracle Globally Distributed Database with `System-Managed Sharding Topology with Raft replication` using Oracle 23ai GSM and RDBMS Images with Four shard containers, a Catalog Container, a Primary GSM container, and a Standby GSM Container.
+In this example, we deploy an Oracle Globally Distributed Database with `System-Managed Sharding Topology` with Four shard containers, a Catalog Container, a Primary GSM container, and a Standby GSM Container.
 
-**IMPORTANT:** This example uses 23ai RDBMS and 23ai GSM Podman Images, and enables the RAFT Replication feature while deploying the Oracle Globally Distributed database. 
-
+**IMPORTANT:** This example uses 21c RDBMS and 21c GSM Podman Images while deploying the Oracle Globally Distributed database. 
 
 - [Step 1: Install Podman compose](#install-podman-compose)
 - [Step 2: Complete the prerequisite steps](#complete-the-prerequisite-steps)
@@ -35,7 +34,7 @@ Complete each of these steps before proceeding with deployment.
 Complete the procedure to create Podman secrets from [Password Management](../../container-files/podman-container-files/README.md#password-management). These Podman secrets are also used during the deployment of Oracle Globally Distributed Database Containers.
 
 ### Prerequisites script file
-Run the script file [podman-compose-prequisites.sh](./podman-compose-prequisites.sh). This script exports the environment variables, creates the network host file, and creates required directories.
+Run the script file [podman-compose-prerequisites.sh](./podman-compose-prerequisites.sh). This script exports the environment variables, creates the network host file, and creates required directories.
 
 **NOTE:** You must change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images that you want to use for the deployment.
 
@@ -67,13 +66,13 @@ Wait for all the services setup to be complete and ready:
 ```bash
 podman ps -a
 CONTAINER ID  IMAGE                                             COMMAND               CREATED        STATUS        PORTS       NAMES
-56fd25ab3476  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              catalog
-05e1d72ae93e  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard1
-7dbd9ce5564b  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard2
-5e1341e3eeab  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard3
-dad4f89a8aaa  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard4
-a265f8438bb7  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm1
-f155a7f61830  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm2
+56fd25ab3476  localhost/oracle/database-ext-sharding:21.3.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              catalog
+05e1d72ae93e  localhost/oracle/database-ext-sharding:21.3.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard1
+7dbd9ce5564b  localhost/oracle/database-ext-sharding:21.3.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard2
+5e1341e3eeab  localhost/oracle/database-ext-sharding:21.3.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard3
+dad4f89a8aaa  localhost/oracle/database-ext-sharding:21.3.0-ee  /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              shard4
+a265f8438bb7  localhost/oracle/database-gsm:21.3.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm1
+f155a7f61830  localhost/oracle/database-gsm:21.3.0              /bin/sh -c exec $...  7 minutes ago  Up 7 minutes              gsm2
 ```
 
 ## Check the logs
@@ -95,6 +94,16 @@ podman logs -f shard1
 ==============================================
 
 podman logs -f shard2
+==============================================
+     GSM Shard Setup Completed                
+==============================================
+
+podman logs -f shard3
+==============================================
+     GSM Shard Setup Completed                
+==============================================
+
+podman logs -f shard4
 ==============================================
      GSM Shard Setup Completed                
 ==============================================
@@ -123,7 +132,9 @@ rm -rf ${PODMANVOLLOC}
 
 ## Oracle 23ai FREE Database and GSM Images
 
-If you plan to use Oracle 23ai FREE Database and GSM Images for deploying the Oracle Globally Distributed Database, then complete these steps:
+You can also use the Oracle 23ai FREE Database and GSM Images with `podman-compose` to deploy the Oracle Globally Distributed Database with System-Managed Sharding or with System-Managed Sharding with RAFT replication or with User Defined Sharding.
+
+For Example: If you plan to use Oracle 23ai FREE Database and GSM Images for deploying the Oracle Globally Distributed Database with `System-Managed Sharding Topology with Raft replication`, then complete these steps:
 
 - Use file [podman-compose-prequisites-free.sh](./podman-compose-prequisites-free.sh) as the prerequisites script file before running the setup as described above.
 

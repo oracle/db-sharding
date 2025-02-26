@@ -47,7 +47,7 @@ services:
     restart: ${CONTAINER_RESTART_POLICY}
     secrets:
       - pwdsecret
-      - keysecret    
+      - keysecret
     volumes:
       - ${PODMANVOLLOC}/dbfiles/ORCL1CDB:/opt/oracle/oradata
       - /opt/containers/shard_host_file:/etc/hosts

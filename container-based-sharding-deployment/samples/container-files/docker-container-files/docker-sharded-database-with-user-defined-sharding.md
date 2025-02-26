@@ -249,6 +249,7 @@ docker run -d --hostname oshard-gsm1 \
 -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;shard_region=region1"  \
 -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
 -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+-e GSM_TRACE_LEVEL="OFF" \
 -e COMMON_OS_PWD_FILE=pwdfile.enc \
 -e PWD_KEY=key.pem \
 -e SHARD_SETUP="True" \
@@ -294,6 +295,7 @@ docker run -d --hostname oshard-gsm2 \
 -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;"  \
 -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
 -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+-e GSM_TRACE_LEVEL="OFF" \
 -e CATALOG_SETUP="True" \
 -e COMMON_OS_PWD_FILE=pwdfile.enc \
 -e PWD_KEY=key.pem \
@@ -576,6 +578,7 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 
 | Optional Parameters             | Description                                                                                                 |
 |---------------------------------|-------------------------------------------------------------------------------------------------------------|
+| GSM_TRACE_LEVEL                 | Specify tacing level for the GSM(Specify USER or ADMIN or SUPPORT or OFF, default value as OFF)             |
 | SAMPLE_SCHEMA                   | Specify a value to "DEPLOY" if you want to deploy a sample app schema in the catalog DB during GSM setup.   |
 | CUSTOM_SHARD_SCRIPT_DIR         | Specify the location of custom scripts that you want to run after setting up GSM.                           |
 | CUSTOM_SHARD_SCRIPT_FILE        | Specify the filename that must be available on CUSTOM_SHARD_SCRIPT_DIR location to be executed after GSM setup. |

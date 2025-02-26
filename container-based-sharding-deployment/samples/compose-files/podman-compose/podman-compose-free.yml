@@ -128,7 +128,6 @@ services:
     image: ${SIDB_IMAGE}
     dns_search: ${DNS_SEARCH}
     restart: ${CONTAINER_RESTART_POLICY}
-    dbEdition: ${DB_EDITION}
     secrets:
       - pwdsecret
       - keysecret
