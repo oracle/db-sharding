@@ -42,14 +42,10 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
 
 ## Getting Oracle Globally Distributed Database Container Images
 - Refer to the [Getting Oracle Globally Distributed Database Container Images](../README.md#building-oracle-globally-distributed-database-container-images) section to get Oracle Globally Distributed Database Container Images used in quickstart setup.  
-- When Podman images are ready, such as is shown in this example used in this quickstart, you can proceed to the next steps-
+- We are going to use the Oracle Database 23ai FREE images below in this deployment:
   ```bash
-  # podman images
-  REPOSITORY                                               TAG                 IMAGE ID      CREATED       SIZE
-  localhost/oracle/database-ext-sharding                   23.5.0-ee           1c17b71b710e  21 hours ago  7.06 GB
-  localhost/oracle/database                                23.5.0-ee           ee6a794351a0  22 hours ago  6.74 GB
-  localhost/oracle/gsm                                     23.5.0              8721eee1dbba  23 hours ago  2.14 GB
-  localhost/oracle/database                                23.5.0-ee-base      b40d790f3224  8 days ago    339 MB
+  container-registry.oracle.com/database/free:latest
+  container-registry.oracle.com/database/gsm:latest
   ```
 ## Networking in Oracle Globally Distributed Database Podman Container Environment
 - In this Quick Start, we will create the following subnets for Oracle Globally Distributed Database Podman Container Environment-  
@@ -59,7 +55,7 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
   | shard_pub1_nw    | 10.0.20.0/20 | Public network for Oracle lobally Distributed Database Podman Container Environment|
 
 ## Deploy Oracle Globally Distributed Database on Podman Container Environment
-- Copy the `podman-compose.yml` file from this [<GITHUB_REPO_CLONED_PATH>/db-sharding/container-based-sharding-deployment/samples/compose-files/podman-compose.yml](../samples/compose-files/podman-compose.yml) in your working directory.
+- Copy the `podman-compose.yml` file from this [<GITHUB_REPO_CLONED_PATH>/db-sharding/container-based-sharding-deployment/samples/compose-files/podman-compose/podman-compose.yml](../samples/compose-files/podman-compose/podman-compose.yml) in your working directory.
 - Run the following command from your working directory to export the required environment variables required by the compose file in this quickstart-
   ```bash
   source ./setup_gdd_host.sh -export-sharding-env
@@ -178,17 +174,17 @@ This deployment uses Oracle Globally Distributed Database Container Image and br
   ```
 
 ## Validating Oracle Globally Distributed Database Container Environment
-You can validate if the environment is set up properly by running the following command and checking the logs of each container-
+You can validate if the environment is set up correctly by running the following command and checking the logs of each container-
 ```bash
 # podman ps -a
-CONTAINER ID  IMAGE                                             COMMAND               CREATED         STATUS         PORTS       NAMES
-181a4215b517  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  22 minutes ago  Up 22 minutes              catalog
-2b5ade918112  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  18 minutes ago  Up 18 minutes              shard1
-f4943c6d67ce  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  15 minutes ago  Up 15 minutes              shard2
-fa9611ad2bbe  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  11 minutes ago  Up 11 minutes              shard3
-e19138866b51  localhost/oracle/database-ext-sharding:23.5.0-ee  /bin/sh -c exec $...  7 minutes ago   Up 7 minutes               shard4
-e88e57c4e442  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  3 minutes ago   Up 3 minutes               gsm1
-4e751cdfe01e  localhost/oracle/database-gsm:23.5.0              /bin/sh -c exec $...  24 seconds ago  Up 24 seconds              gsm2
+CONTAINER ID  IMAGE                                                COMMAND               CREATED         STATUS         PORTS       NAMES
+181a4215b517  container-registry.oracle.com/database/free:latest   /bin/sh -c exec $...  22 minutes ago  Up 22 minutes              catalog
+2b5ade918112  container-registry.oracle.com/database/free:latest   /bin/sh -c exec $...  18 minutes ago  Up 18 minutes              shard1
+f4943c6d67ce  container-registry.oracle.com/database/free:latest   /bin/sh -c exec $...  15 minutes ago  Up 15 minutes              shard2
+fa9611ad2bbe  container-registry.oracle.com/database/free:latest   /bin/sh -c exec $...  11 minutes ago  Up 11 minutes              shard3
+e19138866b51  container-registry.oracle.com/database/free:latest   /bin/sh -c exec $...  7 minutes ago   Up 7 minutes               shard4
+e88e57c4e442  container-registry.oracle.com/database/gsm:latest    /bin/sh -c exec $...  3 minutes ago   Up 3 minutes               gsm1
+4e751cdfe01e  container-registry.oracle.com/database/gsm:latest    /bin/sh -c exec $...  24 seconds ago  Up 24 seconds              gsm2
 ```
 
 ## Clean up the environment

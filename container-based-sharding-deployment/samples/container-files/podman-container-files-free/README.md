@@ -1,6 +1,6 @@
 # Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman
 
-In this installation guide, we deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman. This page provides detailed steps for various scenarios of Oracle Globally Distributed Database deployments using Oracle Database FREE Images using Podman Containers.
+In this installation guide, we deploy Oracle Globally Distributed Database Containers using Oracle Database 23ai FREE Images on Podman. This page provides detailed steps for various scenarios of Oracle Globally Distributed Database deployments using Oracle Database 23ai FREE Images using Podman Containers.
 - [Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman](#oracle-globally-distributed-database-containers-using-oracle-database-free-images-on-podman)
   - [Prerequisites](#prerequisites)
   - [Network Management](#network-management)
@@ -28,7 +28,7 @@ You must complete all of the prerequisites before deploying an Oracle Globally D
 
 ### Network Management
 
-Before creating a container, create the Podman network by creating the Podman network bridge based on your environment. If you are using the bridge name with the network subnet mentioned in this README.md, then you can use the same IPs mentioned in [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#create-containers) section.
+Before creating a container, create the Podman network by creating the Podman network bridge based on your environment. If you are using the podman network with the same subnet mentioned in this README.md, then you can use the same IPs mentioned in [Deploy Oracle Globally Distributed Database Containers using Oracle Database FREE Images](#deploy-oracle-globally-distributed-database-containers-using-oracle-database-free-images) section.
 
 #### Macvlan Network
 
@@ -56,7 +56,7 @@ To create a podman network with `bridge` driver, run the following command:
 podman network create --driver=bridge --subnet=10.0.20.0/24 shard_pub1_nw
 ```
 
-**Note:** You can change subnet and choose one of the above mentioned podman network bridges based on your environment.
+**Note:** You can change subnet and choose one of the above mentioned podman network configuration based on your environment.
 
 ### Setup Hostfile
 
@@ -162,7 +162,7 @@ Refer to [Sample Oracle Globally Distributed Database with System-Managed Shardi
 
 Refer to [Sample Oracle Globally Distributed Database with System-Managed Sharding with RAFT Replication enabled deployed manually using Podman Containers and Oracle Database FREE Images](./podman-sharded-database-free-with-system-sharding-with-snr-raft-enabled.md) to deploy a sample Oracle Globally Distributed Database with System-Managed sharding with RAFT Replication enabled using Podman containers and Oracle Database FREE Images.
 
-**NOTE:** The RAFT Replication Feature is available only for the Oracle Database 23ai RDBMS and the Oracle 23ai GSM version.
+**NOTE:** The RAFT Replication Feature is available only for the Oracle Database 23ai FREE.
 
 ### Deploy Oracle Globally Distributed Database with User-Defined Sharding using Oracle Database FREE Images
 

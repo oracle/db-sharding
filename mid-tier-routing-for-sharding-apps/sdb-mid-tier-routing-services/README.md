@@ -1,12 +1,12 @@
 <!-- /*
-** Oracle Sharding Tools Library
+** Oracle Globally Distributed Database Tools Library
 **
-** Copyright © 2019 Oracle and/or its affiliates. All rights reserved.
+** Copyright © 2019, 2024 Oracle and/or its affiliates. All rights reserved.
 ** Licensed under the Universal Permissive License v 1.0 as shown at 
 **   http://oss.oracle.com/licenses/upl 
 */ -->
 
-## Sharded database Mid-Tier Routing Services
+## Oracle Globally Distributed Database Mid-Tier Routing Services
 
 **Note**: If you want to extend and build the sdb-mid-tier-routing-services project after cloning/forking, then follow the steps below after importing the project:
 

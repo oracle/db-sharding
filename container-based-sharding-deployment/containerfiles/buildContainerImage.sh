@@ -108,7 +108,7 @@ fi
  echo "Container Image set to : ${IMAGE_NAME}"
 
 # Go into version folder
-cd "$VERSION" || exit
+# cd "$VERSION" || exit
 
 if [ ! "$SKIPMD5" -eq 1 ]; then
   checksumPackages
@@ -151,7 +151,7 @@ echo "Building image '$IMAGE_NAME' ..."
 # BUILD THE IMAGE (replace all environment variables)
 BUILD_START=$(date '+%s')
 # shellcheck disable=SC2086
-docker build --force-rm=true --no-cache=true ${DOCKEROPS} ${PROXY_SETTINGS} -t ${IMAGE_NAME} -f Containerfile . || {
+docker build --force-rm=true --no-cache=true ${DOCKEROPS} ${PROXY_SETTINGS} --build-arg VERSION="${VERSION}" -t ${IMAGE_NAME} -f "${VERSION}"/Containerfile . || {
   echo "There was an error building the image."
   exit 1
 }

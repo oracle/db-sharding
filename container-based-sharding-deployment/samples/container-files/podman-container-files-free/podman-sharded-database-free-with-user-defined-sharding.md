@@ -50,7 +50,10 @@ This setup involves deploying podman containers for:
 
 Before using this page to create a sample Oracle Globally Distributed Database, please complete the prerequisite steps mentioned in [Oracle Globally Distributed Database Containers using Oracle Database FREE Images on Podman](./README.md#prerequisites)
 
-Refer to the page [Oracle Database Free](https://www.oracle.com/database/free/get-started/) for the details of the Oracle Database FREE Images for RDBMS and GSM.
+Refer to the page [Oracle Database Free](https://www.oracle.com/database/free/) for the details of the Oracle Database FREE.
+
+**IMPORTANT:** 
+You can directly download the Oracle Single Instance Database Image with Oracle Globally Distributed Database Feature and the Global Service Manager image (GSM image) of Oracle 23ai FREE version from `container-registry.oracle.com` using the link `container-registry.oracle.com/database/free:latest` and `container-registry.oracle.com/database/gsm:latest` respectively.
 
 Before creating the GSM container, you need to build the catalog and shard containers. Execute the following steps to create containers for the deployment:
 
@@ -272,6 +275,7 @@ podman run -d --hostname oshard-gsm1 \
 -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;deploy_as=primary;shard_region=region2" \
 -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
 -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+-e GSM_TRACE_LEVEL="OFF" \
 -e SHARD_SETUP="true" \
 -e COMMON_OS_PWD_FILE=pwdsecret \
 -e PWD_KEY=keysecret \
@@ -323,6 +327,7 @@ podman run -d --hostname oshard-gsm2 \
 -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_space=shardspace2;"  \
 -e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
 -e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+-e GSM_TRACE_LEVEL="OFF" \
 -e CATALOG_SETUP="True" \
 -e COMMON_OS_PWD_FILE=pwdsecret \
 -e PWD_KEY=keysecret \
@@ -584,6 +589,7 @@ rm -rf /scratch/oradata/dbfiles/ORCL3CDB
 | SHARD_DIRECTOR_PARAMS      | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=director_name, value=shard director name; key=director_region, value=shard director region; key=director_port, value=shard director port | Mandatory          |
 | SHARD[1-9]_PARAMS          | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=shard_host, value=shard hostname key=shard_db, value=shard cdb name key=shard_pdb, value=shard pdb name key=shard_port, value=shard db port key=shard_space, value=shard space name key=deploy_as, value=primary or standby key=shard_region, value=region name | Mandatory          |
 | SERVICE[1-9]_PARAMS        | Accept key value pair separated by semicolon e.g. key1=value1;key2=value2 for following key=value pairs: key=service_name, value=service name; key=service_role, value=service role e.g. primary or physical_standby | Mandatory          |
+| GSM_TRACE_LEVEL            | Specify tacing level for the GSM(Specify USER or ADMIN or SUPPORT or OFF, default value as OFF)                | Optional          |
 | COMMON_OS_PWD_FILE         | Specify the encrypted password file to be read inside container                                                  | Mandatory          |
 | PWD_KEY                    | Specify the podman secret for the password key file to decrypt the encrypted password file and read the password | Mandatory          |
 | OP_TYPE                    | Specify the operation type. For GSM it has to be set to gsm.                                                     | Mandatory          |

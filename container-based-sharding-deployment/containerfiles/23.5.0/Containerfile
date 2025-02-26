@@ -4,14 +4,14 @@
 #
 # ORACLE DOCKERFILES PROJECT
 # --------------------------
-# This is the Dockerfile for Oracle GSM 23ai Release 4 to build the container image
+# This is the Dockerfile for Oracle GSM 23ai Release 5 to build the container image
 # MAINTAINER <paramdeep.saini@oracle.com>
 #
 # This is the Dockerfile for Oracle GSM  23ai
 #
 # REQUIRED FILES TO BUILD THIS IMAGE
 # ----------------------------------
-# (1) LINUX.X64_234000_gsm.zip
+# (1) LINUX.X64_235000_gsm.zip
 #     Download Oracle Database 23ai GSM Software
 #     from http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html
 #
@@ -28,6 +28,7 @@ ARG BASE_OL_IMAGE=oraclelinux:8
 # ---------------
 FROM $BASE_OL_IMAGE AS base
 ARG SLIMMING=false
+ARG VERSION
 
 # Labels
 # ------
@@ -38,7 +39,7 @@ LABEL "provider"="Oracle"                                          \
 
 # Argument to control removal of components not needed after db software installation
 
-ARG INSTALL_FILE_1="LINUX.X64_234000_gsm.zip"
+ARG INSTALL_FILE_1="LINUX.X64_237000_gsm.zip"
 ARG USER="root"
 
 # Environment variables required for this build (do NOT change)
@@ -92,6 +93,8 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
 #############################################
 FROM base AS gsm-image-slim-false
 ARG SLIMMING
+ARG VERSION
+
 
 # Environment variables required for this build (do NOT change)
 # -------------------------------------------------------------
@@ -110,8 +113,8 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
 # Copy binaries
 # -------------
 # COPY Binaries
-COPY $SETUP_LINUX_FILE $CHECK_SPACE_FILE $GSM_ENV_SETUP_FILE $INSTALL_SCRIPTS/
-COPY $RUN_FILE $GSM_SETUP_FILE $CHECKLIVENESS $USER_SCRIPTS_FILE $SCRIPT_DIR/
+COPY $VERSION/$SETUP_LINUX_FILE $VERSION/$CHECK_SPACE_FILE $VERSION/$GSM_ENV_SETUP_FILE $INSTALL_SCRIPTS/
+COPY $VERSION/$RUN_FILE $VERSION/$GSM_SETUP_FILE $VERSION/$CHECKLIVENESS $VERSION/$USER_SCRIPTS_FILE $SCRIPT_DIR/
 COPY $GSM_SCRIPTS/$ORAPCATALOG $GSM_SCRIPTS/$CMDEXEC $GSM_SCRIPTS/$ORAPSHARD $GSM_SCRIPTS/$MAINPY $GSM_SCRIPTS/$ORASCATALOG $GSM_SCRIPTS/$ORACOMMON $GSM_SCRIPTS/$DEMOAPPSQL $GSM_SCRIPTS/$RUNORASHARD $GSM_SCRIPTS/$CMDEXEC $GSM_SCRIPTS/$ORAMACHINE $GSM_SCRIPTS/$ORALOGGER $GSM_SCRIPTS/$ORAFACTORY $GSM_SCRIPTS/$ORAGSM  $GSM_SCRIPTS/$ORASSHARD $GSM_SCRIPTS/$ORAENV $SCRIPT_DIR/scripts/
 
 RUN chmod 755 $INSTALL_DIR/install/*.sh && \
@@ -128,6 +131,7 @@ RUN chmod 755 $INSTALL_DIR/install/*.sh && \
 #############################################
 FROM base AS gsm-image-slim-true
 ARG SLIMMING
+ARG VERSION
 
 # Environment variables required for this build (do NOT change)
 # -------------------------------------------------------------
@@ -146,8 +150,8 @@ ENV  INSTALL_SCRIPTS=$INSTALL_DIR/install \
 # Copy binaries
 # -------------
 # COPY Binaries
-COPY $SETUP_LINUX_FILE $CHECK_SPACE_FILE $GSM_ENV_SETUP_FILE $INSTALL_SCRIPTS/
-COPY $RUN_FILE $GSM_SETUP_FILE $CHECKLIVENESS $USER_SCRIPTS_FILE $SCRIPT_DIR/
+COPY $VERSION/$SETUP_LINUX_FILE $VERSION/$CHECK_SPACE_FILE $VERSION/$GSM_ENV_SETUP_FILE $INSTALL_SCRIPTS/
+COPY $VERSION/$RUN_FILE $VERSION/$GSM_SETUP_FILE $VERSION/$CHECKLIVENESS $VERSION/$USER_SCRIPTS_FILE $SCRIPT_DIR/
 COPY $GSM_SCRIPTS/$ORAPCATALOG $GSM_SCRIPTS/$ORAPSHARD $GSM_SCRIPTS/$CMDEXEC $GSM_SCRIPTS/$MAINPY $GSM_SCRIPTS/$ORASCATALOG $GSM_SCRIPTS/$ORACOMMON $GSM_SCRIPTS/$DEMOAPPSQL $GSM_SCRIPTS/$RUNORASHARD $GSM_SCRIPTS/$CMDEXEC $GSM_SCRIPTS/$ORAMACHINE $GSM_SCRIPTS/$ORALOGGER $GSM_SCRIPTS/$ORAFACTORY $GSM_SCRIPTS/$ORAGSM  $GSM_SCRIPTS/$ORASSHARD $GSM_SCRIPTS/$ORAENV $SCRIPT_DIR/scripts/
 
 RUN chmod 755 $INSTALL_DIR/install/*.sh && \
@@ -159,14 +163,15 @@ RUN chmod 755 $INSTALL_DIR/install/*.sh && \
 
 #############################################
 # -------------------------------------------
-# Start new stage for installing the grid and DB
+# Start new stage for installing the GSM
 # -------------------------------------------
 #############################################
 
 FROM gsm-image-slim-${SLIMMING} AS builder
 ARG SLIMMING
+ARG VERSION
 
-COPY $INSTALL_FILE_1 $INSTALL_RSP $INSTALL_GSM_BINARIES_FILE $GSM_SETUP_FILE $INSTALL_DIR/install/
+COPY $VERSION/$INSTALL_FILE_1 $VERSION/$INSTALL_RSP $VERSION/$INSTALL_GSM_BINARIES_FILE $VERSION/$GSM_SETUP_FILE $INSTALL_DIR/install/
 
 USER ${USER}
 RUN if [ "${SLIMMING}x" != 'truex' ]; then \

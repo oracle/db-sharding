@@ -1,6 +1,6 @@
 # Oracle Globally Distributed Database in Linux Containers
 
-Learn about container deployment options for Oracle Globally Distributed Database in Linux Containers Release 23ai (v23.5).
+Learn about container deployment options for Oracle Globally Distributed Database in Linux Containers.
 
 ## Overview of Oracle Globally Distributed Database in Linux Containers
 
@@ -12,8 +12,9 @@ Review each of the sections of this README in the order given. After reviewing e
 
 This project offers example container files for the following: 
 
-* Oracle Database 23ai Global Service Manager (GSM/GDS) (23.5.0) for Linux x86-64
-* Older Releases: Oracle 19c (19.3) and Oracle 21c (21.3) for Linux x86-64
+* Oracle Global Service Manager (GSM/GDS) for Oracle Database 23ai FREE for Linux x86-64
+* Oracle Global Service Manager (GSM/GDS) for Oracle 21c (21.3) for Linux x86-64
+* Oracle Global Service Manager (GSM/GDS) for Oracle 19c (19.3) for Linux x86-64
 
 
 ## Using this Documentation
@@ -26,15 +27,19 @@ To create an Oracle Globally Distributed Database Container environment, follow 
   - [QuickStart](#quickstart)
   - [Building Oracle Globally Distributed Database Container Images](#building-oracle-globally-distributed-database-container-images)
     - [Building Oracle Global Service Manager Image](#building-oracle-global-service-manager-image)
-    - [Building Oracle Database Image](#building-oracle-database-image)
-    - [Building Extended Oracle Database Image with Oracle Globally Distributed Database Feature](#building-extended-oracle-database-image-with-globally-distributed-database-feature)
+    - [Building Oracle Single Instance Database Image](#building-oracle-single-instance-database-image)
+    - [Building Extended Oracle Single Instance Database Image with Oracle Globally Distributed Database Feature](#building-extended-oracle-single-instance-database-image-with-oracle-globally-distributed-database-feature)
+    - [Building Oracle RAC Database Container Image](#building-oracle-rac-database-container-image)
+    - [Building Extended Oracle RAC Database Container Image with Oracle Globally Distributed Database Feature](#building-extended-oracle-rac-database-container-image-with-oracle-globally-distributed-database-feature)
   - [Oracle Globally Distributed Database in Containers Deployment Scenarios](#oracle-globally-distributed-database-in-containers-deployment-scenarios)
-    - [Deploy Oracle Globally Distributed Database Containers](#deploy-oracle-database-globally-distributed-database-containers)
-      - [Deploy Oracle Globally Distributed Database Containers on Podman](#deploy-oracle-globally-distributed-database-containers-on-podman)    
-      - [Deploy Oracle Globally Distributed Database Containers on Docker](#deploy-oracle-globally-distributed-database-containers-on-docker)
-      - [Deploy Oracle Globally Distributed Database Containers on Podman using Oracle 23ai FREE Images](#deploy-oracle-globally-distributed-database-containers-on-podman-using-oracle-23ai-free-images)
-  - [Oracle Globally Distributed Database in Containers Deployment using docker-compose](#oracle-globally-distributed-database-in-containers-deployment-using-docker-compose)
+    - [Deploy Oracle Globally Distributed Database Containers](#deploy-oracle-globally-distributed-database-containers)
+      - [Deploy Oracle Globally Distributed Database Containers on Podman using Oracle 23ai FREE Images](#deploy-oracle-globally-distributed-database-containers-on-podman-using-oracle-23ai-free-images)    
+      - [Deploy Oracle Globally Distributed Database using Single Instance Database in Podman Containers](#deploy-oracle-globally-distributed-database-using-single-instance-database-in-podman-containers)
+      - [Deploy Oracle Globally Distributed Database using Oracle Restart in Podman Containers](#deploy-oracle-globally-distributed-database-using-oracle-restart-in-podman-containers)
+      - [Deploy Oracle Globally Distributed Database using Oracle RAC Database in Podman Containers](#deploy-oracle-globally-distributed-database-using-oracle-rac-database-in-podman-containers)
+      - [Deploy Oracle Globally Distributed Database Containers on earlier OS Release](#deploy-oracle-globally-distributed-database-containers-on-earlier-os-release)
   - [Oracle Globally Distributed Database in Containers Deployment using podman-compose](#oracle-globally-distributed-database-in-containers-deployment-using-podman-compose)
+  - [Oracle Globally Distributed Database in Containers Deployment using docker-compose](#oracle-globally-distributed-database-in-containers-deployment-using-docker-compose)  
   - [Support](#support)
   - [License](#license)
   - [Copyright](#copyright)
@@ -42,17 +47,8 @@ To create an Oracle Globally Distributed Database Container environment, follow 
 ## Preparation Steps for running Oracle Globally Distributed Database in Linux Containers
 **Note :** All Steps or Commands in this guide must be run as `root` or with a `sudo` user.
 * Before you proceed, complete the following prerequisites for your platform:
-  * If you are using Oracle Linux 7, then install Docker.
-    * If you are using an Oracle Linux 7 system, then you must install [Docker Engine](https://docs.oracle.com/en/operating-systems/oracle-linux/docker/).
-    * Install `docker-engine` and `docker-cli` using yum command.
-    ```bash
-    yum-config-manager --enable ol7_addons
-    yum install docker-engine docker-cli
-    yum start docker
-    systemctl enable --now docker               
-    ```                           
-  * If you are using Oracle Linux 8, then Install Podman.
-    * You must install and configure [Podman release 4.6.1 or later](https://docs.oracle.com/en/learn/intro_podman/index.html#introduction) or later on Oracle Linux 8.9 or later to run Oracle Globally Distributed Database on Podman.
+  * If you are using Oracle Linux 8 or higher, then Install Podman.
+    * You must install and configure [Podman release 4.9.4 or later](https://docs.oracle.com/en/learn/intro_podman/index.html#introduction) or later on Oracle Linux 8.10 or later to run Oracle Globally Distributed Database on Podman.
     * You need to install `podman-docker` utility using dnf command.
       ```bash
       # Enable the Oracle Linux 8 AppStream repository
@@ -64,6 +60,15 @@ To create an Oracle Globally Distributed Database Container environment, follow 
     * If SELinux is enabled on podman host, then install the following package as well:
       ```bash
       dnf install -y selinux-policy-devel
+      ```
+  * If you are using `Older` Oracle Linux 7, then install Docker.
+    * If you are using an older Oracle Linux 7 system, then you must install [Docker Engine](https://docs.oracle.com/en/operating-systems/oracle-linux/docker/).
+    * Install `docker-engine` and `docker-cli` using yum command.
+      ```bash
+      yum-config-manager --enable ol7_addons
+      yum install docker-engine docker-cli
+      yum start docker
+      systemctl enable --now docker               
       ```
 
 ## QuickStart
@@ -82,15 +87,17 @@ To assist with building the images, you can use the [buildContainerImage.sh](con
 
 ### Building Oracle Global Service Manager Image
 
-**IMPORTANT:** To create an Oracle Global Service Manager image (GSM image), you must provide the installation binaries of `Oracle Global Service Manager Oracle Database 23ai (23.5) for Linux x86-64` and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
+**IMPORTANT:** If you want to use the Global Service Manager image (GSM image) of Oracle 23ai FREE version, you can download that directly from `container-registry.oracle.com` using the link `container-registry.oracle.com/database/gsm:latest`
+
+To create an Oracle Global Service Manager image (GSM image) of another version, you must provide the installation binaries of `Oracle Global Service Manager (GSM/GDS) for Oracle Database for Linux x86-64` for that version and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
 
 **Note:** Do not uncompress the binaries.
 
-The `buildContainerImage.sh` script is just a utility shell script that performs MD5 checks. This script provides an easy way for beginners to get started. Expert users can directly call `podman build` with their preferred set of parameters. Before you build the image, ensure that you have provided the installation binaries and put them into the right folder. Go into the **containerfiles** folder and run the **buildContainerImage.sh**  script as `root` or with `sudo` privileges:
+The `buildContainerImage.sh` script is just a utility shell script that performs MD5 checks. This script provides an easy way for beginners to get started. Expert users can directly call `podman build` with their preferred set of parameters. Before you build the image, ensure that you have provided the installation binaries and put them into the right folder. In the below example, GSM Image of version `21.3.0` will be built. Go into the **containerfiles** folder and run the **buildContainerImage.sh**  script as `root` or with `sudo` privileges:
 
 ```bash
 ./buildContainerImage.sh -v (Software Version)
-./buildContainerImage.sh -v 23.5.0
+./buildContainerImage.sh -v 21.3.0
 ```
 
 For detailed usage information for `buildContainerImage.sh`, run the following command:
@@ -111,26 +118,28 @@ LICENSE UPL 1.0
 Copyright (c) 2014,2024 Oracle and/or its affiliates.
 ```
 
-### Building Oracle Database Image
+### Building Oracle Single Instance Database Image
 
-To build Oracle Globally Distributed Database on a container, download and build an Oracle 23.5.0 Database Image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
+To build Oracle Globally Distributed Database using Single Instance Database containers, download the project files and build an Oracle Single Instance Database Image. See the Oracle Database Single Instance [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md), which is available on the Oracle GitHub repository.
 
 **Note**: Use the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/README.md) to create the image, and do not use the container instructions. For the container, use the steps given in this document under the [Oracle Globally Distributed Database in Containers Deployment Scenarios](#oracle-globally-distributed-database-in-containers-deployment-scenarios) section.
 
-### Building Extended Oracle Database Image with Oracle Globally Distributed Database Feature
+### Building Extended Oracle Single Instance Database Image with Oracle Globally Distributed Database Feature
+
+**IMPORTANT:** If you want to use the Extended Oracle Single Instance Database Image with Oracle Globally Distributed Database Feature of Oracle 23ai FREE version, you can download that directly from `container-registry.oracle.com` using the link `container-registry.oracle.com/database/free:latest`
 
 After creating the base image using `buildContainerImage.sh` in the previous step, use the `buildExtensions.sh` script that is under the `extensions` folder to build an extended image. This extended image will include the Oracle Globally Distributed Database Feature. For more information, refer to the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/SingleInstance/extensions/README.md) in the `extensions` folder for the Oracle Single Instance Database, which is available on the Oracle GitHub repository.
 
 For example:
 
 ```bash
-./buildExtensions.sh -x sharding -b oracle/database:23.5.0-ee  -t oracle/database-ext-sharding:23.5.0-ee -o "--build-arg BASE_IMAGE_VERSION=23.5.0"
+./buildExtensions.sh -x sharding -b oracle/database:21.3.0-free  -t oracle/database-ext-sharding:21.3.0-free -o "--build-arg BASE_IMAGE_VERSION=21.3.0"
 
 Where:
 "-x sharding"                                   is to specify to have sharding feature in the extended image
-"-b oracle/database:23.5.0-ee"                  is to specify the Base image created in previous step
-"oracle/database-ext-sharding:23.5.0-ee"        is to specify the name:tag for the extended image with Sharding Feature
--o "--build-arg BASE_IMAGE_VERSION=23.5.0"      is to specify the BASE_IMAGE_VERSION to clone from db-sharding git repo
+"-b oracle/database:21.3.0-ee"                  is to specify the Base image created in previous step
+"oracle/database-ext-sharding:21.3.0-ee"        is to specify the name:tag for the extended image with Sharding Feature
+-o "--build-arg BASE_IMAGE_VERSION=21.3.0"      is to specify the BASE_IMAGE_VERSION to clone from db-sharding git repo
 ```
 
 To see more usage instructions for the `buildExtensions.sh` script, run the following command: 
@@ -139,48 +148,107 @@ To see more usage instructions for the `buildExtensions.sh` script, run the foll
 
 Usage: buildExtensions.sh -a -x [extensions] -b [base image] -t [image name] -v [version] [-o] [container build option]
 Builds one of more Container Image Extensions.
-  
+
 Parameters:
    -a: Build all extensions
    -x: Space separated extensions to build. Defaults to all
-       Choose from : k8s  patching  prebuiltdb  sharding  
+       Choose from : k8s  patching  prebuiltdb  sharding  truecache
    -b: Base image to use
-   -v: Base version to extend (example 23.5.0)
+   -v: Base version to extend (example 21.3.0)
    -t: name:tag for the extended image
    -o: passes on Container build option
 
 LICENSE UPL 1.0
 
-Copyright (c) 2024 Oracle and/or its affiliates. All rights reserved.
+Copyright (c) 2023 Oracle and/or its affiliates. All rights reserved.
+```
+### Building Oracle RAC Database Container Image
+
+**NOTE:** Oracle RAC Database Container Image Feature is NOT Available for Oracle 23ai FREE.
+
+Oracle Globally Distributed Database on a container can also be deployed using Oracle Restart and Oracle RAC. To use Oracle Restart or Oracle RAC and build Oracle Globally Distributed Database using containers, download the project files and build an Oracle RAC Database Container Image. See the Oracle Real Application Clusters in Linux Containers [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/RAC/OracleRealApplicationClusters/README.md), which is available on the Oracle GitHub repository.
+
+**Note**: Use the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/RAC/OracleRealApplicationClusters/README.md) to create the image, and do not use the container instructions. For the container, use the steps given in this document under the [Oracle Globally Distributed Database in Containers Deployment Scenarios](#oracle-globally-distributed-database-in-containers-deployment-scenarios) section.
+
+### Building Extended Oracle RAC Database Container Image with Oracle Globally Distributed Database Feature
+
+After creating the base image using `buildContainerImage.sh` in the previous step, use the `buildExtensions.sh` script that is under the `extensions` folder to build an extended image. This extended image will include the Oracle Globally Distributed Database Feature. For more information, refer to the [README.MD](https://github.com/oracle/docker-images/blob/main/OracleDatabase/RAC/OracleRealApplicationClusters/extensions/README.md) in the `extensions` folder for the Oracle Real Application Clusters in Linux Containers, which is available on the Oracle GitHub repository.
+
+For example:
+
+```bash
+./buildExtensions.sh -x sharding -b oracle/database-rac:21.3.0 -t oracle/database-rac-ext-sharding:21.3.0-ee -o "--build-arg BASE_IMAGE_VERSION=21.3.0"
+
+Where:
+"-x sharding"                                   is to specify to have sharding feature in the extended image
+"-b oracle/database-rac:21.3.0"                 is to specify the Base image created in previous step
+"oracle/database-rac-ext-sharding:21.3.0-ee"    is to specify the name:tag for the extended image with Oracle Globally Distributed Database Feature
+-o "--build-arg BASE_IMAGE_VERSION=21.3.0"      is to specify the BASE_IMAGE_VERSION to clone from db-sharding git repo
+```
+
+To see usage instructions for the `buildExtensions.sh` script, run the following command: 
+```bash
+./buildExtensions.sh -h
+
+Usage: buildExtensions.sh -a -x [extensions] -b [base image] -t [image name] -v [version] [-o] [container build option]
+Builds one of more Container Image Extensions.
+
+Parameters:
+   -a: Build all extensions
+   -x: Space separated extensions to build. Defaults to all
+       Choose from : sharding
+   -b: Base image to use
+   -v: Base version to extend (example 21.3.0)
+   -t: name:tag for the extended image
+   -o: passes on Container build option
+
+LICENSE UPL 1.0
+
+Copyright (c) 2023 Oracle and/or its affiliates. All rights reserved.
 ```
 
 ## Oracle Globally Distributed Database in Containers Deployment Scenarios
 ### Deploy Oracle Globally Distributed Database Containers
 If you want to manually deploy the Oracle Globally Distributed Database using Docker or Podman containers, then use the sections that follow to see the step by step procedure.
 
-#### Deploy Oracle Globally Distributed Database Containers on Podman
-
-To deploy an Oracle Globally Distributed Database on Podman, see: [Deploy Oracle Globally Distributed Database Containers on Podman](./samples/container-files/podman-container-files/README.md). This document provides the commands that you need to deploy an Oracle Globally Distributed Database using Podman with System-Managed Sharding or with System-Managed Sharding with RAFT replication or with User Defined Sharding.
-
-**NOTE:** If you want to use Oracle Database 21c or Oracle Database 23ai release-based container images with Podman, then you must deploy on an Oracle Linux 8 host.
-
-#### Deploy Oracle Globally Distributed Database Containers on Docker
-
-To deploy an Oracle Globally Distributed Database on Docker, see: [Deploy Oracle Globally Distributed Database Containers on Docker](./samples/container-files/docker-container-files/README.md). This document provides the commands that you need to deploy an Oracle Globally Distributed Database using Docker with either System-Managed Sharding or with User Defined Sharding.
-
-**NOTE:** If you want to use the Oracle Database 19c or Oracle Database 21c release-based container images with Docker, then you must deploy on an Oracle Linux 7 host.
-
 #### Deploy Oracle Globally Distributed Database Containers on Podman using Oracle 23ai FREE Images
 
 To deploy an Oracle Globally Distributed Database on Podman using Oracle 23ai FREE Images, see: [Deploy Oracle Globally Distributed Database Containers on Podman using Oracle 23ai FREE Images](./samples/container-files/podman-container-files-free/README.md). This document provides the commands that you need to deploy an Oracle Globally Distributed Database with Oracle 23ai FREE Images using Podman with System-Managed Sharding or with System-Managed Sharding with RAFT replication or with User Defined Sharding.
 
-## Oracle Globally Distributed Database in Containers Deployment using docker-compose
+#### Deploy Oracle Globally Distributed Database using Single Instance Database in Podman Containers
 
-To deploy an Oracle Globally Distributed Database in Containers using docker-compose, refer to [Deploying Oracle Globally Distributed Database Containers using docker-compose](./samples/compose-files/docker-compose/README.md)
+To deploy Oracle Globally Distributed Database using Single Instance Database in Podman Containers, we will use Extended Oracle Single Instance Database Image with Enterprise Edition Software, see: [Deploy Oracle Globally Distributed Database using Single Instance Database in Podman Containers](./samples/container-files/podman-container-files/README.md). The individual shards and the catalog database are deployed using Single Instance Database in Podman Containers. In this case, the Oracle Globally Distributed Database can be deployed with either System-Managed Sharding or with User Defined Sharding.
+
+
+#### Deploy Oracle Globally Distributed Database using Oracle Restart in Podman Containers
+
+To deploy an Oracle Globally Distributed Database using Oracle Restart in Podman Containers, we will use Extended Oracle RAC Database Container Image, see: [Deploy Oracle Globally Distributed Database using Oracle Restart in Podman Containers](./samples/container-files/podman-container-files-gpc/README.md). The individual shards and the catalog database are deployed using Oracle Restart in Podman Containers. So, we have Automatic Storage Management(ASM) feature available for individual Shard and the Catalog Database. In this case, the Oracle Globally Distributed Database can be deployed with either System-Managed Sharding or System-Managed Sharding with RAFT replication or with User Defined Sharding.
+
+**NOTE:** Oracle Globally Distributed Database using Oracle Restart in Podman Containers is NOT available for Oracle 23ai FREE version. You can deploy it using Oracle 21c on Oracle Linux 8 using Podman.
+
+#### Deploy Oracle Globally Distributed Database using Oracle RAC Database in Podman Containers
+
+To deploy an Oracle Globally Distributed Database using Oracle RAC Database in Podman Containers, see: [Deploy Oracle Globally Distributed Database using Oracle RAC Database in Podman Containers](./samples/container-files/podman-container-files-rac/README.md). The individual shards and the catalog database are deployed as Oracle RAC Databases in Podman Containers. So, we have active/active Oracle Database high availability and scalability features available for individual Shard and the Catalog Database. In this case, the Oracle Globally Distributed Database can be deployed with either System-Managed Sharding or with User Defined Sharding.
+
+**NOTE:** Oracle Globally Distributed Database using Oracle RAC Database in Podman Containers is NOT available for Oracle 23ai FREE version. You can deploy it using Oracle 21c on Oracle Linux 8 using Podman.
+
+**NOTE:** If you want to use Oracle Database 21c or Oracle Database 23ai FREE release based container images with `Podman`, then you must deploy on an Oracle Linux 8 host.
+
+#### Deploy Oracle Globally Distributed Database Containers on earlier OS Release
+
+**NOTE:** Podman can be used on Oracle Linux 8 onwards. If you want to use the Oracle Database 19c or Oracle Database 21c release-based container images on earlier Oracle Linux Release (Oracle Linux 7), then you use Docker.
+
+To deploy an Oracle Globally Distributed Database Containers on earlier OS Release, see: [Deploy Oracle Globally Distributed Database Containers on Docker](./samples/container-files/docker-container-files/README.md). This document provides the commands that you need to deploy an Oracle Globally Distributed Database using Docker with either System-Managed Sharding or with User Defined Sharding.
 
 ## Oracle Globally Distributed Database in Containers Deployment using podman-compose
 
 To deploy an Oracle Globally Distributed Database in Containers using podman-compose, refer to [Deploying Oracle Globally Distributed Database Containers using podman-compose](./samples/compose-files/podman-compose/README.md)
+
+## Oracle Globally Distributed Database in Containers Deployment using docker-compose
+
+This case is applicable if you want to use an earlier OS version i.e. Oracle Linux 7 to deploy Oracle Globally Distributed Database Containers. In this case, you can not use `podman-compose` and will need to use `docker-compose`.
+
+To deploy an Oracle Globally Distributed Database in Containers using docker-compose, refer to [Deploying Oracle Globally Distributed Database Containers using docker-compose](./samples/compose-files/docker-compose/README.md)
 
 ## Support
 
