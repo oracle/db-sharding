@@ -35,6 +35,8 @@ source docker-compose-env-variables
 
 Use the following commands to create an encrypted password file:
 
+**IMPORTANT:** Make sure the version of `openssl` in the Oracle Database and Oracle GSM images is compatible with the `openssl` version on the machine where you will run the openssl commands to generated the encrypted password file during the deployment.
+
 ```bash
 rm -rf /opt/.secrets/
 mkdir /opt/.secrets/
