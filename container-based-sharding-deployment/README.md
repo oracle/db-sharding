@@ -26,6 +26,7 @@ To create an Oracle Globally Distributed Database Container environment, follow 
   - [Preparation Steps for running Oracle Globally Distributed Database in Linux Containers](#preparation-steps-for-running-oracle-globally-distributed-database-in-linux-containers)
   - [QuickStart](#quickstart)
   - [Building Oracle Globally Distributed Database Container Images](#building-oracle-globally-distributed-database-container-images)
+    - [Getting Oracle Global Service Manager Image from Oracle Container Registry](#getting-oracle-global-service-manager-image-from-oracle-container-registry)  
     - [Building Oracle Global Service Manager Image](#building-oracle-global-service-manager-image)
     - [Building Oracle Single Instance Database Image](#building-oracle-single-instance-database-image)
     - [Building Extended Oracle Single Instance Database Image with Oracle Globally Distributed Database Feature](#building-extended-oracle-single-instance-database-image-with-oracle-globally-distributed-database-feature)
@@ -40,6 +41,7 @@ To create an Oracle Globally Distributed Database Container environment, follow 
       - [Deploy Oracle Globally Distributed Database Containers on earlier OS Release](#deploy-oracle-globally-distributed-database-containers-on-earlier-os-release)
   - [Oracle Globally Distributed Database in Containers Deployment using podman-compose](#oracle-globally-distributed-database-in-containers-deployment-using-podman-compose)
   - [Oracle Globally Distributed Database in Containers Deployment using docker-compose](#oracle-globally-distributed-database-in-containers-deployment-using-docker-compose)  
+  - [Oracle Container Registry Images for Oracle Globally Distributed Database Deployment](#oracle-container-registry-images-for-oracle-globally-distributed-database-deployment)
   - [Support](#support)
   - [License](#license)
   - [Copyright](#copyright)
@@ -81,17 +83,40 @@ After you become familiar with Oracle Globally Distributed Database in Linux Con
 
 ## Building Oracle Globally Distributed Database Container Images
 
-To assist with building the images, you can use the [buildContainerImage.sh](containerfiles/buildContainerImage.sh) script.
-
 **IMPORTANT:** Oracle Global Service Manager (GDS) container is useful when you want to configure the Global Data Service Framework. A Global Data Services framework consists of at least one global service manager, a Global Data Services catalog, and the GDS configuration databases.
 
-### Building Oracle Global Service Manager Image
+### Getting Oracle Global Service Manager Image from Oracle Container Registry
 
-**IMPORTANT:** If you want to use the Global Service Manager image (GSM image) of Oracle 23ai FREE version, you can download that directly from `container-registry.oracle.com` using the link `container-registry.oracle.com/database/gsm:latest`
+**IMPORTANT:** If you want to use the Global Service Manager image (GSM image) of Oracle 23ai FREE version, you can download that directly from `container-registry.oracle.com` using the link `container-registry.oracle.com/database/gsm:latest`. To use with this GSM image, you can use the link `container-registry.oracle.com/database/free:latest` to download the compatible database container image for Oracle Database 23ai Free.
+
+Example of pulling these images from the Oracle Container Registry for Oracle Database 23ai FREE:
+```bash
+# For Oracle Database 23ai FREE Container Image
+podman pull container-registry.oracle.com/database/free:latest
+
+# For Oracle GSM Container Image of Oracle 23ai FREE version
+podman pull container-registry.oracle.com/database/gsm:latest
+```
+**NOTE** Currently, latest tag in Oracle Container registry represents `23.7.0.0` tag. If you are pulling any other version of container image, then retag approriately as per your environment to use in `podman create` commands later.
+
+Example of pulling these images from the Oracle Container Registry for another version:
+```bash
+# For Oracle Database 19.25 RU Container Image
+podman pull container-registry.oracle.com/database/enterprise_ru:19.25.0.0
+
+# For Oracle GSM Container Image of Oracle 19.25 RU version
+podman pull container-registry.oracle.com/database/gsm_ru:19.25.0.0
+```
+
+**IMPORTANT:** If you want to use pre-built images available on Oracle Container Registry for Oracle Database and Oracle GSM, make sure the version of `openssl` in those images is compatible with the `openssl` version on the machine where you will run the openssl commands to generated the encrypted password file during the deployment. Please refer to the section [Oracle Container Registry Images for Oracle Globally Distributed Database Deployment](#oracle-container-registry-images-for-oracle-globally-distributed-database-deployment).
+
+### Building Oracle Global Service Manager Image
 
 To create an Oracle Global Service Manager image (GSM image) of another version, you must provide the installation binaries of `Oracle Global Service Manager (GSM/GDS) for Oracle Database for Linux x86-64` for that version and put them into the `containerfiles/<version>` folder. You only need to provide the binaries for the edition you are going to install. The binaries can be downloaded from the [Oracle Technology Network](http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html). You must ensure that you have internet connectivity for the DNF package manager.
 
 **Note:** Do not uncompress the binaries.
+
+To assist with building the images, you can use the [buildContainerImage.sh](containerfiles/buildContainerImage.sh) script.
 
 The `buildContainerImage.sh` script is just a utility shell script that performs MD5 checks. This script provides an easy way for beginners to get started. Expert users can directly call `podman build` with their preferred set of parameters. Before you build the image, ensure that you have provided the installation binaries and put them into the right folder. In the below example, GSM Image of version `21.3.0` will be built. Go into the **containerfiles** folder and run the **buildContainerImage.sh**  script as `root` or with `sudo` privileges:
 
@@ -249,6 +274,35 @@ To deploy an Oracle Globally Distributed Database in Containers using podman-com
 This case is applicable if you want to use an earlier OS version i.e. Oracle Linux 7 to deploy Oracle Globally Distributed Database Containers. In this case, you can not use `podman-compose` and will need to use `docker-compose`.
 
 To deploy an Oracle Globally Distributed Database in Containers using docker-compose, refer to [Deploying Oracle Globally Distributed Database Containers using docker-compose](./samples/compose-files/docker-compose/README.md)
+
+## Oracle Container Registry Images for Oracle Globally Distributed Database Deployment
+
+If you want to use Pre-built Oracle Database and Oracle GSM Container images from Oracle Container Registry, you can refer to below set of images, their openssl version and the openssl version of the host machine on which the encrypted password file was generated before the deployment using these set of images:
+
+
+- Deployment using 19.25 RU Images:
+
+| Image                                                           | Image Openssl Version | Image Id     | Host Machine Openssl Version |
+|-----------------------------------------------------------------|-----------------------|--------------|------------------------------|
+| container-registry.oracle.com/database/enterprise_ru:19.25.0.0  | OpenSSL 1.0.2k-fips   | 8f776e5d33dc | OpenSSL 1.1.1k               |
+| container-registry.oracle.com/database/gsm_ru:19.25.0.0         | OpenSSL 1.1.1k  FIPS  | 87ed4fe32b3a | OpenSSL 1.1.1k               |
+
+
+- Deployment using 23ai FREE Images:
+
+| Image                                                           | Image Openssl Version | Image Id     | Host Machine Openssl Version |
+|-----------------------------------------------------------------|-----------------------|--------------|------------------------------|
+| container-registry.oracle.com/database/free:latest              | OpenSSL 1.1.1k  FIPS  | ac5f0e5fb443 | OpenSSL 1.1.1k               |
+| container-registry.oracle.com/database/gsm:latest               | OpenSSL 1.1.1k  FIPS  | 494413938105 | OpenSSL 1.1.1k               |
+
+
+- Deployment using 21.3 Images:
+
+| Image                                                           | Image Openssl Version | Image Id     | Host Machine Openssl Version |
+|-----------------------------------------------------------------|-----------------------|--------------|------------------------------|
+| container-registry.oracle.com/database/enterprise:21.3.0.0      | OpenSSL 1.0.2k-fips   | 35e92315f1f8 | OpenSSL 1.1.1k               |
+| container-registry.oracle.com/database/gsm:21.3.0.0             | OpenSSL 1.1.1k  FIPS  | 523f362fee17 | OpenSSL 1.1.1k               |
+
 
 ## Support
 

@@ -39,7 +39,7 @@ Run the script file [podman-compose-prerequisites.sh](./podman-compose-prerequis
 **NOTE:** You must change the values for `SIDB_IMAGE` and `GSM_IMAGE` to use the images that you want to use for the deployment.
 
 ```bash
-source podman-compose-prequisites.sh
+source podman-compose-prerequisites.sh
 ```
 
 ## SELinux Configuration Management for Podman Host

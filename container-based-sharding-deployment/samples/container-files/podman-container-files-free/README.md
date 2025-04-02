@@ -86,6 +86,8 @@ Because Oracle Database Containers do not have root access to modify the `/etc/h
 
 ### Password Management
 
+**IMPORTANT:** Make sure the version of `openssl` in the Oracle Database and Oracle GSM images is compatible with the `openssl` version on the machine where you will run the openssl commands to generated the encrypted password file during the deployment.
+
 * Specify the secret volume for resetting database user passwords during catalog and shard setup. The secret volume can be a shared volume among all the containers
 
   ```bash
