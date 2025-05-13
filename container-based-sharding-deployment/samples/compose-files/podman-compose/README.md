@@ -15,8 +15,9 @@ In this example, we deploy an Oracle Globally Distributed Database with `System-
 - [Step 4: Create Podman Compose file](#create-podman-compose-file)
 - [Step 5: Create services using "podman-compose" command](#create-services-using-podman-compose-command)
 - [Step 6: Check the logs](#check-the-logs)
-- [Step 7: Remove the deployment](#remove-the-deployment)
-- [Step 8: Oracle 23ai FREE Database and GSM Images](#oracle-23ai-free-database-and-gsm-images)
+- [Step 7: Workload Test](#workload-test)
+- [Step 8: Remove the deployment](#remove-the-deployment)
+- [Step 9: Oracle 23ai FREE Database and GSM Images](#oracle-23ai-free-database-and-gsm-images)
 - [Copyright](#copyright)
 
 
@@ -118,6 +119,9 @@ podman logs -f gsm2
      GSM Setup Completed
 ==============================================
 ```
+## Workload Test
+
+You can refer to [this page](./workload_test.md) for a sample workload test done on this Oracle Globally Distributed Database using Swingbench.
 
 ## Remove the deployment
 
