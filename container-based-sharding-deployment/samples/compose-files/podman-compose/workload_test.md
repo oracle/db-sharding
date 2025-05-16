@@ -171,7 +171,7 @@ SOE_NLSDATA_LOC: data/nls.txt
 CATALOGUE_USERNAME: SOE
 STPoolMonitor: true
 SOE_PRODUCTSDATA_LOC: data/productids.txt
-CATALOGUE_URL: oshard-catalog-0.example.com:1521/GDS$CATALOG.oradbcloud
+CATALOGUE_URL: oshard-gsm1.example.com:1522/GDS$CATALOG.oradbcloud
 CATALOGUE_PASSWORD: soe
 SOE_NAMESDATA_LOC: data/names.txt
 PASS_POOL_TO_TX: true
