@@ -100,6 +100,14 @@ class OraPShard:
             if not status:
                self.ocommon.log_info_message("Shard readyness check completed sucessfully!",self.file_name)
                self.ocommon.prog_exit("127")
+          elif self.ocommon.check_key("IMPORT_TDE_KEY",self.ora_env_dict):
+            status = self.shard_setup_check()
+            if not status:
+               self.ocommon.log_info_message("Shard doesn't seems to be ready. Unable to import the tde key",self.file_name)
+               self.ocommon.prog_exit("127")
+
+            self.ocommon.log_info_message("Shard database up and running.",self.file_name)
+            self.ocommon.import_tde_key(self.ora_env_dict["IMPORT_TDE_KEY"])
           else: 
             self.setup_machine() 
             self.db_checks()
@@ -584,7 +592,7 @@ class OraPShard:
            ohome1=self.ora_env_dict["ORACLE_HOME"]
            version=self.ocommon.get_oraversion(ohome1).strip()
            self.ocommon.log_info_message(version,self.file_name)
-           if int(version) > 21:
+           if int(version) > 12:
               ohome=self.ora_env_dict["ORACLE_HOME"]
               inst_sid=self.ora_env_dict["ORACLE_SID"]
               sqlpluslogincmd=self.ocommon.get_sqlplus_str(ohome,inst_sid,"sys",None,None,None,None,None,None,None)

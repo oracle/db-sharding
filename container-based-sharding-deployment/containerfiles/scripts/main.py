@@ -140,12 +140,12 @@ def main():
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("RESET_PASSWORD",arg)
       elif opt in ('--exporttdekey'):
-           file_name = oenv.logfile_name("EXPORT_TDE_KEY")
+           file_name = oenv.logfile_name("TDE_KEY")
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("EXPORT_TDE_KEY",arg)
       elif opt in ('--importtdekey'):
-           file_name = oenv.logfile_name("IMPORT_TDE_KEY")
+           file_name = oenv.logfile_name("TDE_KEY")
            oralogger.filename_ =  file_name
            ocommon.log_info_message("=======================================================================",file_name)
            oenv.add_custom_variable("IMPORT_TDE_KEY",arg)

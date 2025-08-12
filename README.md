@@ -12,7 +12,7 @@
 [OCI]: https://www.oracle.com/cloud/
 [SDB]: https://www.oracle.com/database/technologies/high-availability/sharding.html
 
-- [About](#about)
+- [About this Oracle Globally Distributed Database repository](#about)
 - [Terraform based deployment of Oracle Globally Distributed Database](#terraform-based-deployment-of-oracle-globally-distributed-database)
   * [Overview](#overview)
   * [Details](#details)
@@ -29,7 +29,7 @@
   * [Overview](#overview-4)
   * [Details](#details-4)
 
-## About
+## About this Oracle Globally Distributed Database repository
 
 This repository provides deployment automation and tools for Oracle Database using Oracle Globally Distributed Database. It includes the following:
 
@@ -45,7 +45,7 @@ To learn more about Oracle Globally Distributed Database (previously referred to
  
 ## Terraform based deployment of Oracle Globally Distributed Database
 
-### Overview 
+### Overview  
 
 The `SDB-terraform-oci` and `SDB-terraform-onprem` deployments provide Terraform modules, configuration and scripts that provision the necessary components and resources for a quick and easy setup of [Oracle Globally Distributed Database][SDB] (SDB) on either [Oracle Cloud Infrastructure][OCI] (OCI) or as an On-Premises (`onprem`) database. These deployments create and configures SDB infrastructure components that are necessary for a successful Globally Distributed Database setup, including Oracle Shard Directors, Shard Catalogs, Shards, and optionally, Shard Standbys. It also provides replication through a recovery catalog standby database using Oracle Data Guard. Oracle Data Guard provides both high availability (HA) and disaster recovery (DR) for data in the Globally Distributed Database.
 
