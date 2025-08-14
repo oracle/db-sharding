@@ -939,39 +939,208 @@ class OraCommon:
             ### Please note that you should not change following path as SIDB team is maintaining lock files under following location
             return "/tmp/."
 
+      def getTdeWalletMountLoc(self):
+         tde_wallet_mount_loc = "/tdewallet/"
+         if self.check_key("TDE_WALLET_MOUNT_LOC",self.ora_env_dict):
+            tde_wallet_mount_loc = self.ora_env_dict["TDE_WALLET_MOUNT_LOC"]
+
+         return tde_wallet_mount_loc
+
+      def get_tde_passwd(self):
+          secret_volume = self.ora_env_dict["SECRET_VOLUME"]
+          key_secret_volume= self.ora_env_dict["KEY_SECRET_VOLUME"]
+          tde_pwd_file = self.ora_env_dict["TDE_PWD_FILE"]
+          pwd_volume=None
+          if self.check_key("PWD_VOLUME",self.ora_env_dict):
+             pwd_volume=self.ora_env_dict["PWD_VOLUME"]
+          else:
+             pwd_volume="/var/tmp"
+          tde_pwd_key = self.ora_env_dict["TDE_PWD_KEY"]
+          tde_passwd_file='''{0}/{1}'''.format(secret_volume,tde_pwd_file)
+          tde_key_file='''{0}/{1}'''.format(key_secret_volume,tde_pwd_key)
+          tde_decrypt_file='''{0}/{1}'''.format(pwd_volume,tde_pwd_file)
+
+          cmd ='''openssl pkeyutl -decrypt -in \"{0}\" -out {1} -inkey \"{2}\"'''.format(tde_passwd_file,tde_decrypt_file,tde_key_file)
+          output,error,retcode=self.execute_cmd(cmd,None,None)
+          self.check_os_err(output,error,retcode,True)
+
+          fname='''{0}'''.format(tde_decrypt_file)
+          fdata=self.read_file(fname)
+          password=fdata
+          self.remove_file(fname)
+
+          return password
+
 ####### Get the TDE Key ###############
       def export_tde_key(self,filename):
          """
          This function export the tde.
          """
-         self.log_info_message("Inside gettdekey()",self.file_name)
+         self.log_info_message("Inside export_tde_key()",self.file_name)
+         if self.check_key("TDE_PWD_FILE",self.ora_env_dict):
+            tde_wallet_pwd=self.get_tde_passwd()
+         else:
+            tde_wallet_pwd = self.ora_env_dict["ORACLE_PWD"]
+
+         pdbname = self.ora_env_dict["ORACLE_PDB"]
+
+         tde_wallet_loc = self.getTdeWalletMountLoc() + "/catalog_latest_key.imp"
+         tde_wallet_loc_root = self.getTdeWalletMountLoc() + "/catalog_latest_key_root.imp"
+         tde_keys_export_file = self.getTdeWalletMountLoc() + "/keysExportFile"
+
+         cmd='''/bin/rm -f /tmp/enckeyidroot.out /tmp/enckeyid.out {0} {1} {2}'''.format(tde_wallet_loc,tde_wallet_loc_root,tde_keys_export_file)
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+
          sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         self.set_mask_str(tde_wallet_pwd)
+
          sqlcmd='''
-           ALTER SESSION DISABLE SHARD DDL;
-           ADMINISTER KEY MANAGEMENT EXPORT ENCRYPTION KEYS WITH SECRET {0} TO {1} IDENTIFIED BY {0};
-         '''.format('HIDDEN_STRING',filename)
+         alter system set tde_configuration="keystore_configuration=file" scope=both;
+         administer key management create keystore identified by {0};
+         administer key management create auto_login keystore from keystore identified by {0};
+         administer key management set key force keystore identified by {0} with backup;
+         select con_id, wallet_type, status from v$encryption_wallet where con_id=1;
+         '''.format('HIDDEN_STRING')
+         self.log_info_message("Running the sqlplus command to create tde key: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.check_sql_err(output,error,retcode,True)
+
+         sqlcmd='''
+         variable latest_mkid_root varchar2(100)
+         spool /tmp/enckeyidroot.out
+         select trim(key_id) from v$encryption_keys where (activation_time = (select max(activation_time) from v$encryption_keys where activating_pdbname like 'CDB$ROOT'));
+         spool off
+         alter session set container={1};
+         administer key management set key force keystore identified by "{0}" with backup;
+         spool /tmp/enckeyid.out
+         select trim(key_id) from v$encryption_keys where (activation_time = (select max(activation_time) from v$encryption_keys where activating_pdbname='{1}'));
+         spool off
+         '''.format('HIDDEN_STRING',pdbname)
+         self.log_info_message("Running the sqlplus command to export the tde root keyid: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         cmd='''/bin/cat /tmp/enckeyidroot.out | tail -n 3 | head -n +1 | xargs'''
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.check_os_err(output,error,retcode,None)
+         latest_mkid_root = output.strip()
+
+         cmd='''/bin/cat /tmp/enckeyid.out | tail -n 3 | head -n +1 | xargs'''
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.check_os_err(output,error,retcode,None)
+         latest_mkid = output.strip()
+
+         sqlcmd='''
+           administer key management export encryption keys with secret {0} to '{1}' force keystore identified by  {0} with identifier in '{5}';
+           administer key management export encryption keys with secret {0} to '{2}' force keystore identified by  {0} with identifier in '{4}';
+         '''.format('HIDDEN_STRING',tde_wallet_loc_root,tde_wallet_loc,pdbname,latest_mkid,latest_mkid_root)
          self.log_info_message("Running the sqlplus command to export the tde: " + sqlcmd,self.file_name)
          output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
          self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
          self.check_sql_err(output,error,retcode,True)
+
+         sqlcmd='''
+         select con_id, wallet_type, status from v$encryption_wallet where con_id=1;
+         alter system set tablespace_encryption='AUTO_ENABLE' scope=SPFILE;
+         alter pluggable database {0} save state;
+         shutdown immediate;
+         startup;
+         show parameter tablespace_encryption;
+         '''.format(pdbname)
+         self.log_info_message("Running the sqlplus command to restart the db: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.check_sql_err(output,error,retcode,True)
+         cmd='''/bin/touch {0}'''.format(tde_keys_export_file)
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+
+         self.unset_mask_str()
 
 ####### Get the TDE Key ###############
       def import_tde_key(self,filename):
          """
          This function import the TDE key.
          """
-         self.log_info_message("Inside importtdekey()",self.file_name)
+         self.log_info_message("Inside import_tde_key()",self.file_name)
+         if self.check_key("TDE_PWD_FILE",self.ora_env_dict):
+            tde_wallet_pwd=self.get_tde_passwd()
+         else:
+            tde_wallet_pwd = self.ora_env_dict["ORACLE_PWD"]
+
+         pdbname = self.ora_env_dict["ORACLE_PDB"]
+         catpdbname = "CATALOGPDB"
+         tde_wallet_loc = self.getTdeWalletMountLoc() + "/catalog_latest_key.imp"
+         tde_wallet_loc_root = self.getTdeWalletMountLoc() + "/catalog_latest_key_root.imp"
+
+         cmd='''/bin/rm -f /tmp/enckeyidroot.out /tmp/enckeyid.out'''
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+
          sqlpluslogincmd='''{0}/bin/sqlplus "/as sysdba"'''.format(self.ora_env_dict["ORACLE_HOME"])
-         self.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
+         self.set_mask_str(tde_wallet_pwd)
+
          sqlcmd='''
-         ADMINISTER KEY MANAGEMENT SET KEYSTORE OPEN IDENTIFIED BY {0};
-         ADMINISTER KEY MANAGEMENT IMPORT ENCRYPTION KEYS WITH SECRET {0} FROM {1} IDENTIFIED BY {0} WITH BACKUP
-         '''.format('HIDDEN_STRING',filename)
+         alter system set tde_configuration="keystore_configuration=file" scope=both;
+         administer key management create keystore identified by {0};
+         administer key management create auto_login keystore from keystore identified by {0};
+         select con_id, wallet_type, status from v$encryption_wallet where con_id=1;
+         '''.format('HIDDEN_STRING')
+         self.log_info_message("Running the sqlplus command to create tde key: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.check_sql_err(output,error,retcode,True)
+
+         sqlcmd='''
+         ADMINISTER KEY MANAGEMENT IMPORT ENCRYPTION KEYS WITH SECRET {0} FROM '{1}' FORCE KEYSTORE IDENTIFIED BY {0} WITH BACKUP ;
+         ADMINISTER KEY MANAGEMENT IMPORT ENCRYPTION KEYS WITH SECRET {0} FROM '{2}' FORCE KEYSTORE IDENTIFIED BY {0} WITH BACKUP ;
+         '''.format('HIDDEN_STRING',tde_wallet_loc_root,tde_wallet_loc)
          self.log_info_message("Running the sqlplus command to import the tde key: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.check_sql_err(output,error,retcode,True)
+
+         sqlcmd='''
+         variable latest_mkid_root varchar2(100)
+         spool /tmp/enckeyidroot.out
+         select trim(key_id) from v$encryption_keys where (activation_time = (select max(activation_time) from v$encryption_keys where creator_pdbname like 'CDB$ROOT')) ;
+         spool off
+         spool /tmp/enckeyid.out
+         select trim(key_id) from v$encryption_keys where (activation_time = (select max(activation_time) from v$encryption_keys where creator_pdbname like '{0}')) ;
+         spool off
+         '''.format(catpdbname)
+         self.log_info_message("Running the sqlplus command to get the tde root keyid: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         cmd='''/bin/cat /tmp/enckeyidroot.out | tail -n 3 | head -n +1 | xargs'''
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.check_os_err(output,error,retcode,None)
+         latest_mkid_root = output.strip() 
+
+         cmd='''/bin/cat /tmp/enckeyid.out | tail -n 3 | head -n +1 | xargs'''
+         output,error,retcode=self.execute_cmd(cmd,None,None)
+         self.check_os_err(output,error,retcode,None)
+         latest_mkid = output.strip()
+
+         sqlcmd='''
+         administer key management use encryption key '{1}' force keystore identified by {0} with backup ;
+         alter session set container={3};
+         administer key management use encryption key '{2}' force keystore identified by {0} with backup ;
+         '''.format('HIDDEN_STRING',latest_mkid_root,latest_mkid,pdbname)
+         self.log_info_message("Running the sqlplus command to use the tde key: " + sqlcmd,self.file_name)
          output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
          self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
          self.check_sql_err(output,error,retcode,True)
+
+         sqlcmd='''
+         alter session set container=cdb$root;
+         select con_id, wallet_type, status from v$encryption_wallet;
+         alter system set tablespace_encryption='AUTO_ENABLE' scope=SPFILE;
+         alter pluggable database {0} save state;
+         shutdown immediate;
+         startup;
+         show parameter tablespace_encryption;
+         '''.format(pdbname)
+         self.log_info_message("Running the sqlplus command to restart the db: " + sqlcmd,self.file_name)
+         output,error,retcode=self.run_sqlplus(sqlpluslogincmd,sqlcmd,None)
+         self.log_info_message("Calling check_sql_err() to validate the sql command return status",self.file_name)
+         self.check_sql_err(output,error,retcode,True)
+         self.unset_mask_str()
 
 ####### Check PDB if it exist ###############
       def check_pdb(self,pdbname):

@@ -2664,7 +2664,7 @@ class OraGSM:
          """
          self.ocommon.log_info_message("Inside setup_gsm_service()",self.file_name)
          status=False
-         service_value="service_name=oltp_rw_svc;service_role=primary"
+         service_value="service_name=oltp_rw_svc;service_role=primary;service_mode=readwrite"
    #     self.ora_env_dict=self.ocommon.add_key("SERVICE1_PARAMS",service_value,self.ora_env_dict)
          reg_exp= self.service_regex()
          counter=1
@@ -2673,10 +2673,10 @@ class OraGSM:
                for key in self.ora_env_dict.keys():
                   if(reg_exp.match(key)):
                      shard_service_status=None
-                     service_name,service_role=self.process_service_vars(key)
+                     service_name,service_role,service_mode=self.process_service_vars(key)
                      shard_service_status=self.check_service_status(service_name)
                      if shard_service_status != 'completed':
-                        self.configure_gsm_service(service_name,service_role)
+                        self.configure_gsm_service(service_name,service_role,service_mode)
                status = self.check_service_status(None)
                if status == 'completed':
                   break
@@ -2700,8 +2700,10 @@ class OraGSM:
           """
           service_name=None
           service_role=None
+          service_mode=None
 
           self.ocommon.log_info_message("Inside process_service_vars()",self.file_name)
+
           cvar_str=self.ora_env_dict[key]
           cvar_dict=dict(item.split("=") for item in cvar_str.split(";"))
           for ckey in cvar_dict.keys():
@@ -2709,10 +2711,12 @@ class OraGSM:
                  service_name = cvar_dict[ckey]
               if ckey == 'service_role':
                  service_role = cvar_dict[ckey]
+              if ckey == 'service_mode':
+                 service_mode = cvar_dict[ckey]
 
               ### Check values must be set
           if service_name and service_role:
-             return service_name,service_role
+             return service_name,service_role,service_mode
           else:
              msg1='''service_name={0},service_role={1}'''.format((service_name or "Missing Value"),(service_role or "Missing Value"))
              msg='''Shard service params {0} is not set correctly. One or more value is missing {1} {2}'''.format(key,msg1)
@@ -2744,7 +2748,7 @@ class OraGSM:
             reg_exp= self.service_regex()
             for key in self.ora_env_dict.keys():
                if(reg_exp.match(key)):
-                  service_name,service_role=self.process_service_vars(key)
+                  service_name,service_role,service_mode=self.process_service_vars(key)
                #  match=re.search("(?i)(?m)"+service_name,matched_output)
                   try:
                     if self.ocommon.check_substr_match(matched_output[0],service_name):
@@ -2763,7 +2767,7 @@ class OraGSM:
           self.ocommon.log_info_message("Inside service_regex()",self.file_name)
           return re.compile('SERVICE[0-9]+_PARAMS')
 		  
-      def configure_gsm_service(self,service_name,service_role):
+      def configure_gsm_service(self,service_name,service_role,service_mode):
          """
          This function configure the service creation.
          """
@@ -2771,6 +2775,7 @@ class OraGSM:
          gsmhost=self.ora_env_dict["ORACLE_HOSTNAME"]
          cadmin=self.ora_env_dict["SHARD_ADMIN_USER"]
          cpasswd="HIDDEN_STRING"
+         catalog_db,catalog_pdb,catalog_port,catalog_region,catalog_host,catalog_name,catalog_chunks,repl_type,repl_factor,repl_unit,stype,sspace,cfname=self.process_clog_vars("CATALOG_PARAMS")
 
          #dtrname,dtrport,dtregion=self.process_director_vars()
          self.ocommon.set_mask_str(self.ora_env_dict["ORACLE_PWD"])
@@ -2781,6 +2786,19 @@ class OraGSM:
             start service -service {3};
          exit;
          '''.format("test",cadmin,cpasswd,service_name,service_role)
+
+         if repl_type is not None:
+            if(repl_type.upper() == 'NATIVE'):
+              if service_mode is None:
+                 msg='''Shard service params {0} is not set correctly. Native type. Missing service_mode parameter.'''.format(key)
+                 self.ocommon.log_error_message(msg,self.file_name)
+                 self.ocommon.prog_exit("Error occurred")
+              gsmcmd='''
+                connect {1}/{2};
+                add service -service {3} -ru_mode {4};
+                start service -service {3};
+              exit;
+              '''.format("test",cadmin,cpasswd,service_name,service_mode)
          output,error,retcode=self.ocommon.exec_gsm_cmd(gsmcmd,None,self.ora_env_dict)
 
          ### Unsetting the encrypt value to None
