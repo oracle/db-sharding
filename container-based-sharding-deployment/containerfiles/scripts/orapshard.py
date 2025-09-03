@@ -273,6 +273,7 @@ class OraPShard:
            if self.ocommon.check_key("DB_RECOVERY_FILE_DEST",self.ora_env_dict):
                msg='''DB_RECOVERY_FILE_DEST {0} is passed as an env variable. Check Passed!'''.format(self.ora_env_dict["DB_RECOVERY_FILE_DEST"])
                self.ocommon.log_info_message(msg,self.file_name)
+               self.ocommon.create_dir(self.ora_env_dict["DB_RECOVERY_FILE_DEST"],True,None,None)
            elif self.ocommon.check_key("CRS_GPC",self.ora_env_dict) and self.ora_env_dict["CRS_GPC"].lower() == 'true':
               dest=self.ora_env_dict["CRS_ASM_DISKGROUP"] if self.ocommon.check_key("CRS_ASM_DISKGROUP",self.ora_env_dict) else "+DATA"
               self.ora_env_dict=self.ocommon.add_key("DB_RECOVERY_FILE_DEST",dest,self.ora_env_dict)
