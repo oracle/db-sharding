@@ -324,8 +324,8 @@ podman run -d --hostname oshard-gsm1 \
 -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
 -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
 -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" \
--e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary" \
--e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary" \
+-e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=primary;service_mode=readwrite" \
+-e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=primary;service_mode=readonly" \
 -e GSM_TRACE_LEVEL="OFF" \
 -e SHARD_SETUP="true" \
 -e COMMON_OS_PWD_FILE=pwdsecret \
@@ -379,8 +379,8 @@ podman run -d --hostname oshard-gsm2 \
 -e SHARD1_PARAMS="shard_host=oshard1-0;shard_db=ORCL1CDB;shard_pdb=ORCL1PDB;shard_port=1521;shard_group=shardgroup1" \
 -e SHARD2_PARAMS="shard_host=oshard2-0;shard_db=ORCL2CDB;shard_pdb=ORCL2PDB;shard_port=1521;shard_group=shardgroup1" \
 -e SHARD3_PARAMS="shard_host=oshard3-0;shard_db=ORCL3CDB;shard_pdb=ORCL3PDB;shard_port=1521;shard_group=shardgroup1" \
--e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby" \
--e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby" \
+-e SERVICE1_PARAMS="service_name=oltp_rw_svc;service_role=standby;service_mode=readwrite" \
+-e SERVICE2_PARAMS="service_name=oltp_ro_svc;service_role=standby;service_mode=readonly" \
 -e GSM_TRACE_LEVEL="OFF" \
 -e CATALOG_SETUP="True" \
 -e COMMON_OS_PWD_FILE=pwdsecret \
