@@ -22,9 +22,6 @@
 - [OKE-based deployment of Oracle Globally Distributed Database](#oke-based-deployment-of-oracle-globally-distributed-database)
   * [Overview](#overview-2)
   * [Details](#details-2)
-- [Container based deployment of Oracle Globally Distributed Database](#container-based-deployment-of-oracle-globally-distributed-database)
-  * [Overview](#overview-3)
-  * [Details](#details-3)
 - [Sharding Fast Data Ingest](#routing-implementations-for-use-in-oracle-sharding-client-applications)
   * [Overview](#overview-4)
   * [Details](#details-4)
@@ -72,16 +69,6 @@ The OKE deployment provides Oracle Kubernetes Engine (OKE)-based deployment of a
 ### Details
 
 To learn more about the OKE sharding feature, see: [OKE sharding][OKE-sharding] documentation.
-
-## Container-based deployment of Oracle Globally Distributed Database 
-
-### Overview 
-
-Oracle provides deployment tools for container-based deployment of Globally Distributed Database.
-
-### Details
-
-To learn more about container-based deployment of Oracle Globally Distributed Database, see: [Container sharding](./container-based-sharding-deployment/README.md).
 
 ## Fast data ingest
 
